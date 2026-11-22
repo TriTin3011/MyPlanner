@@ -11,6 +11,7 @@ import { INTL_LOCALE } from '../i18n/languages'
 import { applyTheme, useSettings } from '../store/settings'
 import { TopBanner } from '../components/TopBanner'
 import { HealthDot } from '../components/HealthDot'
+import { AccountControls } from '../features/auth/AccountControls'
 
 // Khung chung của mọi trang (SPEC §3):
 // - Desktop (≥1024px): sidebar 230px + main panel.
@@ -57,6 +58,7 @@ export function AppShell() {
             <ClockButton />
             <LanguageSwitcher />
             <ThemePicker />
+            <AccountControls />
           </div>
         </aside>
 
@@ -199,6 +201,8 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
         </div>
         <p className="mb-2 text-xs font-bold tracking-wider text-ink-muted uppercase">{t('backup.label')}</p>
         <BackupControls compact />
+        <p className="mt-4 mb-2 text-xs font-bold tracking-wider text-ink-muted uppercase">{t('auth.account')}</p>
+        <AccountControls compact />
       </div>
     </div>
   )

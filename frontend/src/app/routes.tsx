@@ -15,6 +15,8 @@ import { HabitsPage } from '../features/habits/HabitsPage'
 import { WeekPage } from '../features/week/WeekPage'
 import { YearPage } from '../features/year/YearPage'
 import { StatsPage } from '../features/stats/StatsPage'
+import { LoginPage } from '../features/auth/LoginPage'
+import { RequireAuth } from '../features/auth/RequireAuth'
 
 import type { vi } from '../i18n/vi'
 
@@ -36,11 +38,18 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/stats', key: 'stats', icon: ChartColumn },
 ]
 
+// /login đứng riêng, ngoài AppShell. Mọi trang còn lại nằm trong RequireAuth:
+// chưa đăng nhập hoặc token hết hạn thì guard chuyển về /login.
 // AppShell là layout route: các trang con hiện vào <Outlet /> bên trong main panel.
 export const router = createBrowserRouter([
+  { path: '/login', element: <LoginPage /> },
   {
     path: '/',
-    element: <AppShell />,
+    element: (
+      <RequireAuth>
+        <AppShell />
+      </RequireAuth>
+    ),
     children: [
       { index: true, element: <TodayPage /> },
       { path: 'goals', element: <GoalsPage /> },

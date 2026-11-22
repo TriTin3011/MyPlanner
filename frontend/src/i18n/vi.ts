@@ -29,6 +29,19 @@ export const vi = {
   language: {
     label: 'Ngôn ngữ',
   },
+  auth: {
+    title: 'Đăng nhập',
+    subtitle: 'Kế hoạch của bạn đang chờ ở đây.',
+    userName: 'Tên đăng nhập',
+    password: 'Mật khẩu',
+    showPassword: 'Hiện mật khẩu',
+    hidePassword: 'Ẩn mật khẩu',
+    submit: 'Đăng nhập',
+    submitting: 'Đang đăng nhập…',
+    signedInAs: 'Đang đăng nhập: {{name}}',
+    logout: 'Đăng xuất',
+    account: 'Tài khoản',
+  },
   health: {
     pending: 'Đang kiểm tra API…',
     down: 'Không kết nối được API',

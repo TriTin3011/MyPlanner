@@ -32,6 +32,19 @@ export const en: Messages<typeof vi> = {
   language: {
     label: 'Language',
   },
+  auth: {
+    title: 'Sign in',
+    subtitle: 'Your plans are waiting here.',
+    userName: 'Username',
+    password: 'Password',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
+    submit: 'Sign in',
+    submitting: 'Signing in…',
+    signedInAs: 'Signed in as {{name}}',
+    logout: 'Sign out',
+    account: 'Account',
+  },
   health: {
     pending: 'Checking API…',
     down: 'Cannot reach the API',
