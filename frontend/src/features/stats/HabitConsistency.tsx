@@ -1,15 +1,17 @@
+import { useTranslation } from 'react-i18next'
 import type { StatsHabitDto } from '../../api/types'
 import { Bar, SimpleTable, StatsCard } from './StatsCard'
 
 // "Độ đều đặn thói quen": % ngày đã tick trên số ngày có thể tick trong khoảng đang xem.
 export function HabitConsistency({ items }: { items: StatsHabitDto[] }) {
+  const { t } = useTranslation()
   return (
     <StatsCard
       id="stats-habits"
-      title="Độ đều đặn thói quen"
+      title={t('stats.habits.title')}
       chart={
         items.length === 0 ? (
-          <p className="text-sm text-ink-muted">Chưa có thói quen nào.</p>
+          <p className="text-sm text-ink-muted">{t('stats.habits.empty')}</p>
         ) : (
           <ul className="space-y-3">
             {items.map((h) => (
@@ -20,7 +22,12 @@ export function HabitConsistency({ items }: { items: StatsHabitDto[] }) {
                 </div>
                 <Bar percent={h.percent} label={h.title} />
                 <p className="mt-1 text-xs text-ink-muted">
-                  {h.doneDays}/{h.possibleDays} ngày · chuỗi hiện tại {h.currentStreak} · dài nhất {h.longestStreak}
+                  {t('stats.habits.itemMeta', {
+                    done: h.doneDays,
+                    possible: h.possibleDays,
+                    current: h.currentStreak,
+                    longest: h.longestStreak,
+                  })}
                 </p>
               </li>
             ))}
@@ -29,7 +36,13 @@ export function HabitConsistency({ items }: { items: StatsHabitDto[] }) {
       }
       table={
         <SimpleTable
-          head={['Thói quen', '%', 'Ngày', 'Chuỗi', 'Dài nhất']}
+          head={[
+            t('stats.habits.colHabit'),
+            '%',
+            t('stats.habits.colDays'),
+            t('stats.habits.colStreak'),
+            t('stats.habits.colLongest'),
+          ]}
           rows={items.map((h) => [h.title, `${h.percent}%`, `${h.doneDays}/${h.possibleDays}`, h.currentStreak, h.longestStreak])}
         />
       }

@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSettings } from '../../store/settings'
 
 // Khung chung cho mỗi thẻ ở màn Thống kê: tiêu đề, phần phụ (huy hiệu), nút "Bảng" bật/tắt
@@ -19,6 +20,7 @@ export function StatsCard({
   table: ReactNode
   className?: string
 }) {
+  const { t } = useTranslation()
   const mode = useSettings((s) => s.chartModes[id])
   const setChartMode = useSettings((s) => s.setChartMode)
   const showTable = mode === 'table'
@@ -38,7 +40,7 @@ export function StatsCard({
             showTable ? 'bg-primary text-white' : 'bg-[var(--surface)] text-ink hover:bg-accent-tint'
           }`}
         >
-          Bảng
+          {t('stats.tableBtn')}
         </button>
       </div>
       {showTable ? table : chart}

@@ -11,8 +11,9 @@ export function getHabitGridDays(from: string, to: string, view: HabitGridView, 
   return listDays(weekFrom < from ? from : weekFrom, weekTo > to ? to : weekTo)
 }
 
-export function weekdayLabel(date: string) {
-  return ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][parseDateKey(date).getDay()]
+export function weekdayLabel(date: string, locale = 'vi-VN') {
+  const isVi = locale.toLowerCase().startsWith('vi')
+  return new Intl.DateTimeFormat(locale, { weekday: isVi ? 'narrow' : 'short' }).format(parseDateKey(date))
 }
 
 export function isWeekend(date: string) {

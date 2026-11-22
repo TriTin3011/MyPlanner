@@ -1,5 +1,6 @@
 import { Check, LoaderCircle } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { SaveYearMetaRequest } from '../../api/types'
 
 interface YearMetaBlockProps {
@@ -15,6 +16,7 @@ const DEBOUNCE_MS = 800
 // hoặc rời ô (blur) thì gửi cả hai trường một lần. Không có nút Lưu.
 // Ô nhập là "controlled" theo state cục bộ; trang remount khối này (key = năm) khi đổi năm.
 export function YearMetaBlock({ keyword: initialKeyword, vision: initialVision, onSave, className = '' }: YearMetaBlockProps) {
+  const { t } = useTranslation()
   const [keyword, setKeyword] = useState(initialKeyword)
   const [vision, setVision] = useState(initialVision)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
@@ -52,9 +54,9 @@ export function YearMetaBlock({ keyword: initialKeyword, vision: initialVision, 
     'mt-1.5 w-full rounded-xl border-2 border-ink bg-surface px-3 text-ink placeholder:text-ink-muted focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none'
 
   return (
-    <section aria-label="Từ khoá và tầm nhìn năm" className={`sketch bg-[var(--surface)] p-3.5 lg:p-5 ${className}`}>
+    <section aria-label={t('year.meta.sectionAria')} className={`sketch bg-[var(--surface)] p-3.5 lg:p-5 ${className}`}>
       <label htmlFor={keywordId} className={labelClass}>
-        Từ khoá của năm
+        {t('year.meta.keywordLabel')}
       </label>
       <input
         id={keywordId}
@@ -65,13 +67,13 @@ export function YearMetaBlock({ keyword: initialKeyword, vision: initialVision, 
           schedule({ keyword: e.target.value, vision })
         }}
         onBlur={() => void save({ keyword, vision })}
-        placeholder="Một từ cho cả năm, vd: Bứt phá"
+        placeholder={t('year.meta.keywordPlaceholder')}
         autoComplete="off"
         className={`${fieldClass} min-h-11 font-display text-lg font-extrabold text-primary-ink`}
       />
 
       <label htmlFor={visionId} className={`${labelClass} mt-4`}>
-        Tầm nhìn năm nay
+        {t('year.meta.visionLabel')}
       </label>
       <textarea
         id={visionId}
@@ -83,7 +85,7 @@ export function YearMetaBlock({ keyword: initialKeyword, vision: initialVision, 
           schedule({ keyword, vision: e.target.value })
         }}
         onBlur={() => void save({ keyword, vision })}
-        placeholder="Cuối năm nay, mình muốn…"
+        placeholder={t('year.meta.visionPlaceholder')}
         className={`${fieldClass} resize-y py-2 text-base leading-relaxed`}
       />
 
@@ -92,16 +94,16 @@ export function YearMetaBlock({ keyword: initialKeyword, vision: initialVision, 
         {status === 'saving' && (
           <>
             <LoaderCircle size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-            Đang lưu…
+            {t('year.meta.saving')}
           </>
         )}
         {status === 'saved' && (
           <>
             <Check size={13} className="text-primary" aria-hidden="true" />
-            Đã lưu
+            {t('year.meta.saved')}
           </>
         )}
-        {status === 'error' && <span className="text-danger">Chưa lưu được. Sửa tiếp hoặc bấm ra ngoài để thử lại.</span>}
+        {status === 'error' && <span className="text-danger">{t('year.meta.error')}</span>}
       </p>
     </section>
   )

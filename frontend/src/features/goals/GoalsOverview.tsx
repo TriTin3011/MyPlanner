@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { GoalBoardDto, LifeArea } from '../../api/types'
 import { ProgressRing } from '../../components/ProgressRing'
 import { lifeArea } from './lifeAreas'
@@ -10,23 +11,24 @@ export interface GoalsOverviewProps {
 
 // Khối tổng quan mục tiêu (SPEC §7.2). Mọi số phần trăm và số lượng do BE tính sẵn trong GoalBoardDto.
 export function GoalsOverview({ board, selectedArea, onSelectArea }: GoalsOverviewProps) {
+  const { t } = useTranslation()
   return (
     <section
-      aria-label="Tổng quan mục tiêu"
+      aria-label={t('goals.overview.sectionAria')}
       className="sketch flex flex-col items-center justify-center gap-4 bg-surface p-3.5 lg:p-5"
     >
       <div className="flex items-center gap-4">
-        <ProgressRing value={board.percent} label="Tỉ lệ mục tiêu đã hoàn thành" />
+        <ProgressRing value={board.percent} label={t('goals.overview.ringLabel')} />
         <p className="font-display text-2xl leading-tight font-extrabold text-ink sm:text-3xl">
           <span>
             {board.done}/{board.total}
           </span>{' '}
-          <span className="text-ink-muted">mục tiêu</span>
+          <span className="text-ink-muted">{t('goals.overview.goalsUnit', { count: board.total })}</span>
         </p>
       </div>
 
       {/* Dãy 8 chip lọc theo lĩnh vực; bấm lại chip đang chọn để bỏ lọc */}
-      <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5" role="group" aria-label="Lọc theo lĩnh vực">
+      <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5" role="group" aria-label={t('goals.overview.filterGroupAria')}>
         {board.areas.map((item) => {
           const info = lifeArea(item.area)
           const Icon = info.Icon
