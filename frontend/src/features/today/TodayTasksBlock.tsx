@@ -1,6 +1,8 @@
 import { Repeat2 } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { TaskDto } from '../../api/types'
+import { useHotkey } from '../../lib/useHotkey'
 import { SortableTaskList } from './SortableTaskList'
 import { AddTaskInput } from '../../components/AddTaskInput'
 import { NoteCollapsible } from '../../components/NoteCollapsible'
@@ -48,6 +50,14 @@ export function TodayTasksBlock({
   onOpenRecurring,
   onReorder,
 }: TodayTasksBlockProps) {
+  const { t } = useTranslation()
+  const addInputRef = useRef<HTMLInputElement>(null)
+
+  // Phím tắt N trên trang Hôm nay đưa con trỏ vào ô thêm việc (SPEC §15 giai đoạn 10).
+  useHotkey('n', () => {
+    addInputRef.current?.focus()
+  })
+
   function renderTask(task: TaskDto, dragHandle?: ReactNode) {
     return (
       <TaskItem
@@ -112,7 +122,12 @@ export function TodayTasksBlock({
         </div>
       )}
 
-      <AddTaskInput pending={addPending} onAdd={onAdd} />
+      <AddTaskInput
+        inputRef={addInputRef}
+        shortcutHint={t('shortcuts.addTaskKey')}
+        pending={addPending}
+        onAdd={onAdd}
+      />
 
       <NoteCollapsible
         initialContent={noteContent}

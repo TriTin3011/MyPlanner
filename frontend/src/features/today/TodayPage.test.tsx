@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import '../../i18n'
 import type { TodayDashboardDto } from '../../api/types'
 import { TodayPage } from './TodayPage'
 
@@ -98,5 +99,26 @@ describe('TodayPage', () => {
     renderPage()
 
     await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('Không kết nối được backend'))
+  })
+
+  it('focuses the add task input when pressing N on TodayPage and ignores N while typing in inputs', async () => {
+    get.mockImplementation((url: string) =>
+      Promise.resolve({ data: url.startsWith('/dashboard/today') ? dashboard : [] }),
+    )
+
+    renderPage()
+
+    const addInput = await screen.findByRole('textbox', { name: 'Tên việc mới' })
+    expect(addInput.getAttribute('aria-keyshortcuts')).toBe('n')
+
+    fireEvent.keyDown(window, { key: 'n' })
+    expect(document.activeElement).toBe(addInput)
+
+    // Mở ghi chú và gõ phím N trong textarea thì không cướp focus về ô thêm việc
+    fireEvent.click(screen.getByRole('button', { name: /Ghi chú/i }))
+    const noteTextarea = screen.getByPlaceholderText(/Ghi chú/i)
+    noteTextarea.focus()
+    fireEvent.keyDown(noteTextarea, { key: 'n' })
+    expect(document.activeElement).toBe(noteTextarea)
   })
 })

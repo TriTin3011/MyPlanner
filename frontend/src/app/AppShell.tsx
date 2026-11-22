@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Clock, MoreHorizontal, X } from 'lucide-react'
 import { NAV_ITEMS } from './routes'
 import { BrandMark } from '../components/BrandMark'
+import { BackupControls } from '../components/BackupControls'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { ThemePicker } from '../components/ThemePicker'
 import { INTL_LOCALE } from '../i18n/languages'
@@ -193,7 +194,11 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
           <LanguageSwitcher compact />
         </div>
         <p className="mb-2 text-xs font-bold tracking-wider text-ink-muted uppercase">{t('theme.label')}</p>
-        <ThemePicker compact />
+        <div className="mb-4">
+          <ThemePicker compact />
+        </div>
+        <p className="mb-2 text-xs font-bold tracking-wider text-ink-muted uppercase">{t('backup.label')}</p>
+        <BackupControls compact />
       </div>
     </div>
   )
