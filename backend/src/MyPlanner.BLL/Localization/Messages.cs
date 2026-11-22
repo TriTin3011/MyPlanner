@@ -32,6 +32,12 @@ public static class Messages
 
     public static string NotFoundTitle => Text("Không tìm thấy", "Not found");
     public static string BadRequestTitle => Text("Yêu cầu không hợp lệ", "Invalid request");
+    public static string UnauthorizedTitle => Text("Chưa đăng nhập", "Unauthorized");
+    // Cố ý không nói sai tên hay sai mật khẩu: nói rõ sẽ giúp kẻ dò biết tên đăng nhập nào có thật.
+    public static string InvalidCredentials => Text("Sai tên đăng nhập hoặc mật khẩu.", "Incorrect username or password.");
+    public static string TooManyLoginAttempts => Text("Đăng nhập sai quá nhiều lần, thử lại sau một phút.", "Too many login attempts. Try again in a minute.");
+    public static string UserNameRequired => Text("Tên đăng nhập không được trống.", "Username is required.");
+    public static string PasswordRequired => Text("Mật khẩu không được trống.", "Password is required.");
     public static string NotFoundDetail(string item) => Format("{0} không tồn tại.", "{0} was not found.", item);
 
     public static string Task => Text("Việc", "Task");

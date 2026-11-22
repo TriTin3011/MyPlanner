@@ -23,6 +23,32 @@ namespace MyPlanner.DAL.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("MyPlanner.Core.Entities.AppUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserName")
+                        .IsUnique();
+
+                    b.ToTable("Users", (string)null);
+                });
+
             modelBuilder.Entity("MyPlanner.Core.Entities.DayNote", b =>
                 {
                     b.Property<DateOnly>("Date")
@@ -43,7 +69,6 @@ namespace MyPlanner.DAL.Migrations
             modelBuilder.Entity("MyPlanner.Core.Entities.Goal", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Area")
@@ -89,7 +114,6 @@ namespace MyPlanner.DAL.Migrations
             modelBuilder.Entity("MyPlanner.Core.Entities.GoalStep", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateOnly?>("Deadline")
@@ -124,7 +148,6 @@ namespace MyPlanner.DAL.Migrations
             modelBuilder.Entity("MyPlanner.Core.Entities.Habit", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<bool>("Active")
@@ -170,7 +193,6 @@ namespace MyPlanner.DAL.Migrations
             modelBuilder.Entity("MyPlanner.Core.Entities.RecurringTask", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<bool>("Active")
@@ -207,7 +229,6 @@ namespace MyPlanner.DAL.Migrations
             modelBuilder.Entity("MyPlanner.Core.Entities.Subtask", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<bool>("Done")
@@ -234,7 +255,6 @@ namespace MyPlanner.DAL.Migrations
             modelBuilder.Entity("MyPlanner.Core.Entities.TaskItem", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -321,7 +341,6 @@ namespace MyPlanner.DAL.Migrations
             modelBuilder.Entity("MyPlanner.Core.Entities.YearPlanItem", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<bool>("Done")

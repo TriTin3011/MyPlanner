@@ -19,6 +19,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<WeekNote> WeekNotes => Set<WeekNote>();
     public DbSet<YearMeta> YearMeta => Set<YearMeta>();
     public DbSet<YearPlanItem> YearPlanItems => Set<YearPlanItem>();
+    public DbSet<AppUser> Users => Set<AppUser>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
