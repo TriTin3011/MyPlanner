@@ -96,19 +96,8 @@ public class GoalService(IGoalRepository goals, TimeProvider clock) : IGoalServi
     {
         var steps = await goals.StepDeadlinesAsync(from, to, ct);
         var goalRows = await goals.GoalDeadlinesAsync(from, to, ct);
-
-        return steps
-            .Select(s => new DeadlineDto(s.Deadline, DeadlineKind.Step, s.GoalId, s.GoalTitle, s.Title, s.Done,
-                IsOverdue(s.Deadline, s.Done, today)))
-            .Concat(goalRows.Select(g => new DeadlineDto(g.Deadline, DeadlineKind.Goal, g.GoalId, g.Title, g.Title, g.Done,
-                IsOverdue(g.Deadline, g.Done, today))))
-            .OrderBy(d => d.Date)
-            .ThenBy(d => d.Kind)
-            .ToList();
+        return YearBoard.Deadlines(steps.Select(s => (s.GoalId, s.GoalTitle, s.Title, s.Deadline, s.Done)), goalRows, today);
     }
-
-    // SPEC §13.4: quá hạn = chưa xong và hạn đã qua (hạn đúng hôm nay thì chưa quá).
-    private static bool IsOverdue(DateOnly deadline, bool done, DateOnly today) => !done && deadline < today;
 
     private static void Apply(Goal goal, SaveGoalRequest req, DateTimeOffset now)
     {
