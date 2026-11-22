@@ -29,6 +29,15 @@ public class CreateYearItemRequestValidator : AbstractValidator<CreateYearItemRe
     }
 }
 
+public class ReorderYearItemsRequestValidator : AbstractValidator<ReorderYearItemsRequest>
+{
+    public ReorderYearItemsRequestValidator()
+    {
+        RuleFor(x => x.Month).InclusiveBetween(1, 12);
+        RuleFor(x => x.Ids).NotEmpty().Must(ids => ids.Distinct().Count() == ids.Count).WithMessage("Danh sách id bị trùng.");
+    }
+}
+
 public class UpdateYearItemRequestValidator : AbstractValidator<UpdateYearItemRequest>
 {
     public UpdateYearItemRequestValidator()
