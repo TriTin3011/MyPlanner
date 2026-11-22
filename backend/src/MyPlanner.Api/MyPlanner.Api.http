@@ -1,0 +1,6 @@
+@MyPlanner.Api_HostAddress = http://localhost:5274
+
+GET {{MyPlanner.Api_HostAddress}}/api/health
+Accept: application/json
+
+###
