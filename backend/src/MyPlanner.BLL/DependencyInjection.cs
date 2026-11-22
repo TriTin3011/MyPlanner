@@ -1,7 +1,10 @@
 using System.Text.Json;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity;
+using MyPlanner.BLL.Auth;
 using MyPlanner.BLL.Data;
+using MyPlanner.Core.Entities;
 using MyPlanner.BLL.Dashboard;
 using MyPlanner.BLL.Goals;
 using MyPlanner.BLL.Habits;
@@ -35,6 +38,11 @@ public static class DependencyInjection
         services.AddScoped<IDataService, DataService>();
         services.AddScoped<ISeedService, SeedService>();
         services.AddScoped<IStatsService, StatsService>();
+
+        // Đăng nhập: PasswordHasher và bộ ký JWT không giữ trạng thái theo request nên dùng singleton.
+        services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
+        services.AddSingleton<ITokenIssuer, JwtTokenIssuer>();
+        services.AddScoped<IAuthService, AuthService>();
 
         // FluentValidation: quét assembly BLL, đăng ký mọi AbstractValidator<T>. ValidationFilter (Api) gọi chúng trước mỗi action.
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);

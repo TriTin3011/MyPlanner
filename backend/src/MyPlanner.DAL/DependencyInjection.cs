@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using MyPlanner.DAL.Auth;
 using MyPlanner.DAL.Data;
 using MyPlanner.DAL.Goals;
 using MyPlanner.DAL.Habits;
@@ -28,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<IYearRepository, YearRepository>();
         services.AddScoped<IDataRepository, DataRepository>();
         services.AddScoped<IStatsRepository, StatsRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
 
         return services;
     }

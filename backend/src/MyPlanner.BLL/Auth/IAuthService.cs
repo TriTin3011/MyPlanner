@@ -1,0 +1,13 @@
+using MyPlanner.Core.Dtos;
+
+namespace MyPlanner.BLL.Auth;
+
+public interface IAuthService
+{
+    // Đúng tên + mật khẩu thì trả JWT, sai thì ném AppException 401.
+    Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken ct);
+
+    // Gọi một lần lúc khởi động: nếu bảng Users còn trống và cấu hình có Auth:UserName + Auth:Password thì tạo tài khoản.
+    // Trả true khi vừa tạo. Có người dùng rồi thì không làm gì (đổi biến môi trường sau đó không ghi đè mật khẩu).
+    Task<bool> EnsureAccountAsync(string? userName, string? password, CancellationToken ct);
+}
