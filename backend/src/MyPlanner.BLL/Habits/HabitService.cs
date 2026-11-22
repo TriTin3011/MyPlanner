@@ -1,4 +1,5 @@
 using MyPlanner.BLL.Common;
+using MyPlanner.BLL.Localization;
 using MyPlanner.Core.Dtos;
 using MyPlanner.Core.Entities;
 using MyPlanner.DAL.Habits;
@@ -30,7 +31,7 @@ public class HabitService(IHabitRepository habits, TimeProvider clock) : IHabitS
     // Active = false là "lưu trữ": ẩn khỏi Hôm nay/bảng tháng nhưng giữ log cũ cho thống kê.
     public async Task<HabitDto> UpdateAsync(Guid id, SaveHabitRequest req, CancellationToken ct)
     {
-        var habit = await habits.FindAsync(id, ct) ?? throw AppException.NotFound("Thói quen");
+        var habit = await habits.FindAsync(id, ct) ?? throw AppException.NotFound(Messages.Habit);
         habit.Title = req.Title.Trim();
         if (habit.Active != req.Active) habit.ArchivedAt = req.Active ? null : clock.GetUtcNow();
         habit.Active = req.Active;
@@ -42,7 +43,7 @@ public class HabitService(IHabitRepository habits, TimeProvider clock) : IHabitS
     // Xoá hẳn (FK cascade xoá luôn log). Muốn giữ lịch sử thì dùng PUT active=false.
     public async Task DeleteAsync(Guid id, CancellationToken ct)
     {
-        var habit = await habits.FindAsync(id, ct) ?? throw AppException.NotFound("Thói quen");
+        var habit = await habits.FindAsync(id, ct) ?? throw AppException.NotFound(Messages.Habit);
         habits.Remove(habit);
         await habits.SaveChangesAsync(ct);
     }
@@ -50,7 +51,7 @@ public class HabitService(IHabitRepository habits, TimeProvider clock) : IHabitS
     public async Task ReorderAsync(IReadOnlyList<Guid> ids, CancellationToken ct)
     {
         var all = (await habits.FindAllAsync(ct)).ToDictionary(h => h.Id);
-        if (ids.Any(id => !all.ContainsKey(id))) throw AppException.NotFound("Một số thói quen");
+        if (ids.Any(id => !all.ContainsKey(id))) throw AppException.NotFound(Messages.SomeHabits);
         for (var i = 0; i < ids.Count; i++) all[ids[i]].Order = i;
         await habits.SaveChangesAsync(ct);
     }
@@ -62,9 +63,9 @@ public class HabitService(IHabitRepository habits, TimeProvider clock) : IHabitS
     {
         // Server không biết múi giờ client; nơi sớm nhất thế giới là UTC+14 nên ngày lớn hơn mức đó chắc chắn là tương lai.
         var latestToday = DateOnly.FromDateTime(clock.GetUtcNow().AddHours(14).UtcDateTime);
-        if (date > latestToday) throw AppException.BadRequest("Không thể tick thói quen cho ngày trong tương lai.");
+        if (date > latestToday) throw AppException.BadRequest(Messages.FutureHabitLog);
 
-        _ = await habits.FindAsync(habitId, ct) ?? throw AppException.NotFound("Thói quen");
+        _ = await habits.FindAsync(habitId, ct) ?? throw AppException.NotFound(Messages.Habit);
         if (await habits.HasLogAsync(habitId, date, ct)) return;
         habits.AddLog(new HabitLog { HabitId = habitId, Date = date });
         await habits.SaveChangesAsync(ct);

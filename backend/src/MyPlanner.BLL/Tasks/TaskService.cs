@@ -1,4 +1,5 @@
 using MyPlanner.BLL.Common;
+using MyPlanner.BLL.Localization;
 using MyPlanner.Core.Dtos;
 using MyPlanner.Core.Entities;
 using MyPlanner.DAL.Tasks;
@@ -37,7 +38,7 @@ public class TaskService(ITaskRepository tasks, IRecurringRepository recurring, 
 
     public async Task<TaskDto> UpdateAsync(Guid id, SaveTaskRequest req, CancellationToken ct)
     {
-        var task = await tasks.FindAsync(id, ct) ?? throw AppException.NotFound("Việc");
+        var task = await tasks.FindAsync(id, ct) ?? throw AppException.NotFound(Messages.Task);
 
         if (task.Date != req.Date)
         {
@@ -74,7 +75,7 @@ public class TaskService(ITaskRepository tasks, IRecurringRepository recurring, 
 
     public async Task<TaskDto> SetDoneAsync(Guid id, bool done, CancellationToken ct)
     {
-        var task = await tasks.FindAsync(id, ct) ?? throw AppException.NotFound("Việc");
+        var task = await tasks.FindAsync(id, ct) ?? throw AppException.NotFound(Messages.Task);
         if (task.Done != done)
         {
             task.Done = done;
@@ -87,7 +88,7 @@ public class TaskService(ITaskRepository tasks, IRecurringRepository recurring, 
 
     public async Task DeleteAsync(Guid id, CancellationToken ct)
     {
-        var task = await tasks.FindAsync(id, ct) ?? throw AppException.NotFound("Việc");
+        var task = await tasks.FindAsync(id, ct) ?? throw AppException.NotFound(Messages.Task);
 
         // Xoá việc sinh từ việc lặp lại: ghi nhớ ngày đó để materialize không sinh lại (SPEC §12.2).
         if (task.RecurringId is { } rid && await recurring.FindAsync(rid, ct) is { } rule)
@@ -119,7 +120,7 @@ public class TaskService(ITaskRepository tasks, IRecurringRepository recurring, 
     public async Task ReorderAsync(ReorderTasksRequest req, CancellationToken ct)
     {
         var found = await tasks.FindManyAsync(req.Ids, ct);
-        if (found.Count != req.Ids.Distinct().Count()) throw AppException.NotFound("Một số việc");
+        if (found.Count != req.Ids.Distinct().Count()) throw AppException.NotFound(Messages.SomeTasks);
 
         var byId = found.ToDictionary(t => t.Id);
         var now = clock.GetUtcNow();
@@ -134,5 +135,5 @@ public class TaskService(ITaskRepository tasks, IRecurringRepository recurring, 
     }
 
     private async Task<TaskDto> GetOrThrow(Guid id, CancellationToken ct) =>
-        await tasks.GetAsync(id, ct) ?? throw AppException.NotFound("Việc");
+        await tasks.GetAsync(id, ct) ?? throw AppException.NotFound(Messages.Task);
 }

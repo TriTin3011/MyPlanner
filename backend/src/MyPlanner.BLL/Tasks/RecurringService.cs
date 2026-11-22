@@ -1,4 +1,5 @@
 using MyPlanner.BLL.Common;
+using MyPlanner.BLL.Localization;
 using MyPlanner.Core.Domain;
 using MyPlanner.Core.Dtos;
 using MyPlanner.Core.Entities;
@@ -29,7 +30,7 @@ public class RecurringService(IRecurringRepository rules, ITaskRepository tasks,
 
     public async Task<RecurringTaskDto> UpdateAsync(Guid id, SaveRecurringRequest req, CancellationToken ct)
     {
-        var rule = await rules.FindAsync(id, ct) ?? throw AppException.NotFound("Việc lặp lại");
+        var rule = await rules.FindAsync(id, ct) ?? throw AppException.NotFound(Messages.RecurringTask);
         rule.Title = req.Title.Trim();
         rule.Weekdays = req.Weekdays.Distinct().Order().ToList();
         rule.Tags = req.Tags?.Distinct().ToList() ?? [];
@@ -42,7 +43,7 @@ public class RecurringService(IRecurringRepository rules, ITaskRepository tasks,
     // Xoá khuôn: các Task đã sinh vẫn giữ (là lịch sử), chỉ không sinh thêm.
     public async Task DeleteAsync(Guid id, CancellationToken ct)
     {
-        var rule = await rules.FindAsync(id, ct) ?? throw AppException.NotFound("Việc lặp lại");
+        var rule = await rules.FindAsync(id, ct) ?? throw AppException.NotFound(Messages.RecurringTask);
         rules.Remove(rule);
         await rules.SaveChangesAsync(ct);
     }

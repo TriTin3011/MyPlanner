@@ -39,6 +39,8 @@ public static class DependencyInjection
         // Key lỗi dạng camelCase ("title", không phải "Title") để khớp tên field JSON mà FE gửi.
         ValidatorOptions.Global.PropertyNameResolver = (_, member, _) =>
             member is null ? null : JsonNamingPolicy.CamelCase.ConvertName(member.Name);
+        // Null means FluentValidation resolves built-in messages from CurrentUICulture for each request.
+        ValidatorOptions.Global.LanguageManager.Culture = null;
 
         return services;
     }

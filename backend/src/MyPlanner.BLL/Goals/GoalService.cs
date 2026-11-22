@@ -1,4 +1,5 @@
 using MyPlanner.BLL.Common;
+using MyPlanner.BLL.Localization;
 using MyPlanner.Core.Domain;
 using MyPlanner.Core.Dtos;
 using MyPlanner.Core.Entities;
@@ -12,7 +13,7 @@ public class GoalService(IGoalRepository goals, TimeProvider clock) : IGoalServi
     public Task<List<GoalDto>> ListAsync(CancellationToken ct) => goals.ListAsync(ct);
 
     public async Task<GoalDto> GetAsync(Guid id, CancellationToken ct) =>
-        await goals.GetAsync(id, ct) ?? throw AppException.NotFound("Mục tiêu");
+        await goals.GetAsync(id, ct) ?? throw AppException.NotFound(Messages.Goal);
 
     public async Task<GoalDto> CreateAsync(SaveGoalRequest req, CancellationToken ct)
     {
@@ -26,7 +27,7 @@ public class GoalService(IGoalRepository goals, TimeProvider clock) : IGoalServi
 
     public async Task<GoalDto> UpdateAsync(Guid id, SaveGoalRequest req, CancellationToken ct)
     {
-        var goal = await goals.FindAsync(id, ct) ?? throw AppException.NotFound("Mục tiêu");
+        var goal = await goals.FindAsync(id, ct) ?? throw AppException.NotFound(Messages.Goal);
         Apply(goal, req, clock.GetUtcNow());
         await goals.SaveChangesAsync(ct);
         return await GetAsync(id, ct);
@@ -34,14 +35,14 @@ public class GoalService(IGoalRepository goals, TimeProvider clock) : IGoalServi
 
     public async Task DeleteAsync(Guid id, CancellationToken ct)
     {
-        var goal = await goals.FindAsync(id, ct) ?? throw AppException.NotFound("Mục tiêu");
+        var goal = await goals.FindAsync(id, ct) ?? throw AppException.NotFound(Messages.Goal);
         goals.Remove(goal);
         await goals.SaveChangesAsync(ct);
     }
 
     public async Task<GoalDto> AddStepAsync(Guid goalId, SaveGoalStepRequest req, CancellationToken ct)
     {
-        var goal = await goals.FindAsync(goalId, ct) ?? throw AppException.NotFound("Mục tiêu");
+        var goal = await goals.FindAsync(goalId, ct) ?? throw AppException.NotFound(Messages.Goal);
         var now = clock.GetUtcNow();
         goal.Steps.Add(new GoalStep
         {
@@ -56,8 +57,8 @@ public class GoalService(IGoalRepository goals, TimeProvider clock) : IGoalServi
 
     public async Task<GoalDto> UpdateStepAsync(Guid goalId, Guid stepId, SaveGoalStepRequest req, CancellationToken ct)
     {
-        var goal = await goals.FindAsync(goalId, ct) ?? throw AppException.NotFound("Mục tiêu");
-        var step = goal.Steps.FirstOrDefault(s => s.Id == stepId) ?? throw AppException.NotFound("Bước");
+        var goal = await goals.FindAsync(goalId, ct) ?? throw AppException.NotFound(Messages.Goal);
+        var step = goal.Steps.FirstOrDefault(s => s.Id == stepId) ?? throw AppException.NotFound(Messages.GoalStep);
         step.Title = req.Title.Trim();
         step.Deadline = req.Deadline;
         if (step.Done != req.Done) step.DoneAt = req.Done ? clock.GetUtcNow() : null;
@@ -69,8 +70,8 @@ public class GoalService(IGoalRepository goals, TimeProvider clock) : IGoalServi
 
     public async Task<GoalDto> DeleteStepAsync(Guid goalId, Guid stepId, CancellationToken ct)
     {
-        var goal = await goals.FindAsync(goalId, ct) ?? throw AppException.NotFound("Mục tiêu");
-        var step = goal.Steps.FirstOrDefault(s => s.Id == stepId) ?? throw AppException.NotFound("Bước");
+        var goal = await goals.FindAsync(goalId, ct) ?? throw AppException.NotFound(Messages.Goal);
+        var step = goal.Steps.FirstOrDefault(s => s.Id == stepId) ?? throw AppException.NotFound(Messages.GoalStep);
         goal.Steps.Remove(step); // bỏ khỏi navigation collection: EF xoá dòng con (orphan, FK bắt buộc)
         await goals.SaveChangesAsync(ct);
         return await GetAsync(goalId, ct);
@@ -78,10 +79,10 @@ public class GoalService(IGoalRepository goals, TimeProvider clock) : IGoalServi
 
     public async Task<GoalDto> ReorderStepsAsync(Guid goalId, IReadOnlyList<Guid> ids, CancellationToken ct)
     {
-        var goal = await goals.FindAsync(goalId, ct) ?? throw AppException.NotFound("Mục tiêu");
+        var goal = await goals.FindAsync(goalId, ct) ?? throw AppException.NotFound(Messages.Goal);
         // Bắt buộc gửi đủ và đúng tập bước: tránh trường hợp client cũ (thiếu bước vừa thêm) làm lệch thứ tự.
         if (ids.Count != goal.Steps.Count || !goal.Steps.Select(s => s.Id).ToHashSet().SetEquals(ids))
-            throw AppException.BadRequest("Danh sách bước không khớp với mục tiêu.");
+            throw AppException.BadRequest(Messages.GoalStepListMismatch);
         var position = ids.Select((id, i) => (id, i)).ToDictionary(x => x.id, x => x.i);
         foreach (var step in goal.Steps) step.Order = position[step.Id];
         await goals.SaveChangesAsync(ct);

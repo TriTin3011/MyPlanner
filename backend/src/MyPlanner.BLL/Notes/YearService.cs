@@ -1,4 +1,5 @@
 using MyPlanner.BLL.Common;
+using MyPlanner.BLL.Localization;
 using MyPlanner.Core.Dtos;
 using MyPlanner.Core.Domain;
 using MyPlanner.Core.Entities;
@@ -27,7 +28,7 @@ public class YearService(IYearRepository years, IGoalRepository goals) : IYearSe
     {
         var found = await years.FindItemsAsync(req.Ids, ct);
         if (found.Count != req.Ids.Count || found.Any(i => i.Year != year))
-            throw AppException.NotFound("Một số mục kế hoạch năm");
+            throw AppException.NotFound(Messages.SomeYearItems);
 
         var byId = found.ToDictionary(i => i.Id);
         for (var i = 0; i < req.Ids.Count; i++)
@@ -68,7 +69,7 @@ public class YearService(IYearRepository years, IGoalRepository goals) : IYearSe
 
     public async Task<YearPlanItemDto> UpdateItemAsync(Guid id, UpdateYearItemRequest req, CancellationToken ct)
     {
-        var item = await years.FindItemAsync(id, ct) ?? throw AppException.NotFound("Mục kế hoạch năm");
+        var item = await years.FindItemAsync(id, ct) ?? throw AppException.NotFound(Messages.YearItem);
         if (item.Month != req.Month) item.Order = await years.NextOrderAsync(item.Year, req.Month, ct);
         item.Month = req.Month;
         item.Title = req.Title.Trim();
@@ -79,7 +80,7 @@ public class YearService(IYearRepository years, IGoalRepository goals) : IYearSe
 
     public async Task DeleteItemAsync(Guid id, CancellationToken ct)
     {
-        var item = await years.FindItemAsync(id, ct) ?? throw AppException.NotFound("Mục kế hoạch năm");
+        var item = await years.FindItemAsync(id, ct) ?? throw AppException.NotFound(Messages.YearItem);
         years.Remove(item);
         await years.SaveChangesAsync(ct);
     }

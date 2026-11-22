@@ -1,3 +1,5 @@
+using MyPlanner.BLL.Localization;
+
 namespace MyPlanner.BLL.Common;
 
 // Lỗi nghiệp vụ có chủ đích. Service ném, Api (AppExceptionHandler) đổi thành ProblemDetails với đúng status code.
@@ -8,6 +10,6 @@ public class AppException(int statusCode, string title, string? detail = null) :
     public string Title { get; } = title;
     public string? Detail { get; } = detail;
 
-    public static AppException NotFound(string what) => new(404, "Không tìm thấy", $"{what} không tồn tại.");
-    public static AppException BadRequest(string detail) => new(400, "Yêu cầu không hợp lệ", detail);
+    public static AppException NotFound(string what) => new(404, Messages.NotFoundTitle, Messages.NotFoundDetail(what));
+    public static AppException BadRequest(string detail) => new(400, Messages.BadRequestTitle, detail);
 }

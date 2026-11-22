@@ -1,5 +1,6 @@
 using MyPlanner.Core.Dtos;
 using MyPlanner.Core.Domain;
+using MyPlanner.BLL.Localization;
 using MyPlanner.DAL.Goals;
 using MyPlanner.DAL.Habits;
 using MyPlanner.DAL.Notes;
@@ -93,10 +94,10 @@ public class DashboardService(
             WeekKeys.ToKey(monday), monday, sunday,
             done, weekTasks.Count, habitPercent,
             TodayRemaining: todayRemaining,
-            Comment: Metrics.WeekComment(done, weekTasks.Count),
+            Comment: Metrics.WeekComment(done, weekTasks.Count, LocalizedWeekTextSource.Instance),
             Days: days,
             Insights: Metrics.WeekInsights(done, prevDone, habitCells, habitLogs, habitPercent, prevHabitPercent,
-                best?.Date, best?.TasksDone ?? 0));
+                best?.Date, best?.TasksDone ?? 0, LocalizedWeekTextSource.Instance));
     }
 
     // SPEC §9.2 chế độ 12 tuần: count tuần liên tiếp, tuần cuối bắt đầu ở lastMonday. Một truy vấn rồi gộp theo tuần.
