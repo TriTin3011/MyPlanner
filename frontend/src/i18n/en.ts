@@ -288,6 +288,7 @@ export const en: Messages<typeof vi> = {
   },
   week: {
     title: 'Weekly plan',
+    loadErrorPrefix: 'Could not load the weekly plan.',
     subtitle: 'Week {{week}} · {{from}} – {{to}}/{{year}}',
     currentWeek: 'This week',
     unit: 'week',
@@ -499,6 +500,7 @@ export const en: Messages<typeof vi> = {
   },
   year: {
     title: 'Yearly plan',
+    loadErrorPrefix: 'Could not load the yearly plan.',
     subtitle: 'Year {{year}}',
     currentYear: 'This year',
     unit: 'year',
