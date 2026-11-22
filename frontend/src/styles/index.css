@@ -31,6 +31,15 @@
 
 /* Font (SPEC §4.3): Baloo 2 cho tiêu đề và số, Be Vietnam Pro cho nội dung. */
 @theme {
+  /* Phong cách pixel: mọi rounded-* thành góc vuông, chỉ giữ rounded-full cho hình tròn. */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
   --font-display: 'Baloo 2', system-ui, sans-serif;
   --font-sans: 'Be Vietnam Pro', system-ui, sans-serif;
 }
@@ -48,6 +57,12 @@
   h2,
   h3 {
     font-family: var(--font-display);
+  }
+
+  /* Vòng focus mặc định khi dùng bàn phím (WCAG 2.4.7); class focus-visible:* riêng vẫn ghi đè được. */
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
   }
 
   /* iOS tự zoom khi input nhỏ hơn 16px (SPEC §3.4) */
