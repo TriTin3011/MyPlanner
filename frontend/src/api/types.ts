@@ -1,0 +1,61 @@
+// Tên ngắn cho kiểu DTO. Nguồn sự thật là schema.ts, sinh tự động từ OpenAPI của backend (npm run gen:api).
+// Không sửa tay schema.ts; đổi DTO ở backend rồi chạy lại gen:api, TypeScript sẽ báo mọi chỗ FE dùng sai.
+import type { components } from './schema'
+
+type S = components['schemas']
+
+export type HealthDto = S['HealthDto']
+export type TodayDashboardDto = S['TodayDashboardDto']
+export type TodayHabitDto = S['TodayHabitDto']
+export type DayProgressDto = S['DayProgressDto']
+export type WeekDashboardDto = S['WeekDashboardDto']
+export type WeekProgressDto = S['WeekProgressDto']
+export type HabitMonthDto = S['HabitMonthDto']
+export type HabitMonthRowDto = S['HabitMonthRowDto']
+export type HabitHighlightDto = S['HabitHighlightDto']
+export type HabitDayCountDto = S['HabitDayCountDto']
+
+export type TaskDto = S['TaskDto']
+export type SubtaskDto = S['SubtaskDto']
+export type SubtaskInput = S['SubtaskInput']
+export type TaskTag = S['TaskTag']
+export type SaveTaskRequest = S['SaveTaskRequest']
+export type SetDoneRequest = S['SetDoneRequest']
+export type MoveBacklogRequest = S['MoveBacklogRequest']
+export type ReorderTasksRequest = S['ReorderTasksRequest']
+
+export type RecurringTaskDto = S['RecurringTaskDto']
+export type SaveRecurringRequest = S['SaveRecurringRequest']
+export type MaterializeRequest = S['MaterializeRequest']
+
+export type HabitDto = S['HabitDto']
+export type HabitLogDto = S['HabitLogDto']
+export type SaveHabitRequest = S['SaveHabitRequest']
+export type ReorderRequest = S['ReorderRequest']
+
+export type GoalDto = S['GoalDto']
+export type GoalStepDto = S['GoalStepDto']
+export type GoalStatus = S['GoalStatus']
+export type LifeArea = S['LifeArea']
+export type SaveGoalRequest = S['SaveGoalRequest']
+export type SaveGoalStepRequest = S['SaveGoalStepRequest']
+export type GoalBoardDto = S['GoalBoardDto']
+export type GoalCardDto = S['GoalCardDto']
+export type AreaSummaryDto = S['AreaSummaryDto']
+export type DeadlineDto = S['DeadlineDto']
+export type DeadlineKind = S['DeadlineKind']
+
+export type DayNoteDto = S['DayNoteDto']
+export type WeekNoteDto = S['WeekNoteDto']
+export type SaveNoteRequest = S['SaveNoteRequest']
+
+export type YearMetaDto = S['YearMetaDto']
+export type YearPlanItemDto = S['YearPlanItemDto']
+export type SaveYearMetaRequest = S['SaveYearMetaRequest']
+export type CreateYearItemRequest = S['CreateYearItemRequest']
+export type UpdateYearItemRequest = S['UpdateYearItemRequest']
+
+export type BackupDto = S['BackupDto']
+export type ImportResultDto = S['ImportResultDto']
+export type WeekDeleteResultDto = S['WeekDeleteResultDto']
+export type CountDto = S['CountDto']

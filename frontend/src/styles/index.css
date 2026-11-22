@@ -1,0 +1,67 @@
+/* Điểm vào CSS duy nhất, import trong main.tsx. */
+@import 'tailwindcss';
+@import './tokens.css';
+@import './sketch.css';
+
+/*
+  Nối token CSS vào Tailwind. "inline" giữ nguyên var(--primary) trong class sinh ra,
+  nên bg-primary tự đổi màu khi đổi theme.
+*/
+@theme inline {
+  --color-app: var(--bg-app);
+  --color-paper: var(--bg-paper);
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-primary-ink: var(--primary-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-tint: var(--accent-tint);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-warn: var(--warn);
+  --color-warn-ink: var(--warn-ink);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-urgent-bg: var(--tag-urgent-bg);
+  --color-urgent-ink: var(--tag-urgent-ink);
+  --color-important-bg: var(--tag-important-bg);
+  --color-important-ink: var(--tag-important-ink);
+  --color-muted-bar: var(--muted-bar);
+}
+
+/* Font (SPEC §4.3): Baloo 2 cho tiêu đề và số, Be Vietnam Pro cho nội dung. */
+@theme {
+  --font-display: 'Baloo 2', system-ui, sans-serif;
+  --font-sans: 'Be Vietnam Pro', system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--bg-app);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+
+  /* iOS tự zoom khi input nhỏ hơn 16px (SPEC §3.4) */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  @media (min-width: 768px) {
+    input,
+    textarea,
+    select {
+      font-size: 14px;
+    }
+  }
+}

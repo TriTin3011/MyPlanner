@@ -1,0 +1,36 @@
+/*
+  Phong cách vẽ tay (SPEC §4.4, §4.5).
+  Nằm trong @layer components nên class tiện ích của Tailwind (p-4, bg-...)
+  viết cùng phần tử vẫn ghi đè được.
+*/
+
+@layer components {
+  /* Card viền đậm, bo góc lệch, bóng lệch như nét bút */
+  .sketch {
+    background: var(--surface);
+    border: 2px solid var(--ink);
+    border-radius: 14px 18px 12px 20px / 18px 12px 20px 14px;
+    box-shadow: 2px 3px 0 0 var(--ink);
+  }
+
+  .sketch--active {
+    background: var(--accent-soft);
+  }
+
+  /* Nền giấy kẻ ô vuông 18px */
+  .paper {
+    background-color: var(--bg-paper);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+}
+
+/* Điện thoại: viền mỏng hơn (SPEC §3.4) */
+@media (max-width: 767px) {
+  .sketch {
+    border-width: 1.5px;
+    box-shadow: 1px 2px 0 0 var(--ink);
+  }
+}

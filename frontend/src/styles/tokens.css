@@ -1,0 +1,63 @@
+﻿/*
+  Design tokens (SPEC §4.1, §4.2).
+  Mọi màu trong app đều đọc từ các biến này. Đổi theme = đặt
+  document.documentElement.dataset.theme, trình duyệt tự vẽ lại, không cần re-render React.
+*/
+
+:root {
+  /* Nền */
+  --bg-app: #eef4e8;
+  --bg-paper: #f3f7ee;
+  --grid-line: rgba(16, 92, 64, 0.08);
+  --surface: #ffffff;
+
+  /* Thương hiệu (theme mặc định "Rừng xanh") */
+  --primary: #0b7a55;
+  --primary-ink: #0a4d37;
+  --accent-soft: #b7f0d8;
+  --accent-tint: #ddf3e8;
+
+  /* Chữ và viền */
+  --ink: #1c2b24;
+  --ink-muted: #6b7a72;
+  --line: #e3e9e4;
+
+  /* Trạng thái */
+  --warn: #f59e0b;
+  --warn-ink: #b45309;
+  --danger: #dc2646;
+  --danger-bg: #fde8ec;
+  --tag-urgent-bg: #fee2e2;
+  --tag-urgent-ink: #dc2626;
+  --tag-important-bg: #fef3c7;
+  --tag-important-ink: #b45309;
+  --muted-bar: #c9cdd1;
+}
+
+/* Mỗi theme chỉ đổi 6 biến (SPEC §4.2). */
+[data-theme='ocean'] {
+  --primary: #1d4ed8;
+  --primary-ink: #1e3a8a;
+  --accent-soft: #bfdbfe;
+  --accent-tint: #dbeafe;
+  --bg-app: #eef2fb;
+  --bg-paper: #f3f6fc;
+}
+
+[data-theme='sunset'] {
+  --primary: #c2410c;
+  --primary-ink: #7c2d12;
+  --accent-soft: #fed7aa;
+  --accent-tint: #ffedd5;
+  --bg-app: #fbf1ea;
+  --bg-paper: #fcf5ef;
+}
+
+[data-theme='lavender'] {
+  --primary: #6d28d9;
+  --primary-ink: #4c1d95;
+  --accent-soft: #ddd6fe;
+  --accent-tint: #ede9fe;
+  --bg-app: #f3f0fb;
+  --bg-paper: #f7f5fc;
+}

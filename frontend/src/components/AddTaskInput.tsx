@@ -1,0 +1,76 @@
+import { LoaderCircle, Plus } from 'lucide-react'
+import { type FormEvent, useId, useState } from 'react'
+
+interface AddTaskInputProps {
+  pending: boolean
+  onAdd: (title: string) => Promise<void>
+  placeholder?: string
+}
+
+export function AddTaskInput({
+  pending,
+  onAdd,
+  placeholder = 'Thêm việc cho hôm nay…',
+}: AddTaskInputProps) {
+  const [title, setTitle] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const inputId = useId()
+  const errorId = useId()
+  const trimmedTitle = title.trim()
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!trimmedTitle || pending) return
+
+    setError(null)
+    try {
+      await onAdd(trimmedTitle)
+      setTitle('')
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Chưa thêm được việc. Hãy thử lại.')
+    }
+  }
+
+  return (
+    <div className="mt-3">
+      <form
+        onSubmit={handleSubmit}
+        aria-busy={pending}
+        className="flex min-h-11 overflow-hidden rounded-xl border-2 border-ink bg-surface focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
+      >
+        <label htmlFor={inputId} className="sr-only">
+          Tên việc mới
+        </label>
+        <input
+          id={inputId}
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          disabled={pending}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          placeholder={placeholder}
+          autoComplete="off"
+          className="min-w-0 flex-1 bg-transparent px-3 text-base text-ink placeholder:text-ink-muted focus:outline-none disabled:cursor-wait disabled:opacity-60"
+        />
+        <button
+          type="submit"
+          disabled={pending || !trimmedTitle}
+          aria-label={pending ? 'Đang thêm việc' : 'Thêm việc'}
+          className="grid size-11 shrink-0 cursor-pointer place-items-center bg-primary text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-45"
+        >
+          {pending ? (
+            <LoaderCircle size={19} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+          ) : (
+            <Plus size={20} aria-hidden="true" />
+          )}
+        </button>
+      </form>
+
+      {error && (
+        <p id={errorId} role="alert" className="mt-2 text-sm font-semibold text-danger">
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
