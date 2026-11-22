@@ -1,0 +1,517 @@
+import { Calendar, ChevronDown, Info } from 'lucide-react'
+import { useId, useMemo, useState } from 'react'
+import { buildAreaPath, buildSmoothCurvePath, type ChartPoint } from '../lib/chartSvg'
+import { useMediaQuery } from '../lib/useMediaQuery'
+
+export type ChartDisplayMode = 'line' | 'bar' | 'table'
+
+export interface RangeOption {
+  value: string
+  label: string
+}
+
+export interface ChartCardProps {
+  title: string
+  infoTooltip?: string
+  data: ChartPoint[]
+  range: string
+  rangeOptions: RangeOption[]
+  onRangeChange: (range: string) => void
+  mode: ChartDisplayMode
+  onModeChange: (mode: ChartDisplayMode) => void
+  isLoading?: boolean
+  // Có lỗi thì phủ thông báo + nút thử lại lên vùng biểu đồ, thay vì hiện một biểu đồ trống khó hiểu.
+  errorMessage?: string
+  onRetry?: () => void
+  // Nhãn chuỗi xám (mặc định 'Tổng việc'); màn Thói quen dùng 'Tổng thói quen'.
+  totalLabel?: string
+  className?: string
+}
+
+export function ChartCard({
+  title,
+  infoTooltip,
+  data,
+  range,
+  rangeOptions,
+  onRangeChange,
+  mode,
+  onModeChange,
+  isLoading = false,
+  errorMessage,
+  onRetry,
+  totalLabel = 'Tổng việc',
+  className = '',
+}: ChartCardProps) {
+  const [showInfo, setShowInfo] = useState(false)
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const selectId = useId()
+
+  // Kích thước toạ độ SVG viewBox. Điện thoại dùng hệ toạ độ hẹp hơn để chữ không bị thu nhỏ
+  // quá mức khi SVG co theo bề rộng thẻ (không ép min-width rồi cuộn ngang).
+  const isWide = useMediaQuery('(min-width: 640px)')
+  const svgWidth = isWide ? 640 : 340
+  // Nhiều ngày thì chỉ hiện nhãn trục X cách quãng (luôn giữ nhãn cuối) để không chồng chữ
+  const labelStep = Math.max(1, Math.ceil(data.length / (isWide ? 15 : 7)))
+  const showLabel = (i: number) => i === data.length - 1 || (data.length - 1 - i) % labelStep === 0
+  const svgHeight = 175
+  const padding = { top: 25, right: 30, bottom: 28, left: 35 }
+  const plotWidth = svgWidth - padding.left - padding.right
+  const plotHeight = svgHeight - padding.top - padding.bottom
+  const baseY = svgHeight - padding.bottom
+
+  // Tính giá trị Y lớn nhất để vẽ tỉ lệ mốc Y
+  const maxDataValue = useMemo(() => {
+    let max = 0
+    for (const d of data) {
+      if (d.total > max) max = d.total
+      if (d.done > max) max = d.done
+    }
+    // Mốc tối thiểu là 10 (theo ảnh mẫu có mốc 0, 5, 10)
+    return Math.max(10, Math.ceil(max / 5) * 5)
+  }, [data])
+
+  const yTicks = [0, Math.round(maxDataValue / 2), maxDataValue]
+
+  // Tính toạ độ các điểm trên SVG
+  const { totalPoints, donePoints } = useMemo(() => {
+    if (data.length === 0) return { totalPoints: [], donePoints: [] }
+    const n = data.length
+    const tPts: { x: number; y: number }[] = []
+    const dPts: { x: number; y: number }[] = []
+
+    data.forEach((p, i) => {
+      const x = n === 1 ? padding.left + plotWidth / 2 : padding.left + (i * plotWidth) / (n - 1)
+      const yt = padding.top + (1 - p.total / maxDataValue) * plotHeight
+      const yd = padding.top + (1 - p.done / maxDataValue) * plotHeight
+      tPts.push({ x, y: yt })
+      dPts.push({ x, y: yd })
+    })
+
+    return { totalPoints: tPts, donePoints: dPts }
+  }, [data, maxDataValue, padding.left, padding.top, plotHeight, plotWidth])
+
+  const totalCurvePath = useMemo(() => buildSmoothCurvePath(totalPoints), [totalPoints])
+  const doneCurvePath = useMemo(() => buildSmoothCurvePath(donePoints), [donePoints])
+  const areaPath = useMemo(() => buildAreaPath(donePoints, baseY), [donePoints, baseY])
+
+  // Tổng hợp dữ liệu cho bảng Table View
+  const totals = useMemo(() => {
+    const totalDone = data.reduce((sum, d) => sum + d.done, 0)
+    const totalAll = data.reduce((sum, d) => sum + d.total, 0)
+    const avgPercent = totalAll > 0 ? Math.round((totalDone / totalAll) * 100) : 0
+    return { totalDone, totalAll, avgPercent }
+  }, [data])
+
+  return (
+    <section
+      aria-label={title}
+      className={`sketch bg-[var(--surface)] p-4 sm:p-5 transition-shadow ${className}`}
+    >
+      {/* Header của ChartCard */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)]/60 pb-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <h2 className="font-display text-lg sm:text-xl font-extrabold text-ink">{title}</h2>
+            {infoTooltip && (
+              <div className="relative">
+                <button
+                  type="button"
+                  aria-label="Thông tin biểu đồ"
+                  aria-expanded={showInfo}
+                  onClick={() => setShowInfo((v) => !v)}
+                  className="text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full p-0.5"
+                >
+                  <Info size={16} aria-hidden="true" />
+                </button>
+                {showInfo && (
+                  <div
+                    role="tooltip"
+                    className="absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-2.5 text-xs text-ink shadow-lg"
+                  >
+                    {infoTooltip}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Dropdown chọn khoảng thời gian */}
+          <div className="relative inline-flex items-center">
+            <label htmlFor={selectId} className="sr-only">
+              Khoảng thời gian
+            </label>
+            <div className="flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1 text-xs font-bold text-ink shadow-xs">
+              <Calendar size={13} className="text-primary" aria-hidden="true" />
+              <select
+                id={selectId}
+                value={range}
+                onChange={(e) => onRangeChange(e.target.value)}
+                className="cursor-pointer bg-transparent pr-4 font-bold text-ink focus:outline-none"
+              >
+                {rangeOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={13} className="-ml-3 pointer-events-none text-ink-muted" aria-hidden="true" />
+            </div>
+          </div>
+        </div>
+
+        {/* Legend & Chuyển chế độ xem (Đường / Cột / Bảng) */}
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="hidden sm:flex items-center gap-3 text-xs font-medium text-ink-muted">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-1 w-3.5 rounded-full bg-primary" />
+              <span className="text-ink font-semibold">Đã xong</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-1 w-3.5 rounded-full bg-gray-400" />
+              <span>{totalLabel}</span>
+            </span>
+          </div>
+
+          <div
+            role="radiogroup"
+            aria-label="Chế độ hiển thị biểu đồ"
+            className="flex rounded-lg border-2 border-[var(--ink)] bg-[var(--surface)] p-0.5 shadow-[2px_2px_0_0_var(--ink)]"
+          >
+            {(['line', 'bar', 'table'] as const).map((m) => {
+              const label = m === 'line' ? 'Đường' : m === 'bar' ? 'Cột' : 'Bảng'
+              const isSelected = mode === m
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  role="radio"
+                  aria-checked={isSelected}
+                  onClick={() => onModeChange(m)}
+                  className={`rounded-md px-2.5 py-0.5 text-xs font-bold transition-colors ${
+                    isSelected ? 'bg-primary text-white' : 'text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Nội dung biểu đồ */}
+      <div className="relative mt-3 min-h-[190px]">
+        {errorMessage && !isLoading && (
+          <div
+            role="alert"
+            className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-[var(--surface)]/85 text-center"
+          >
+            <span className="text-sm font-bold text-danger">{errorMessage}</span>
+            {onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="min-h-11 rounded-full bg-primary px-4 text-sm font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                Thử lại
+              </button>
+            )}
+          </div>
+        )}
+        {isLoading && (
+          <div
+            role="status"
+            className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--surface)]/70 backdrop-blur-xs"
+          >
+            <span className="text-xs font-bold text-primary">Đang cập nhật biểu đồ…</span>
+          </div>
+        )}
+
+        {/* Chế độ Đường (Area Chart) */}
+        {mode === 'line' && (
+          <div className="w-full overflow-x-auto">
+            <svg
+              viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+              className="w-full overflow-visible font-sans"
+              aria-label="Biểu đồ tiến độ đường cong"
+              role="img"
+            >
+              <defs>
+                <linearGradient id="primaryAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.28" />
+                  <stop offset="90%" stopColor="var(--primary)" stopOpacity="0.02" />
+                </linearGradient>
+              </defs>
+
+              {/* Lưới ngang trục Y */}
+              {yTicks.map((val) => {
+                const y = padding.top + (1 - val / maxDataValue) * plotHeight
+                return (
+                  <g key={val}>
+                    <line
+                      x1={padding.left}
+                      y1={y}
+                      x2={svgWidth - padding.right}
+                      y2={y}
+                      stroke="var(--line)"
+                      strokeWidth="1"
+                      strokeDasharray="4 3"
+                      strokeOpacity="0.7"
+                    />
+                    <text
+                      x={padding.left - 8}
+                      y={y + 3.5}
+                      textAnchor="end"
+                      className="fill-ink-muted text-[10px] sm:text-[11px] font-medium"
+                    >
+                      {val}
+                    </text>
+                  </g>
+                )
+              })}
+
+              {/* Vùng fill của đường Đã xong */}
+              {areaPath && <path d={areaPath} fill="url(#primaryAreaGrad)" />}
+
+              {/* Đường Tổng việc (xám mờ) */}
+              {totalCurvePath && (
+                <path
+                  d={totalCurvePath}
+                  fill="none"
+                  stroke="#94a3b8"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+
+              {/* Đường Đã xong (xanh lá) */}
+              {doneCurvePath && (
+                <path
+                  d={doneCurvePath}
+                  fill="none"
+                  stroke="var(--primary)"
+                  strokeWidth="2.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+
+              {/* Các điểm dữ liệu & nhãn trục X */}
+              {data.map((p, i) => {
+                const ptTotal = totalPoints[i]
+                const ptDone = donePoints[i]
+                const isHovered = hoveredIndex === i
+                const isLast = i === data.length - 1
+                const isFirst = i === 0
+
+                return (
+                  <g key={p.date} className="cursor-pointer" onMouseEnter={() => setHoveredIndex(i)} onMouseLeave={() => setHoveredIndex(null)}>
+                    {/* Đường gióng dọc khi hover */}
+                    {isHovered && (
+                      <line
+                        x1={ptDone.x}
+                        y1={padding.top}
+                        x2={ptDone.x}
+                        y2={baseY}
+                        stroke="var(--primary)"
+                        strokeWidth="1.5"
+                        strokeDasharray="2 2"
+                      />
+                    )}
+
+                    {/* Nhãn số trên đỉnh đường đầu và đường cuối (khớp ảnh chụp) */}
+                    {(isFirst || isHovered) && p.total > 0 && (
+                      <text
+                        x={ptTotal.x}
+                        y={ptTotal.y - 7}
+                        textAnchor="middle"
+                        className="fill-ink text-[11px] font-bold"
+                      >
+                        {p.total}
+                      </text>
+                    )}
+
+                    {/* Điểm tròn của Đã xong */}
+                    {(isLast || isHovered) && (
+                      <g>
+                        <circle
+                          cx={ptDone.x}
+                          cy={ptDone.y}
+                          r={isHovered ? 5.5 : 4.5}
+                          fill="var(--primary)"
+                          stroke="var(--surface)"
+                          strokeWidth="2"
+                        />
+                        <text
+                          x={ptDone.x}
+                          y={ptDone.y - 7}
+                          textAnchor="middle"
+                          className="fill-primary font-extrabold text-[11px]"
+                        >
+                          {p.done}
+                        </text>
+                      </g>
+                    )}
+
+                    {/* Nhãn trục X */}
+                    {(showLabel(i) || isHovered) && (
+                      <text
+                        x={ptDone.x}
+                        y={baseY + 16}
+                        textAnchor="middle"
+                        className={`text-[10px] sm:text-[11px] font-bold ${
+                          isLast ? 'fill-primary' : 'fill-ink-muted'
+                        }`}
+                      >
+                        {p.label}
+                      </text>
+                    )}
+
+                    {/* Hit area vô hình bẫy sự kiện hover/touch */}
+                    <rect
+                      x={ptDone.x - plotWidth / (data.length * 2)}
+                      y={padding.top}
+                      width={plotWidth / data.length}
+                      height={plotHeight + padding.bottom}
+                      fill="transparent"
+                    />
+                  </g>
+                )
+              })}
+            </svg>
+
+            {/* Tooltip khi hover điểm bất kỳ */}
+            {hoveredIndex !== null && data[hoveredIndex] && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="mt-1 flex items-center justify-center gap-2 text-xs font-bold text-ink"
+              >
+                <span className="text-primary">{data[hoveredIndex].date} ({data[hoveredIndex].label}):</span>
+                <span>{data[hoveredIndex].done}/{data[hoveredIndex].total} việc ({data[hoveredIndex].percent}%)</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Chế độ Cột (Bar Chart) */}
+        {mode === 'bar' && (
+          <div className="w-full overflow-x-auto">
+            <svg
+              viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+              className="w-full font-sans"
+              aria-label="Biểu đồ tiến độ hình cột"
+              role="img"
+            >
+              {/* Lưới ngang */}
+              {yTicks.map((val) => {
+                const y = padding.top + (1 - val / maxDataValue) * plotHeight
+                return (
+                  <g key={val}>
+                    <line
+                      x1={padding.left}
+                      y1={y}
+                      x2={svgWidth - padding.right}
+                      y2={y}
+                      stroke="var(--line)"
+                      strokeWidth="1"
+                      strokeDasharray="4 3"
+                    />
+                    <text
+                      x={padding.left - 8}
+                      y={y + 3.5}
+                      textAnchor="end"
+                      className="fill-ink-muted text-[10px] font-medium"
+                    >
+                      {val}
+                    </text>
+                  </g>
+                )
+              })}
+
+              {/* Các cặp cột */}
+              {data.map((p, i) => {
+                const pt = donePoints[i]
+                const barWidth = Math.max(6, Math.min(22, plotWidth / (data.length * 2.2)))
+                const totalHeight = (p.total / maxDataValue) * plotHeight
+                const doneHeight = (p.done / maxDataValue) * plotHeight
+
+                return (
+                  <g key={p.date} className="cursor-pointer">
+                    {/* Cột Tổng việc */}
+                    <rect
+                      x={pt.x - barWidth - 1}
+                      y={baseY - totalHeight}
+                      width={barWidth}
+                      height={totalHeight}
+                      rx="3"
+                      fill="#cbd5e1"
+                    />
+                    {/* Cột Đã xong */}
+                    <rect
+                      x={pt.x + 1}
+                      y={baseY - doneHeight}
+                      width={barWidth}
+                      height={doneHeight}
+                      rx="3"
+                      fill="var(--primary)"
+                    />
+                    {/* Nhãn trục X */}
+                    {showLabel(i) && (
+                      <text
+                        x={pt.x}
+                        y={baseY + 16}
+                        textAnchor="middle"
+                        className="fill-ink-muted text-[10px] font-bold"
+                      >
+                        {p.label}
+                      </text>
+                    )}
+                  </g>
+                )
+              })}
+            </svg>
+          </div>
+        )}
+
+        {/* Chế độ Bảng (Table View) theo SPEC §5 */}
+        {mode === 'table' && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead className="border-b border-[var(--line)] text-ink-muted font-bold">
+                <tr>
+                  <th scope="col" className="py-2 px-3">Thời gian</th>
+                  <th scope="col" className="py-2 px-3 text-right">Đã xong</th>
+                  <th scope="col" className="py-2 px-3 text-right">{totalLabel}</th>
+                  <th scope="col" className="py-2 px-3 text-right">Tỉ lệ</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--line)]/50">
+                {data.map((d) => (
+                  <tr key={d.date} className="hover:bg-accent-tint/40 transition-colors">
+                    <td className="py-2 px-3 font-semibold text-ink">
+                      {d.label} <span className="text-xs text-ink-muted">({d.date})</span>
+                    </td>
+                    <td className="py-2 px-3 text-right font-bold text-primary">{d.done}</td>
+                    <td className="py-2 px-3 text-right text-ink">{d.total}</td>
+                    <td className="py-2 px-3 text-right font-bold text-ink">{d.percent}%</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="border-t-2 border-[var(--ink)] font-bold text-ink">
+                <tr>
+                  <td className="py-2 px-3">Tổng cộng</td>
+                  <td className="py-2 px-3 text-right text-primary">{totals.totalDone}</td>
+                  <td className="py-2 px-3 text-right">{totals.totalAll}</td>
+                  <td className="py-2 px-3 text-right">{totals.avgPercent}%</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}

@@ -1,0 +1,38 @@
+import { useTranslation } from 'react-i18next'
+import { LANGUAGES, LANGUAGE_NAMES } from '../i18n/languages'
+import { useSettings } from '../store/settings'
+
+// Nút đổi ngôn ngữ VI | EN. Component chỉ ghi vào settings (nguồn sự thật);
+// i18n/index.ts lắng nghe store rồi đổi i18next và <html lang>, mọi component dùng t() tự vẽ lại.
+// Sidebar thu gọn (tablet) xếp dọc để vừa 72px; menu ⋯ trên điện thoại xếp ngang.
+export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
+  const { t } = useTranslation()
+  const language = useSettings((s) => s.language)
+  const setLanguage = useSettings((s) => s.setLanguage)
+
+  return (
+    <div
+      role="group"
+      aria-label={t('language.label')}
+      className={`sketch flex gap-1 p-1 ${compact ? '' : 'max-lg:flex-col'}`}
+    >
+      {LANGUAGES.map((lang) => (
+        <button
+          key={lang}
+          type="button"
+          // lang trên nút: trình đọc màn hình đọc "English" bằng giọng Anh dù trang đang tiếng Việt.
+          lang={lang}
+          aria-pressed={lang === language}
+          title={LANGUAGE_NAMES[lang].name}
+          onClick={() => setLanguage(lang)}
+          className={`flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-full px-2 text-xs font-bold ${
+            lang === language ? 'bg-primary text-white' : 'text-ink-muted hover:bg-accent-tint'
+          }`}
+        >
+          <span aria-hidden="true">{LANGUAGE_NAMES[lang].code}</span>
+          <span className="sr-only">{LANGUAGE_NAMES[lang].name}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
