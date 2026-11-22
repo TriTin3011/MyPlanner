@@ -1,5 +1,5 @@
 import { Calendar, ChevronDown, Info } from 'lucide-react'
-import { useId, useMemo, useState } from 'react'
+import { type ReactNode, useId, useMemo, useState } from 'react'
 import { buildAreaPath, buildSmoothCurvePath, type ChartPoint } from '../lib/chartSvg'
 import { useMediaQuery } from '../lib/useMediaQuery'
 
@@ -14,9 +14,12 @@ export interface ChartCardProps {
   title: string
   infoTooltip?: string
   data: ChartPoint[]
-  range: string
-  rangeOptions: RangeOption[]
-  onRangeChange: (range: string) => void
+  // Bỏ trống rangeOptions khi trang đã có bộ chọn khoảng chung (màn Thống kê): ẩn dropdown trong thẻ.
+  range?: string
+  rangeOptions?: RangeOption[]
+  onRangeChange?: (range: string) => void
+  // Phần phụ cạnh tiêu đề, ví dụ huy hiệu "TB 72%" ở Thống kê.
+  badge?: ReactNode
   mode: ChartDisplayMode
   onModeChange: (mode: ChartDisplayMode) => void
   isLoading?: boolean
@@ -32,9 +35,10 @@ export function ChartCard({
   title,
   infoTooltip,
   data,
-  range,
-  rangeOptions,
+  range = '',
+  rangeOptions = [],
   onRangeChange,
+  badge,
   mode,
   onModeChange,
   isLoading = false,
@@ -136,7 +140,10 @@ export function ChartCard({
             )}
           </div>
 
+          {badge}
+
           {/* Dropdown chọn khoảng thời gian */}
+          {rangeOptions.length > 0 && (
           <div className="relative inline-flex items-center">
             <label htmlFor={selectId} className="sr-only">
               Khoảng thời gian
@@ -146,7 +153,7 @@ export function ChartCard({
               <select
                 id={selectId}
                 value={range}
-                onChange={(e) => onRangeChange(e.target.value)}
+                onChange={(e) => onRangeChange?.(e.target.value)}
                 className="cursor-pointer bg-transparent pr-4 font-bold text-ink focus:outline-none"
               >
                 {rangeOptions.map((opt) => (
@@ -158,6 +165,7 @@ export function ChartCard({
               <ChevronDown size={13} className="-ml-3 pointer-events-none text-ink-muted" aria-hidden="true" />
             </div>
           </div>
+          )}
         </div>
 
         {/* Legend & Chuyển chế độ xem (Đường / Cột / Bảng) */}
