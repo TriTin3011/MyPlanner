@@ -7,6 +7,7 @@ namespace MyPlanner.Core.Tests;
 public class MetricsTests
 {
     private static DateOnly D(string s) => DateOnly.Parse(s);
+    private static readonly IWeekTextSource WeekText = new VietnameseWeekTextSource();
 
     [Fact]
     public void TodayPercent_matches_spec_example() =>
@@ -93,14 +94,14 @@ public class MetricsTests
     [InlineData(8, 10, "Tuần tuyệt vời! Bạn hoàn thành phần lớn kế hoạch.")]
     [InlineData(0, 3, "Chưa xong việc nào. Tuần sau hãy bắt đầu từ 1–2 việc nhỏ.")]
     public void WeekComment_by_ratio(int done, int total, string expected) =>
-        Assert.Equal(expected, Metrics.WeekComment(done, total));
+        Assert.Equal(expected, Metrics.WeekComment(done, total, WeekText));
 
     [Fact]
     public void WeekInsights_compares_with_previous_week_like_the_reference()
     {
         // Số liệu thật của bản demo: 24 việc xong (tuần trước 34), thói quen 55% (tuần trước 81%), Thứ 2 xong 6 việc.
         var lines = Metrics.WeekInsights(24, 34, habitCells: 42, habitLogs: 23, habitPercent: 55, prevHabitPercent: 81,
-            bestDay: D("2026-11-16"), bestDayDone: 6);
+            bestDay: D("2026-11-16"), bestDayDone: 6, text: WeekText);
 
         Assert.Equal(
         [
@@ -114,7 +115,7 @@ public class MetricsTests
     public void WeekInsights_after_clearing_the_week_reports_no_habit_ticks_and_no_best_day()
     {
         var lines = Metrics.WeekInsights(0, 34, habitCells: 42, habitLogs: 0, habitPercent: 0, prevHabitPercent: 81,
-            bestDay: null, bestDayDone: 0);
+            bestDay: null, bestDayDone: 0, text: WeekText);
 
         Assert.Equal(
         [
@@ -128,16 +129,9 @@ public class MetricsTests
     public void WeekInsights_for_a_future_week_skips_habit_lines()
     {
         var lines = Metrics.WeekInsights(0, 0, habitCells: 0, habitLogs: 0, habitPercent: 0, prevHabitPercent: 0,
-            bestDay: null, bestDayDone: 0);
+            bestDay: null, bestDayDone: 0, text: WeekText);
         Assert.Empty(lines);
     }
-
-    [Theory]
-    [InlineData("2026-11-16", "Thứ 2")]
-    [InlineData("2026-11-21", "Thứ 7")]
-    [InlineData("2026-11-22", "Chủ nhật")]
-    public void DayName_uses_vietnamese_weekday(string date, string expected) =>
-        Assert.Equal(expected, Metrics.DayName(D(date)));
 
     [Theory]
     [InlineData(0, 0)]
@@ -148,6 +142,30 @@ public class MetricsTests
     [InlineData(7, 4)]
     [InlineData(20, 4)]
     public void HeatLevel_has_five_levels(int done, int level) => Assert.Equal(level, Metrics.HeatLevel(done));
+
+    private sealed class VietnameseWeekTextSource : IWeekTextSource
+    {
+        public string NewWeekComment => "Tuần mới, lên kế hoạch thôi!";
+        public string NoTasksDoneComment => "Chưa xong việc nào. Tuần sau hãy bắt đầu từ 1–2 việc nhỏ.";
+        public string SlowWeekComment => "Tuần hơi chậm, chọn 3 việc quan trọng nhất trước nhé.";
+        public string FindingRhythmComment => "Đang vào nhịp, cố thêm chút nữa.";
+        public string GoodWeekComment => "Khá tốt, giữ nhịp này nhé.";
+        public string ExcellentWeekComment => "Tuần tuyệt vời! Bạn hoàn thành phần lớn kế hoạch.";
+        public string FewerTasks(int count) => $"Xong ít hơn tuần trước {count} việc, thử chia nhỏ việc để dễ hoàn thành hơn.";
+        public string MoreTasks(int count) => $"Xong nhiều hơn tuần trước {count} việc, đang tiến bộ.";
+        public string SameTasks => "Số việc xong bằng tuần trước, giữ nhịp nhé.";
+        public string HabitDecrease(int percent) => $"Thói quen giảm {percent}% so với tuần trước, hãy tích đều hơn.";
+        public string HabitIncrease(int percent) => $"Thói quen tăng {percent}% so với tuần trước.";
+        public string BestDay(DateOnly date, int tasksDone) =>
+            $"Ngày hiệu quả nhất: {DayName(date)} ({tasksDone} việc xong).";
+        public string NoHabitTicks => "Chưa tích thói quen nào trong tuần này.";
+
+        private static string DayName(DateOnly date) => date.DayOfWeek switch
+        {
+            DayOfWeek.Sunday => "Chủ nhật",
+            var day => $"Thứ {(int)day + 1}",
+        };
+    }
 }
 
 public class WeekKeysTests

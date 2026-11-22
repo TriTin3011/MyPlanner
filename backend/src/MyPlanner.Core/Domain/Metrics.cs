@@ -68,17 +68,17 @@ public static class Metrics
     }
 
     // §13.6: câu nhận xét của tuần.
-    public static string WeekComment(int done, int total)
+    public static string WeekComment(int done, int total, IWeekTextSource text)
     {
-        if (total == 0) return "Tuần mới, lên kế hoạch thôi!";
-        if (done == 0) return "Chưa xong việc nào. Tuần sau hãy bắt đầu từ 1–2 việc nhỏ.";
+        if (total == 0) return text.NewWeekComment;
+        if (done == 0) return text.NoTasksDoneComment;
         var r = (double)done / total;
         return r switch
         {
-            < 0.3 => "Tuần hơi chậm, chọn 3 việc quan trọng nhất trước nhé.",
-            < 0.5 => "Đang vào nhịp, cố thêm chút nữa.",
-            < 0.8 => "Khá tốt, giữ nhịp này nhé.",
-            _ => "Tuần tuyệt vời! Bạn hoàn thành phần lớn kế hoạch.",
+            < 0.3 => text.SlowWeekComment,
+            < 0.5 => text.FindingRhythmComment,
+            < 0.8 => text.GoodWeekComment,
+            _ => text.ExcellentWeekComment,
         };
     }
 
@@ -86,27 +86,28 @@ public static class Metrics
     public static List<string> WeekInsights(
         int done, int prevDone,
         int habitCells, int habitLogs, int habitPercent, int prevHabitPercent,
-        DateOnly? bestDay, int bestDayDone)
+        DateOnly? bestDay, int bestDayDone,
+        IWeekTextSource text)
     {
         var lines = new List<string>();
 
         var d = done - prevDone;
-        if (d < 0) lines.Add($"Xong ít hơn tuần trước {-d} việc, thử chia nhỏ việc để dễ hoàn thành hơn.");
-        else if (d > 0) lines.Add($"Xong nhiều hơn tuần trước {d} việc, đang tiến bộ.");
-        else if (done > 0) lines.Add("Số việc xong bằng tuần trước, giữ nhịp nhé.");
+        if (d < 0) lines.Add(text.FewerTasks(-d));
+        else if (d > 0) lines.Add(text.MoreTasks(d));
+        else if (done > 0) lines.Add(text.SameTasks);
 
         if (habitCells > 0)
         {
             var h = habitPercent - prevHabitPercent;
-            if (h < 0) lines.Add($"Thói quen giảm {-h}% so với tuần trước, hãy tích đều hơn.");
-            else if (h > 0) lines.Add($"Thói quen tăng {h}% so với tuần trước.");
+            if (h < 0) lines.Add(text.HabitDecrease(-h));
+            else if (h > 0) lines.Add(text.HabitIncrease(h));
         }
 
         if (bestDay is { } best && bestDayDone > 0)
-            lines.Add($"Ngày hiệu quả nhất: {DayName(best)} ({bestDayDone} việc xong).");
+            lines.Add(text.BestDay(best, bestDayDone));
 
         if (habitCells > 0 && habitLogs == 0)
-            lines.Add("Chưa tích thói quen nào trong tuần này.");
+            lines.Add(text.NoHabitTicks);
 
         return lines;
     }
@@ -114,12 +115,6 @@ public static class Metrics
     // Số ô thói quen tick được trong [from, to], không vượt hôm nay (mẫu số của HabitPercent).
     public static int HabitCells(IEnumerable<DateOnly> habitStartDates, DateOnly from, DateOnly to, DateOnly today) =>
         habitStartDates.Sum(start => DaysBetweenInclusive(Max(from, start), Min(to, today)));
-
-    public static string DayName(DateOnly date) => date.DayOfWeek switch
-    {
-        DayOfWeek.Sunday => "Chủ nhật",
-        var d => $"Thứ {(int)d + 1}",
-    };
 
     // §13.7: 5 mức màu heatmap theo số việc xong trong ngày.
     public static int HeatLevel(int doneCount) => doneCount switch

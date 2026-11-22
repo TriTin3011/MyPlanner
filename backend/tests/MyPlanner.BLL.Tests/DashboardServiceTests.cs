@@ -1,3 +1,4 @@
+using System.Globalization;
 using MyPlanner.BLL.Dashboard;
 using MyPlanner.Core.Dtos;
 using MyPlanner.Core.Entities;
@@ -8,9 +9,17 @@ using MyPlanner.DAL.Tasks;
 
 namespace MyPlanner.BLL.Tests;
 
-public class DashboardServiceTests
+public class DashboardServiceTests : IDisposable
 {
     private static readonly DateOnly Today = new(2026, 11, 22);
+
+    // Chuỗi nhận xét đi theo CurrentUICulture. Máy chạy test có thể là en-US,
+    // nên mặc định ép "vi" cho mọi test; test đa ngôn ngữ tự đặt lại culture riêng.
+    private readonly CultureInfo previousUiCulture = CultureInfo.CurrentUICulture;
+
+    public DashboardServiceTests() => CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("vi");
+
+    public void Dispose() => CultureInfo.CurrentUICulture = previousUiCulture;
 
     [Fact]
     public async Task GetTodayAsync_calculates_summary_from_requested_date()
@@ -137,6 +146,30 @@ public class DashboardServiceTests
         Assert.Equal(0, week.HabitPercent);
         Assert.Equal(0, week.TodayRemaining); // hôm nay (22/11) không thuộc tuần W48
         Assert.Empty(week.Insights);
+    }
+
+    [Theory]
+    [InlineData("vi", "Tuần mới, lên kế hoạch thôi!")]
+    [InlineData("en", "A new week—time to plan!")]
+    public async Task GetWeekAsync_localizes_comment_from_current_ui_culture(string cultureName, string expected)
+    {
+        var previous = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(cultureName);
+        try
+        {
+            var service = Service(
+                new FakeTaskRepository([]),
+                new FakeHabitRepository([], []),
+                new FakeNoteRepository());
+
+            var week = await service.GetWeekAsync(Monday, Today, CancellationToken.None);
+
+            Assert.Equal(expected, week.Comment);
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
     }
 
     [Fact]

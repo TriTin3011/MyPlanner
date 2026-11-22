@@ -1,4 +1,5 @@
 using FluentValidation;
+using MyPlanner.BLL.Localization;
 using MyPlanner.Core.Dtos;
 
 namespace MyPlanner.BLL.Notes;
@@ -34,7 +35,7 @@ public class ReorderYearItemsRequestValidator : AbstractValidator<ReorderYearIte
     public ReorderYearItemsRequestValidator()
     {
         RuleFor(x => x.Month).InclusiveBetween(1, 12);
-        RuleFor(x => x.Ids).NotEmpty().Must(ids => ids.Distinct().Count() == ids.Count).WithMessage("Danh sách id bị trùng.");
+        RuleFor(x => x.Ids).NotEmpty().Must(ids => ids.Distinct().Count() == ids.Count).WithMessage(_ => Messages.DuplicateIds);
     }
 }
 

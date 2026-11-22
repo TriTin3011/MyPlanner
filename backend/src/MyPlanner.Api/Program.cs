@@ -1,3 +1,5 @@
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 using MyPlanner.Api.Common;
 using MyPlanner.BLL;
 using Scalar.AspNetCore;
@@ -12,6 +14,17 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 
 // Api chỉ gọi BLL. BLL đăng ký service + validator rồi tự gọi DAL (DbContext, repository).
 builder.Services.AddBusinessLogic(connectionString);
+
+builder.Services.AddLocalization();
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { new CultureInfo("vi"), new CultureInfo("en") };
+    options.DefaultRequestCulture = new RequestCulture("vi");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    // API language comes only from Accept-Language; query-string and cookie providers are disabled.
+    options.RequestCultureProviders = [new AcceptLanguageHeaderRequestCultureProvider()];
+});
 
 builder.Services.AddControllers(options => options.Filters.Add<ValidationFilter>())
     // Mặc định "web" cho phép đọc số từ chuỗi ("5"), khiến OpenAPI mô tả int là `number | string`.
@@ -32,6 +45,7 @@ var app = builder.Build();
 
 // ---------- Middleware pipeline (thứ tự quan trọng) ----------
 
+app.UseRequestLocalization(); // đặt CurrentCulture/CurrentUICulture trước validation, service và exception handler
 app.UseExceptionHandler(); // exception chưa bắt -> 500 dạng ProblemDetails, không lộ stack trace
 app.UseStatusCodePages();  // 404/405... không có body -> ProblemDetails
 

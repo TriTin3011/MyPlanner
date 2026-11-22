@@ -1,4 +1,5 @@
 using MyPlanner.BLL.Common;
+using MyPlanner.BLL.Localization;
 using MyPlanner.Core.Domain;
 using MyPlanner.Core.Dtos;
 using MyPlanner.Core.Entities;
@@ -41,6 +42,6 @@ public class NoteService(INoteRepository notes, TimeProvider clock) : INoteServi
 
     private static void EnsureWeekKey(string weekKey)
     {
-        if (!WeekKeys.TryParse(weekKey, out _)) throw AppException.BadRequest($"weekKey không hợp lệ: '{weekKey}' (dạng 2026-W47).");
+        if (!WeekKeys.TryParse(weekKey, out _)) throw AppException.BadRequest(Messages.InvalidWeekKeyWithFormat(weekKey));
     }
 }
