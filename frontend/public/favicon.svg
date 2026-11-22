@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Logo Nhịp">
+  <!-- Vòng tiến độ vẽ tay, hở một đoạn, lá mọc ở đầu vòng -->
+  <circle cx="32" cy="34" r="22" fill="#eef8f2"/>
+  <path d="M32 12 A22 22 0 1 1 12.5 24" fill="none" stroke="#0b7a55" stroke-width="6" stroke-linecap="round"/>
+  <path d="M32 12 C31 7 35 3 41 3 C41 8 37 12 32 12 Z" fill="#22a06b" stroke="#0a4d37" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Ba chấm = ba ngày liên tiếp (chuỗi thói quen) -->
+  <circle cx="23" cy="36" r="3.2" fill="#0a4d37"/>
+  <circle cx="32" cy="36" r="3.2" fill="#0a4d37"/>
+  <circle cx="41" cy="36" r="3.2" fill="#22a06b"/>
+</svg>
