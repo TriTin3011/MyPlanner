@@ -76,7 +76,7 @@ export function TodayTasksBlock({
   }
 
   return (
-    <section aria-labelledby="today-tasks-title" className="sketch p-4 sm:p-5">
+    <section aria-labelledby="today-tasks-title" className="sketch p-3.5 lg:p-5">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <h2 id="today-tasks-title" className="font-display text-xl font-extrabold text-primary-ink">
           Việc hôm nay <span className="text-sm font-bold text-ink-muted">· {tasks.length} việc</span>

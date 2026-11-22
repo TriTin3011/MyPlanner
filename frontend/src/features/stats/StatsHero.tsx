@@ -36,7 +36,7 @@ export function StatsHero({ data }: { data: StatsDto }) {
   const { hero, kpis } = data
   return (
     <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
-      <section aria-label="Tỉ lệ hoàn thành" className="sketch flex flex-wrap items-center justify-between gap-4 bg-primary p-5 text-white">
+      <section aria-label="Tỉ lệ hoàn thành" className="sketch flex flex-wrap items-center justify-between gap-4 bg-primary p-4 text-white lg:p-5">
         <div>
           <p className="text-xs font-extrabold tracking-wide uppercase opacity-90">Tỉ lệ hoàn thành</p>
           <p className="mt-1 flex items-baseline gap-3 font-display text-5xl font-extrabold">

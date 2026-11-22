@@ -56,7 +56,7 @@ export function TaskMenu(props: TaskMenuProps) {
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
         aria-label={`Thao tác với “${task.title}”`}
-        className="grid size-11 cursor-pointer place-items-center rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-wait disabled:opacity-50"
+        className="grid size-11 cursor-pointer place-items-center rounded-lg text-ink-muted md:size-9 hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-wait disabled:opacity-50"
       >
         <MoreHorizontal size={18} aria-hidden="true" />
       </button>

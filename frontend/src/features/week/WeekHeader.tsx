@@ -26,9 +26,9 @@ export function WeekHeader({ week, isCurrentWeek, onPrev, onNext, onCurrent }: W
   const insightsId = useId()
 
   return (
-    <header className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <header className="mb-4 lg:mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
-        <h1 className="font-display text-3xl leading-none font-extrabold text-primary-ink md:text-4xl">
+        <h1 className="font-display text-2xl leading-none font-extrabold text-primary-ink lg:text-3xl">
           Kế hoạch tuần
         </h1>
         <p className="mt-1 text-sm font-medium text-ink-muted">{subtitle(week)}</p>

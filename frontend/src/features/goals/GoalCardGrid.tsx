@@ -20,7 +20,7 @@ export function GoalCardGrid({ goals, onOpen, onToggleDone, emptyText }: GoalCar
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
       {goals.map((goal) => (
         <GoalCard key={goal.id} goal={goal} onOpen={onOpen} onToggleDone={onToggleDone} />
       ))}

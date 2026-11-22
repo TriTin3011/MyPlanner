@@ -39,7 +39,7 @@ export function AreaRadar({ areas }: AreaRadarProps) {
     .join(', ')
 
   return (
-    <section aria-label="Cân bằng các lĩnh vực" className="sketch flex flex-col bg-surface p-5 sm:p-6">
+    <section aria-label="Cân bằng các lĩnh vực" className="sketch flex flex-col bg-surface p-3.5 lg:p-5">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <h2 className="font-display text-lg font-extrabold text-ink sm:text-xl">

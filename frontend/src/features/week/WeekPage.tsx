@@ -83,8 +83,8 @@ export function WeekPage() {
         onNext={() => setMonday((m) => addDays(m, 7))}
         onCurrent={() => setMonday(startOfWeek(today))}
       />
-      <WeekProgressChartBlock monday={monday} className="mt-6" />
-      <div className="mt-6">
+      <WeekProgressChartBlock monday={monday} className="mt-3 lg:mt-4" />
+      <div className="mt-3 lg:mt-4">
         <WeekNoteBlock weekKey={weekKey} />
       </div>
       {/* key đổi sau khi xoá tuần → khối remount → effect materialize chạy lại (SPEC §9.5). */}
@@ -166,7 +166,7 @@ function WeekTasksSection({ monday, today }: { monday: string; today: string }) 
   const error = toggleTask.isError || arrange.isError || createTask.isError
 
   return (
-    <section aria-labelledby="week-tasks-title" className="mt-6">
+    <section aria-labelledby="week-tasks-title" className="mt-3 lg:mt-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 id="week-tasks-title" className="flex items-center gap-1.5 font-display text-xl font-extrabold text-primary-ink">
           Công việc trong tuần

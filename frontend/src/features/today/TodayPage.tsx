@@ -198,10 +198,10 @@ export function TodayPage() {
   return (
     <div className="mx-auto w-full max-w-[1320px]">
       <TodayHeader dashboard={dashboard.data} onArrangeBlocks={() => setLayoutOpen(true)} />
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-3 lg:gap-4">
         {groupTodayBlocks(layout).map((group) =>
           group.length === 2 ? (
-            <div key={group.join('-')} className="grid items-start gap-5 lg:grid-cols-2">
+            <div key={group.join('-')} className="grid items-start gap-3 lg:grid-cols-2 lg:gap-4">
               <Fragment key={group[0]}>{blocks[group[0]]}</Fragment>
               <Fragment key={group[1]}>{blocks[group[1]]}</Fragment>
             </div>

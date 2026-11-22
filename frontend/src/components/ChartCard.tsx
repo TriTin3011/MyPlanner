@@ -1,7 +1,7 @@
 import { Calendar, ChevronDown, Info } from 'lucide-react'
 import { type ReactNode, useId, useMemo, useState } from 'react'
 import { buildAreaPath, buildSmoothCurvePath, type ChartPoint } from '../lib/chartSvg'
-import { useMediaQuery } from '../lib/useMediaQuery'
+import { useElementWidth } from '../lib/useElementWidth'
 
 export type ChartDisplayMode = 'line' | 'bar' | 'table'
 
@@ -51,15 +51,14 @@ export function ChartCard({
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const selectId = useId()
 
-  // Kích thước toạ độ SVG viewBox. Điện thoại dùng hệ toạ độ hẹp hơn để chữ không bị thu nhỏ
-  // quá mức khi SVG co theo bề rộng thẻ (không ép min-width rồi cuộn ngang).
-  const isWide = useMediaQuery('(min-width: 640px)')
-  const svgWidth = isWide ? 640 : 340
+  // viewBox rộng đúng bằng bề rộng thật của vùng vẽ và cao cố định 150px (như bản tham chiếu),
+  // nên chữ trục luôn đúng 11px, biểu đồ không phình to khi thẻ rộng ra.
+  const [plotRef, svgWidth] = useElementWidth<HTMLDivElement>(640)
   // Nhiều ngày thì chỉ hiện nhãn trục X cách quãng (luôn giữ nhãn cuối) để không chồng chữ
-  const labelStep = Math.max(1, Math.ceil(data.length / (isWide ? 15 : 7)))
+  const labelStep = Math.max(1, Math.ceil(data.length / Math.max(4, Math.floor(svgWidth / 44))))
   const showLabel = (i: number) => i === data.length - 1 || (data.length - 1 - i) % labelStep === 0
-  const svgHeight = 175
-  const padding = { top: 25, right: 30, bottom: 28, left: 35 }
+  const svgHeight = 150
+  const padding = { top: 18, right: 22, bottom: 24, left: 28 }
   const plotWidth = svgWidth - padding.left - padding.right
   const plotHeight = svgHeight - padding.top - padding.bottom
   const baseY = svgHeight - padding.bottom
@@ -110,7 +109,7 @@ export function ChartCard({
   return (
     <section
       aria-label={title}
-      className={`sketch bg-[var(--surface)] p-4 sm:p-5 transition-shadow ${className}`}
+      className={`sketch bg-[var(--surface)] p-3.5 lg:p-5 transition-shadow ${className}`}
     >
       {/* Header của ChartCard */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)]/60 pb-3">
@@ -209,7 +208,7 @@ export function ChartCard({
       </div>
 
       {/* Nội dung biểu đồ */}
-      <div className="relative mt-3 min-h-[190px]">
+      <div ref={plotRef} className="relative mt-3 min-h-[150px]">
         {errorMessage && !isLoading && (
           <div
             role="alert"

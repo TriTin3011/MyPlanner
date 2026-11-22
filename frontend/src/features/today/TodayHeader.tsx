@@ -30,9 +30,9 @@ export function TodayHeader({
   onArrangeBlocks?: () => void
 }) {
   return (
-    <header className="mb-6 grid gap-4 lg:grid-cols-[minmax(180px,1fr)_auto_minmax(260px,1.4fr)_auto] lg:items-center">
+    <header className="mb-4 lg:mb-5 grid gap-4 lg:grid-cols-[minmax(180px,1fr)_auto_minmax(260px,1.4fr)_auto] lg:items-center">
       <div>
-        <h1 className="font-display text-3xl leading-none font-extrabold text-primary-ink md:text-4xl">
+        <h1 className="font-display text-2xl leading-none font-extrabold text-primary-ink lg:text-3xl">
           Hôm nay
         </h1>
         <p className="mt-1 text-sm font-medium text-ink-muted">

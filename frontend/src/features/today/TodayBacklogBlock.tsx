@@ -41,7 +41,7 @@ export function TodayBacklogBlock({
   const contentId = useId()
 
   return (
-    <section aria-labelledby="today-backlog-title" className="sketch p-3.5 sm:p-4">
+    <section aria-labelledby="today-backlog-title" className="sketch px-3.5 py-1 lg:px-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
@@ -64,7 +64,7 @@ export function TodayBacklogBlock({
           type="button"
           onClick={onMoveAll}
           disabled={backlog.length === 0 || moveAllPending}
-          className="flex min-h-11 items-center gap-2 rounded-lg border-2 border-[var(--ink)] bg-[var(--surface)] px-3.5 py-1.5 text-xs font-bold text-ink shadow-[2px_2px_0_0_var(--ink)] hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45"
+          className="flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45"
         >
           {moveAllPending ? (
             <>
@@ -103,7 +103,7 @@ export function TodayBacklogBlock({
                     className="flex min-w-0 items-center justify-between gap-3 py-2.5"
                   >
                     <div className="flex min-w-0 flex-1 items-center gap-2">
-                      <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
+                      <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint md:size-9 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
                         <span className="sr-only">
                           Đánh dấu hoàn thành việc tồn “{task.title}”
                         </span>
