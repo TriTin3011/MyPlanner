@@ -79,7 +79,8 @@ export function TodayTasksBlock({
     <section aria-labelledby="today-tasks-title" className="sketch p-3.5 lg:p-5">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <h2 id="today-tasks-title" className="font-display text-xl font-extrabold text-primary-ink">
-          Việc hôm nay <span className="text-sm font-bold text-ink-muted">· {tasks.length} việc</span>
+          {t('today.tasks.title')}{' '}
+          <span className="text-sm font-bold text-ink-muted">{t('today.tasks.countSuffix', { count: tasks.length })}</span>
         </h2>
         {onOpenRecurring && (
           <button
@@ -89,7 +90,7 @@ export function TodayTasksBlock({
             className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full px-3 text-sm font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             <Repeat2 size={16} aria-hidden="true" />
-            Việc lặp lại
+            {t('today.tasks.recurringButton')}
             {recurringCount !== undefined && (
               <span className="rounded-full bg-accent-tint px-2 py-0.5 text-xs">{recurringCount}</span>
             )}
@@ -99,13 +100,13 @@ export function TodayTasksBlock({
 
       {error && (
         <p role="alert" className="mb-2 rounded-lg bg-[var(--danger-bg)] px-3 py-2 text-sm font-bold text-danger">
-          Chưa cập nhật được. Hãy thử tick lại.
+          {t('today.tasks.updateError')}
         </p>
       )}
 
       {tasks.length === 0 ? (
         <p className="py-8 text-center text-sm font-medium text-ink-muted">
-          Hôm nay chưa có công việc nào.
+          {t('today.tasks.empty')}
         </p>
       ) : (
         <div>

@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
 
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { act, cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
 import type { TodayDashboardDto } from '../../api/types'
+import i18n from '../../i18n'
+import { useSettings } from '../../store/settings'
 import { TodayHeader } from './TodayHeader'
 
 const dashboard: TodayDashboardDto = {
@@ -18,6 +20,8 @@ const dashboard: TodayDashboardDto = {
   note: null,
 }
 
+afterEach(cleanup)
+
 describe('TodayHeader', () => {
   it('shows the daily summary with accessible progress', () => {
     render(<TodayHeader dashboard={dashboard} />)
@@ -32,5 +36,21 @@ describe('TodayHeader', () => {
     expect(progress.getAttribute('aria-valuenow')).toBe('38')
     expect(progress.getAttribute('aria-valuemin')).toBe('0')
     expect(progress.getAttribute('aria-valuemax')).toBe('100')
+  })
+
+  it('renders English labels and en-US date after i18n.changeLanguage("en")', async () => {
+    render(<TodayHeader dashboard={dashboard} />)
+
+    await act(async () => {
+      useSettings.setState({ language: 'en' })
+      await i18n.changeLanguage('en')
+    })
+
+    expect(screen.getByRole('heading', { name: 'Today', level: 1 })).not.toBeNull()
+    expect(screen.getByText('Sunday, 11/22/2026')).not.toBeNull()
+    expect(screen.getByText((_, element) => element?.tagName === 'P' && element.textContent === '3/10 tasks')).not.toBeNull()
+    expect(screen.getByText((_, element) => element?.tagName === 'P' && element.textContent === '3/6 habits')).not.toBeNull()
+    expect(screen.getByRole('progressbar', { name: "Today's progress" })).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Arrange blocks' })).not.toBeNull()
   })
 })

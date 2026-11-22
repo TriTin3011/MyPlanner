@@ -2,14 +2,6 @@ import { DEFAULT_TODAY_LAYOUT, type TodayBlockId } from '../../store/settings'
 
 export type TodayLayout = { id: TodayBlockId; hidden: boolean }[]
 
-export const TODAY_BLOCK_LABELS: Record<TodayBlockId, string> = {
-  progress: 'Tiến độ gần đây',
-  backlog: 'Việc còn tồn',
-  tasks: 'Việc hôm nay',
-  habits: 'Thói quen hôm nay',
-  calendar: 'Lên kế hoạch',
-}
-
 // Chuẩn hoá bố cục đọc từ localStorage: bỏ id lạ, bỏ trùng, thêm khối mới (nếu bản sau thêm khối)
 // vào cuối. Nhờ vậy dữ liệu cũ trong trình duyệt không làm hỏng trang khi danh sách khối thay đổi.
 export function normalizeTodayLayout(layout: TodayLayout | undefined): TodayLayout {

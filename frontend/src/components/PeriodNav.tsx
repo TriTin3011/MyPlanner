@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface PeriodNavProps {
   // Nhãn nút giữa, ví dụ "Tuần này", "Tháng này", "Năm nay".
@@ -15,12 +16,13 @@ interface PeriodNavProps {
 // ‹ [Tuần này] › dùng chung cho Tuần, Thói quen (tháng), Năm (SPEC §5).
 // Component "ngu" (presentational): không biết tuần là gì, chỉ báo lên trang người dùng bấm nút nào.
 export function PeriodNav({ currentLabel, unit, onPrev, onNext, onCurrent, isCurrent }: PeriodNavProps) {
+  const { t } = useTranslation()
   const button =
     'sketch grid min-h-11 min-w-11 cursor-pointer place-items-center bg-surface px-3 font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none'
 
   return (
-    <nav aria-label={`Chuyển ${unit}`} className="flex items-center gap-2">
-      <button type="button" onClick={onPrev} aria-label={`${unit} trước`} className={button}>
+    <nav aria-label={t('common.periodNav.navAria', { unit })} className="flex items-center gap-2">
+      <button type="button" onClick={onPrev} aria-label={t('common.periodNav.prevAria', { unit })} className={button}>
         <ChevronLeft size={18} aria-hidden="true" />
       </button>
       <button
@@ -31,7 +33,7 @@ export function PeriodNav({ currentLabel, unit, onPrev, onNext, onCurrent, isCur
       >
         {currentLabel}
       </button>
-      <button type="button" onClick={onNext} aria-label={`${unit} sau`} className={button}>
+      <button type="button" onClick={onNext} aria-label={t('common.periodNav.nextAria', { unit })} className={button}>
         <ChevronRight size={18} aria-hidden="true" />
       </button>
     </nav>

@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { type ReactNode, useEffect, useId, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface ModalProps {
   open: boolean
@@ -14,6 +15,7 @@ interface ModalProps {
 // phím Esc, nền mờ (::backdrop), đưa modal lên lớp trên cùng (top layer) và làm phần còn lại "inert".
 // Tự viết các việc đó bằng div rất dễ sót; thư viện (Radix, Headless UI) cũng làm được nhưng thêm phụ thuộc.
 export function Modal({ open, title, onClose, children, footer }: ModalProps) {
+  const { t } = useTranslation()
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
 
@@ -55,7 +57,7 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
             <button
               type="button"
               onClick={onClose}
-              aria-label="Đóng"
+              aria-label={t('common.close')}
               className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             >
               <X size={18} aria-hidden="true" />

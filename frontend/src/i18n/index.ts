@@ -22,7 +22,7 @@ i18n.use(initReactI18next).init({
 // (để trình đọc màn hình đọc đúng giọng, trình duyệt gạch chính tả đúng ngôn ngữ, Google hiểu trang).
 export function applyLanguage(lang: Language) {
   if (i18n.language !== lang) void i18n.changeLanguage(lang)
-  document.documentElement.lang = lang
+  if (typeof document !== 'undefined') document.documentElement.lang = lang
 }
 
 applyLanguage(useSettings.getState().language)

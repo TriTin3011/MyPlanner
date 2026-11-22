@@ -1,8 +1,12 @@
 import { ChevronDown, LoaderCircle } from 'lucide-react'
 import { useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { TaskDto } from '../../api/types'
 import { TaskMenu } from '../../components/TaskMenu'
-import { TASK_TAGS as TAGS } from '../../components/taskTags'
+import { getTaskTags } from '../../components/taskTags'
+import { INTL_LOCALE } from '../../i18n/languages'
+import { parseDateKey } from '../../lib/dates'
+import { useSettings } from '../../store/settings'
 
 interface TodayBacklogBlockProps {
   backlog: TaskDto[]
@@ -16,12 +20,12 @@ interface TodayBacklogBlockProps {
   onToggleTask: (id: string, done: boolean) => void
 }
 
-function formatDateBadge(dateStr: string) {
-  const parts = dateStr.split('-')
-  if (parts.length === 3) {
-    return `${parts[2]}/${parts[1]}`
-  }
-  return dateStr
+function formatDateBadge(dateStr: string, locale: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr
+  const parts = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).formatToParts(
+    parseDateKey(dateStr),
+  )
+  return parts.map((p) => (p.type === 'literal' ? '/' : p.value)).join('')
 }
 
 export function TodayBacklogBlock({
@@ -35,6 +39,10 @@ export function TodayBacklogBlock({
   onDeleteTask,
   onToggleTask,
 }: TodayBacklogBlockProps) {
+  const { t } = useTranslation()
+  const language = useSettings((s) => s.language)
+  const locale = INTL_LOCALE[language]
+  const tags = getTaskTags(t)
   // Mỗi lúc chỉ mở một menu: giữ id task đang mở ở khối cha thay vì state riêng từng dòng.
   const [menuTaskId, setMenuTaskId] = useState<string | null>(null)
   const [isOpen, setIsOpen] = useState(false)
@@ -50,7 +58,7 @@ export function TodayBacklogBlock({
           aria-controls={contentId}
           className="flex cursor-pointer items-center gap-2 rounded-lg py-1 text-left font-display text-lg font-bold text-primary-ink hover:opacity-80 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
         >
-          <span id="today-backlog-title">Việc còn tồn ({backlog.length})</span>
+          <span id="today-backlog-title">{t('today.backlog.title', { count: backlog.length })}</span>
           <ChevronDown
             size={18}
             className={`transition-transform duration-200 motion-reduce:transition-none ${
@@ -69,17 +77,17 @@ export function TodayBacklogBlock({
           {moveAllPending ? (
             <>
               <LoaderCircle size={15} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-              <span>Đang chuyển…</span>
+              <span>{t('today.backlog.movingAll')}</span>
             </>
           ) : (
-            <span>Chuyển tất cả vào hôm nay</span>
+            <span>{t('today.backlog.moveAllToToday')}</span>
           )}
         </button>
       </div>
 
       {error && (
         <p role="alert" className="mt-2 rounded-lg bg-[var(--danger-bg)] px-3 py-2 text-sm font-bold text-danger">
-          Chưa xử lý được việc tồn. Hãy thử lại.
+          {t('today.backlog.error')}
         </p>
       )}
 
@@ -87,7 +95,7 @@ export function TodayBacklogBlock({
         <div id={contentId} className="mt-3 border-t border-[var(--line)] pt-2">
           {backlog.length === 0 ? (
             <p className="py-4 text-center text-sm font-medium text-ink-muted">
-              Không còn công việc tồn đọng nào.
+              {t('today.backlog.empty')}
             </p>
           ) : (
             <div className="divide-y divide-[var(--line)]">
@@ -105,7 +113,7 @@ export function TodayBacklogBlock({
                     <div className="flex min-w-0 flex-1 items-center gap-2">
                       <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint md:size-9 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
                         <span className="sr-only">
-                          Đánh dấu hoàn thành việc tồn “{task.title}”
+                          {t('today.backlog.markDone', { title: task.title })}
                         </span>
                         <input
                           type="checkbox"
@@ -122,11 +130,11 @@ export function TodayBacklogBlock({
                         </p>
                         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">
                           <span className="rounded bg-[var(--line)] px-1.5 py-0.5 font-bold">
-                            {formatDateBadge(task.date)}
+                            {formatDateBadge(task.date, locale)}
                           </span>
                           {task.tags.map((tag) => (
-                            <span key={tag} className={`rounded-full px-2 py-0.5 font-bold ${TAGS[tag].className}`}>
-                              {TAGS[tag].label}
+                            <span key={tag} className={`rounded-full px-2 py-0.5 font-bold ${tags[tag].className}`}>
+                              {tags[tag].label}
                             </span>
                           ))}
                         </div>
@@ -138,7 +146,7 @@ export function TodayBacklogBlock({
                       open={menuTaskId === task.id}
                       onOpenChange={(open) => setMenuTaskId(open ? task.id : null)}
                       disabled={isTaskPending}
-                      dateLabel="Chọn ngày khác"
+                      dateLabel={t('today.backlog.chooseAnotherDate')}
                       onMoveToToday={() => onMoveTask(task)}
                       onChangeDate={(date) => onChangeDate(task, date)}
                       onDelete={() => onDeleteTask(task.id)}

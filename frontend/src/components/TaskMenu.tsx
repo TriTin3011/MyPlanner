@@ -17,8 +17,9 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { TaskDto, TaskTag } from '../api/types'
-import { TAG_ORDER, TASK_TAGS } from './taskTags'
+import { getTaskTags, TAG_ORDER } from './taskTags'
 
 // Menu ⋯ của một Task (SPEC §6.3, §6.4). Component chỉ hiển thị và gọi callback; việc gọi API do trang làm.
 // Mục nào không truyền callback thì không hiện, nhờ vậy cùng một menu dùng được cho Việc hôm nay và Việc còn tồn.
@@ -36,6 +37,7 @@ export interface TaskMenuProps {
 }
 
 export function TaskMenu(props: TaskMenuProps) {
+  const { t } = useTranslation()
   const { task, open, onOpenChange, disabled } = props
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuId = useId()
@@ -55,7 +57,7 @@ export function TaskMenu(props: TaskMenuProps) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        aria-label={`Thao tác với “${task.title}”`}
+        aria-label={t('common.taskMenu.actionsFor', { title: task.title })}
         className="grid size-11 cursor-pointer place-items-center rounded-lg text-ink-muted md:size-9 hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-wait disabled:opacity-50"
       >
         <MoreHorizontal size={18} aria-hidden="true" />
@@ -79,13 +81,16 @@ function TaskMenuPopover({
   task,
   triggerRef,
   onClose,
-  dateLabel = 'Đổi ngày',
+  dateLabel,
   onMoveToToday,
   onToggleTag,
   onAddSubtask,
   onChangeDate,
   onDelete,
 }: PopoverProps) {
+  const { t } = useTranslation()
+  const taskTags = getTaskTags(t)
+  const resolvedDateLabel = dateLabel ?? t('common.taskMenu.defaultDateLabel')
   const [view, setView] = useState<View>('menu')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -115,7 +120,7 @@ function TaskMenuPopover({
       await action()
       if (closeAfter) onClose(true)
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Chưa lưu được. Hãy thử lại.')
+      setError(reason instanceof Error ? reason.message : t('common.saveError'))
     } finally {
       setBusy(false)
     }
@@ -152,24 +157,24 @@ function TaskMenuPopover({
       className="absolute top-full right-0 z-30 mt-1 w-64 max-w-[calc(100vw-2rem)] rounded-xl border-2 border-[var(--ink)] bg-surface p-1.5 shadow-[3px_3px_0_0_var(--ink)]"
     >
       {view === 'menu' && (
-        <div id={id} role="menu" aria-label={`Thao tác với “${task.title}”`}>
+        <div id={id} role="menu" aria-label={t('common.taskMenu.actionsFor', { title: task.title })}>
           {onMoveToToday && (
             <MenuItem icon={<ArrowDownToLine size={16} />} disabled={busy} onClick={() => run(onMoveToToday)}>
-              Chuyển vào hôm nay
+              {t('common.taskMenu.moveToToday')}
             </MenuItem>
           )}
           {onChangeDate && (
             <MenuItem icon={<CalendarDays size={16} />} disabled={busy} onClick={() => setView('date')}>
-              {dateLabel}…
+              {t('common.taskMenu.changeDateItem', { label: resolvedDateLabel })}
             </MenuItem>
           )}
           {onAddSubtask && (
             <MenuItem icon={<ListPlus size={16} />} disabled={busy} onClick={() => setView('subtask')}>
-              Thêm bước con…
+              {t('common.taskMenu.addSubtaskItem')}
             </MenuItem>
           )}
           {onToggleTag && (
-            <div role="group" aria-label="Tag" className="my-1 border-y border-[var(--line)] py-1">
+            <div role="group" aria-label={t('common.tag')} className="my-1 border-y border-[var(--line)] py-1">
               {TAG_ORDER.map((tag) => {
                 const checked = task.tags.includes(tag)
                 return (
@@ -185,8 +190,8 @@ function TaskMenuPopover({
                     <span className="grid size-4 place-items-center" aria-hidden="true">
                       {checked && <Check size={16} />}
                     </span>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${TASK_TAGS[tag].className}`}>
-                      {TASK_TAGS[tag].label}
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${taskTags[tag].className}`}>
+                      {taskTags[tag].label}
                     </span>
                   </button>
                 )
@@ -195,7 +200,7 @@ function TaskMenuPopover({
           )}
           {onDelete && (
             <MenuItem icon={<Trash2 size={16} />} danger disabled={busy} onClick={() => run(onDelete)}>
-              Xoá việc
+              {t('common.taskMenu.deleteTask')}
             </MenuItem>
           )}
         </div>
@@ -203,10 +208,10 @@ function TaskMenuPopover({
 
       {view === 'date' && onChangeDate && (
         <InlineForm
-          label={dateLabel}
+          label={resolvedDateLabel}
           type="date"
           initialValue={task.date}
-          submitLabel="Chuyển"
+          submitLabel={t('common.move')}
           busy={busy}
           onCancel={() => setView('menu')}
           onSubmit={(value) => run(() => onChangeDate(value))}
@@ -215,11 +220,11 @@ function TaskMenuPopover({
 
       {view === 'subtask' && onAddSubtask && (
         <InlineForm
-          label="Bước con mới"
+          label={t('common.taskMenu.newSubtaskLabel')}
           type="text"
           initialValue=""
-          placeholder="Tên bước con…"
-          submitLabel="Thêm"
+          placeholder={t('common.taskMenu.newSubtaskPlaceholder')}
+          submitLabel={t('common.add')}
           busy={busy}
           onCancel={() => setView('menu')}
           onSubmit={(value) => run(() => onAddSubtask(value))}
@@ -284,6 +289,7 @@ function InlineForm({
   onCancel: () => void
   onSubmit: (value: string) => void
 }) {
+  const { t } = useTranslation()
   const [value, setValue] = useState(initialValue)
   const inputId = useId()
   const trimmed = value.trim()
@@ -314,7 +320,7 @@ function InlineForm({
           disabled={busy}
           className="min-h-11 cursor-pointer rounded-lg px-3 text-sm font-bold text-ink-muted hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
         >
-          Quay lại
+          {t('common.back')}
         </button>
         <button
           type="submit"

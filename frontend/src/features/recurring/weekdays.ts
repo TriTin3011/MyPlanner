@@ -1,17 +1,31 @@
 // Thứ theo ISO: 1 = Thứ 2 … 7 = Chủ nhật (SPEC §12.2), khớp DayOfWeek phía BE sau khi đổi CN = 7.
-export const WEEKDAYS = [
-  { value: 1, short: 'T2', long: 'Thứ 2' },
-  { value: 2, short: 'T3', long: 'Thứ 3' },
-  { value: 3, short: 'T4', long: 'Thứ 4' },
-  { value: 4, short: 'T5', long: 'Thứ 5' },
-  { value: 5, short: 'T6', long: 'Thứ 6' },
-  { value: 6, short: 'T7', long: 'Thứ 7' },
-  { value: 7, short: 'CN', long: 'Chủ nhật' },
-] as const
+// Tên thứ lấy từ Intl.DateTimeFormat theo locale để tự đổi khi chuyển ngôn ngữ, không giữ mảng tiếng Việt cứng.
+const ISO_MONDAY_2026_11_16 = 16
 
-export function formatWeekdays(weekdays: number[]) {
-  if (weekdays.length === 7) return 'Mỗi ngày'
-  return WEEKDAYS.filter((d) => weekdays.includes(d.value))
+export interface WeekdayOption {
+  value: 1 | 2 | 3 | 4 | 5 | 6 | 7
+  short: string
+  long: string
+}
+
+export function getWeekdays(locale = 'vi-VN'): WeekdayOption[] {
+  const isVi = locale.toLowerCase().startsWith('vi')
+  const shortFmt = new Intl.DateTimeFormat(locale, { weekday: isVi ? 'narrow' : 'short' })
+  const longFmt = new Intl.DateTimeFormat(locale, { weekday: 'long' })
+  return ([1, 2, 3, 4, 5, 6, 7] as const).map((value) => {
+    const date = new Date(2026, 10, ISO_MONDAY_2026_11_16 + value - 1)
+    return {
+      value,
+      short: shortFmt.format(date),
+      long: longFmt.format(date),
+    }
+  })
+}
+
+export function formatWeekdays(weekdays: number[], locale = 'vi-VN', everyDayLabel = 'Every day') {
+  if (weekdays.length === 7) return everyDayLabel
+  return getWeekdays(locale)
+    .filter((d) => weekdays.includes(d.value))
     .map((d) => d.short)
     .join(', ')
 }
