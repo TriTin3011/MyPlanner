@@ -48,7 +48,9 @@ export function YearPage() {
         className="sketch mx-auto flex min-h-44 w-full max-w-2xl flex-col items-center justify-center gap-3 p-6 text-center"
       >
         <AlertCircle className="text-danger" aria-hidden="true" />
-        <p className="font-bold">{board.error.message}</p>
+        <p className="font-bold">
+          {t('year.loadErrorPrefix')} {board.error.message}
+        </p>
         <button
           type="button"
           onClick={() => board.refetch()}

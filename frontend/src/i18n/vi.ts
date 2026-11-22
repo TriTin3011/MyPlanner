@@ -285,6 +285,7 @@ export const vi = {
   },
   week: {
     title: 'Kế hoạch tuần',
+    loadErrorPrefix: 'Chưa tải được kế hoạch tuần.',
     subtitle: 'Tuần {{week}} · {{from}} – {{to}}/{{year}}',
     currentWeek: 'Tuần này',
     unit: 'tuần',
@@ -496,6 +497,7 @@ export const vi = {
   },
   year: {
     title: 'Kế hoạch năm',
+    loadErrorPrefix: 'Chưa tải được kế hoạch năm.',
     subtitle: 'Năm {{year}}',
     currentYear: 'Năm nay',
     unit: 'năm',
