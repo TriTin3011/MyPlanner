@@ -255,9 +255,9 @@ function MonthCard({ month, isCurrent, isOpen, onToggleOpen, itemCount, addPendi
     <li
       ref={setNodeRef}
       data-month={month.month}
-      className={`sketch bg-[var(--surface)] p-3 transition-colors ${
+      className={`sketch p-3 transition-colors ${
         isOpen ? 'col-span-2 sm:col-span-1' : ''
-      } ${isOver && !isOpen ? 'bg-accent-tint' : ''}`}
+      } ${isOver && !isOpen ? '[--sketch-bg:var(--accent-tint)]' : ''}`}
     >
       <h3>
         <button
