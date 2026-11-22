@@ -23,6 +23,9 @@ public class YearRepository(AppDbContext db) : IYearRepository
     public Task<YearPlanItem?> FindItemAsync(Guid id, CancellationToken ct) =>
         db.YearPlanItems.FirstOrDefaultAsync(i => i.Id == id, ct);
 
+    public Task<List<YearPlanItem>> FindItemsAsync(IReadOnlyCollection<Guid> ids, CancellationToken ct) =>
+        db.YearPlanItems.Where(i => ids.Contains(i.Id)).ToListAsync(ct);
+
     public async Task<int> NextOrderAsync(int year, int month, CancellationToken ct) =>
         (await db.YearPlanItems.Where(i => i.Year == year && i.Month == month).MaxAsync(i => (int?)i.Order, ct) ?? -1) + 1;
 

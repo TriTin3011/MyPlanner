@@ -10,4 +10,6 @@ public interface IYearService
     Task<YearPlanItemDto> AddItemAsync(int year, CreateYearItemRequest req, CancellationToken ct);
     Task<YearPlanItemDto> UpdateItemAsync(Guid id, UpdateYearItemRequest req, CancellationToken ct);
     Task DeleteItemAsync(Guid id, CancellationToken ct);
+    Task ReorderItemsAsync(int year, ReorderYearItemsRequest req, CancellationToken ct);
+    Task<YearDashboardDto> GetBoardAsync(int year, DateOnly today, CancellationToken ct);
 }

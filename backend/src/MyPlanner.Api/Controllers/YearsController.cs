@@ -25,6 +25,23 @@ public class YearsController(IYearService years) : ControllerBase
         return Created($"/api/year-items/{dto.Id}", dto);
     }
 
+    // GET /api/dashboard/year?year=2026&today=2026-11-22: cả trang Kế hoạch năm trong một lần gọi (SPEC §10, §13.8).
+    [HttpGet("dashboard/year")]
+    public async Task<ActionResult<YearDashboardDto>> Board([FromQuery] int year, [FromQuery] DateOnly today, CancellationToken ct)
+    {
+        if (year is < 2000 or > 2100)
+            return Problem(statusCode: 400, title: "year không hợp lệ", detail: "Cần 2000 ≤ year ≤ 2100.");
+        return await years.GetBoardAsync(year, today, ct);
+    }
+
+    [HttpPut("years/{year:int:range(2000,2100)}/items/reorder")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> ReorderItems(int year, ReorderYearItemsRequest req, CancellationToken ct)
+    {
+        await years.ReorderItemsAsync(year, req, ct);
+        return NoContent();
+    }
+
     [HttpPut("year-items/{id:guid}")]
     public Task<YearPlanItemDto> UpdateItem(Guid id, UpdateYearItemRequest req, CancellationToken ct) => years.UpdateItemAsync(id, req, ct);
 

@@ -1,12 +1,44 @@
 using MyPlanner.BLL.Common;
 using MyPlanner.Core.Dtos;
+using MyPlanner.Core.Domain;
 using MyPlanner.Core.Entities;
+using MyPlanner.DAL.Goals;
 using MyPlanner.DAL.Notes;
 
 namespace MyPlanner.BLL.Notes;
 
-public class YearService(IYearRepository years) : IYearService
+public class YearService(IYearRepository years, IGoalRepository goals) : IYearService
 {
+    // SPEC §10 + §13.8. Ba truy vấn (meta, mục, hạn) rồi YearBoard.Build gom trong bộ nhớ.
+    public async Task<YearDashboardDto> GetBoardAsync(int year, DateOnly today, CancellationToken ct)
+    {
+        var meta = await years.GetMetaAsync(year, ct);
+        var items = await years.ItemsAsync(year, ct);
+        var from = new DateOnly(year, 1, 1);
+        var to = new DateOnly(year, 12, 31);
+        var steps = await goals.StepDeadlinesAsync(from, to, ct);
+        var goalRows = await goals.GoalDeadlinesAsync(from, to, ct);
+        var deadlines = YearBoard.Deadlines(steps.Select(s => (s.GoalId, s.GoalTitle, s.Title, s.Deadline, s.Done)), goalRows, today);
+        return YearBoard.Build(year, meta, items, deadlines, today);
+    }
+
+    // Ids là thứ tự mới của tháng đích; mục kéo từ tháng khác sang được đổi Month luôn (giống task kéo giữa các ngày).
+    public async Task ReorderItemsAsync(int year, ReorderYearItemsRequest req, CancellationToken ct)
+    {
+        var found = await years.FindItemsAsync(req.Ids, ct);
+        if (found.Count != req.Ids.Count || found.Any(i => i.Year != year))
+            throw AppException.NotFound("Một số mục kế hoạch năm");
+
+        var byId = found.ToDictionary(i => i.Id);
+        for (var i = 0; i < req.Ids.Count; i++)
+        {
+            var item = byId[req.Ids[i]];
+            item.Month = req.Month;
+            item.Order = i;
+        }
+        await years.SaveChangesAsync(ct);
+    }
+
     public async Task<YearMetaDto> GetMetaAsync(int year, CancellationToken ct) =>
         await years.GetMetaAsync(year, ct) ?? new YearMetaDto(year, "", "");
 
