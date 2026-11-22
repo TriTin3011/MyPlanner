@@ -1,5 +1,6 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
+import { queryClient } from '../app/queryClient'
 import { useSettings } from '../store/settings'
 import { en } from './en'
 import type { Language } from './languages'
@@ -27,7 +28,10 @@ export function applyLanguage(lang: Language) {
 
 applyLanguage(useSettings.getState().language)
 useSettings.subscribe((state, prev) => {
-  if (state.language !== prev.language) applyLanguage(state.language)
+  if (state.language !== prev.language) {
+    applyLanguage(state.language)
+    void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+  }
 })
 
 export default i18n

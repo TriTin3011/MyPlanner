@@ -1,5 +1,6 @@
 import { CheckCheck, ChevronDown, Sparkles, Target } from 'lucide-react'
 import { useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { WeekDashboardDto } from '../../api/types'
 import { PeriodNav } from '../../components/PeriodNav'
 import { StatStrip } from '../../components/StatStrip'
@@ -13,29 +14,31 @@ interface WeekHeaderProps {
   onCurrent: () => void
 }
 
-// "Tuần 47 · 16/11 – 22/11/2026": số tuần lấy từ weekKey BE trả về, không tự tính lại.
-function subtitle(week: WeekDashboardDto) {
-  const weekNumber = Number(week.weekKey.split('-W')[1])
-  return `Tuần ${weekNumber} · ${formatDayMonth(week.from)} – ${formatDayMonth(week.to)}/${week.to.slice(0, 4)}`
-}
-
 // Đầu trang Kế hoạch tuần (SPEC §9.1). Mọi số và câu chữ đến từ WeekDashboardDto.
 export function WeekHeader({ week, isCurrentWeek, onPrev, onNext, onCurrent }: WeekHeaderProps) {
+  const { t } = useTranslation()
   // Mở/đóng "Xem thêm" là trạng thái giao diện thuần, sống trong component (không cần store hay server).
   const [expanded, setExpanded] = useState(false)
   const insightsId = useId()
+  const weekNumber = Number(week.weekKey.split('-W')[1])
+  const subtitle = t('week.subtitle', {
+    week: weekNumber,
+    from: formatDayMonth(week.from),
+    to: formatDayMonth(week.to),
+    year: week.to.slice(0, 4),
+  })
 
   return (
     <header className="mb-4 lg:mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
         <h1 className="font-display text-2xl leading-none font-extrabold text-primary-ink lg:text-3xl">
-          Kế hoạch tuần
+          {t('week.title')}
         </h1>
-        <p className="mt-1 text-sm font-medium text-ink-muted">{subtitle(week)}</p>
+        <p className="mt-1 text-sm font-medium text-ink-muted">{subtitle}</p>
         <div className="mt-3">
           <PeriodNav
-            currentLabel="Tuần này"
-            unit="tuần"
+            currentLabel={t('week.currentWeek')}
+            unit={t('week.unit')}
             isCurrent={isCurrentWeek}
             onPrev={onPrev}
             onNext={onNext}
@@ -48,21 +51,21 @@ export function WeekHeader({ week, isCurrentWeek, onPrev, onNext, onCurrent }: W
         <StatStrip
           items={[
             {
-              label: 'Đã xong',
+              label: t('week.stats.done'),
               icon: <CheckCheck size={12} aria-hidden="true" />,
               value: week.tasksDone,
               suffix: `/ ${week.tasksTotal}`,
             },
             {
-              label: 'Thói quen',
+              label: t('week.stats.habits'),
               icon: <Target size={12} aria-hidden="true" />,
               value: `${week.habitPercent}%`,
             },
             {
-              label: 'Hôm nay',
+              label: t('week.stats.today'),
               icon: <Sparkles size={12} aria-hidden="true" />,
               value: week.todayRemaining,
-              suffix: 'việc',
+              suffix: t('week.stats.todaySuffix', { count: week.todayRemaining }),
             },
           ]}
         />
@@ -77,7 +80,7 @@ export function WeekHeader({ week, isCurrentWeek, onPrev, onNext, onCurrent }: W
               aria-controls={insightsId}
               className="-ml-2 flex min-h-11 cursor-pointer items-center gap-1 rounded-full px-2 text-sm font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:min-h-8"
             >
-              {expanded ? 'Thu gọn' : 'Xem thêm'}
+              {expanded ? t('week.showLess') : t('week.showMore')}
               <ChevronDown
                 size={15}
                 aria-hidden="true"

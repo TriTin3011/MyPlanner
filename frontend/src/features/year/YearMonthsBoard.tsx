@@ -16,6 +16,7 @@ import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities'
 import { ChevronDown, Flag, GripVertical, X } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { YearMonthDto, YearPlanItemDto } from '../../api/types'
 import { AddTaskInput } from '../../components/AddTaskInput'
 import { DeadlineRow } from '../week/DayColumn'
@@ -46,6 +47,7 @@ export function YearMonthsBoard({
   addPendingMonth,
   onAdd,
 }: YearMonthsBoardProps) {
+  const { t } = useTranslation()
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
@@ -75,7 +77,7 @@ export function YearMonthsBoard({
   }
 
   function titleOf(id: UniqueIdentifier) {
-    return `“${itemById.get(String(id))?.title ?? ''}”`
+    return itemById.get(String(id))?.title ?? ''
   }
 
   function toggleOpen(month: number) {
@@ -152,13 +154,13 @@ export function YearMonthsBoard({
       const next = index + (key === 'ArrowUp' ? -1 : 1)
       if (next < 0 || next >= ids.length) return
       onReorder({ month, ids: arrayMove(ids, index, next) })
-      setAnnouncement(`Đã chuyển ${titleOf(id)} tới vị trí ${next + 1} trên ${ids.length}.`)
+      setAnnouncement(t('year.months.dnd.movedInMonth', { title: titleOf(id), position: next + 1, total: ids.length }))
       return
     }
     const target = month + (key === 'ArrowLeft' ? -1 : 1)
     if (target < 1 || target > 12) return
     onReorder({ month: target, ids: [...fromProps[target], id] })
-    setAnnouncement(`Đã chuyển ${titleOf(id)} sang tháng ${target}.`)
+    setAnnouncement(t('year.months.dnd.movedToMonth', { title: titleOf(id), month: target }))
   }
 
   return (
@@ -177,14 +179,13 @@ export function YearMonthsBoard({
       }}
       accessibility={{
         screenReaderInstructions: {
-          draggable:
-            'Phím lên hoặc xuống để đổi chỗ trong tháng, trái hoặc phải để chuyển sang tháng bên cạnh. Hoặc giữ chuột / giữ ngón tay rồi kéo.',
+          draggable: t('year.months.dnd.instructions'),
         },
         announcements: {
-          onDragStart: ({ active }) => `Đã nhấc ${titleOf(active.id)}.`,
+          onDragStart: ({ active }) => t('year.months.dnd.dragStart', { title: titleOf(active.id) }),
           onDragOver: () => undefined,
-          onDragEnd: ({ active, over }) => (over ? `Đã thả ${titleOf(active.id)}.` : undefined),
-          onDragCancel: ({ active }) => `Đã huỷ kéo ${titleOf(active.id)}.`,
+          onDragEnd: ({ active, over }) => (over ? t('year.months.dnd.dragEnd', { title: titleOf(active.id) }) : undefined),
+          onDragCancel: ({ active }) => t('year.months.dnd.dragCancel', { title: titleOf(active.id) }),
         },
       }}
     >
@@ -246,6 +247,7 @@ interface MonthCardProps {
 // Một thẻ tháng. Cả thẻ là vùng thả "month:<n>" để kéo được vào thẻ đang thu gọn.
 // Số x/y, % và cờ ⚑ k lấy từ YearMonthDto (BE đếm), không đếm lại từ danh sách.
 function MonthCard({ month, isCurrent, isOpen, onToggleOpen, itemCount, addPending, onAdd, children }: MonthCardProps) {
+  const { t } = useTranslation()
   const { setNodeRef, isOver } = useDroppable({ id: `${COLUMN_PREFIX}${month.month}` })
   const bodyId = useId()
   const deadlineCount = month.deadlines.length
@@ -267,9 +269,9 @@ function MonthCard({ month, isCurrent, isOpen, onToggleOpen, itemCount, addPendi
           aria-controls={bodyId}
           className="flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-lg text-left md:min-h-8 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
         >
-          <span className="font-display font-extrabold text-ink">Tháng {month.month}</span>
+          <span className="font-display font-extrabold text-ink">{t('year.months.monthHeading', { month: month.month })}</span>
           {isCurrent && (
-            <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-extrabold text-white">Nay</span>
+            <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-extrabold text-white">{t('year.months.currentBadge')}</span>
           )}
           <ChevronDown
             size={16}
@@ -282,7 +284,7 @@ function MonthCard({ month, isCurrent, isOpen, onToggleOpen, itemCount, addPendi
       <div className="mt-1 flex items-center gap-2">
         <div
           role="progressbar"
-          aria-label={`Tiến độ tháng ${month.month}`}
+          aria-label={t('year.months.progressAria', { month: month.month })}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={month.percent}
@@ -295,12 +297,12 @@ function MonthCard({ month, isCurrent, isOpen, onToggleOpen, itemCount, addPendi
         </span>
         {deadlineCount > 0 && (
           <span
-            title={`${deadlineCount} hạn trong tháng`}
+            title={t('year.months.deadlinesTitle', { count: deadlineCount })}
             className={`flex items-center gap-0.5 text-xs font-extrabold ${overdue ? 'text-danger' : 'text-primary-ink'}`}
           >
             <Flag size={12} aria-hidden="true" />
             {deadlineCount}
-            <span className="sr-only"> hạn trong tháng</span>
+            <span className="sr-only">{t('year.months.deadlinesSr')}</span>
           </span>
         )}
       </div>
@@ -311,9 +313,9 @@ function MonthCard({ month, isCurrent, isOpen, onToggleOpen, itemCount, addPendi
             {deadlineCount > 0 && <ul className="mb-2 space-y-1.5">{month.deadlines.map((d) => <DeadlineRow key={`${d.kind}-${d.goalId}-${d.title}-${d.date}`} deadline={d} />)}</ul>}
             {children}
             {itemCount === 0 && deadlineCount === 0 && (
-              <p className="py-2 text-sm text-ink-muted">Chưa có kế hoạch cho tháng này.</p>
+              <p className="py-2 text-sm text-ink-muted">{t('year.months.emptyMonth')}</p>
             )}
-            <AddTaskInput pending={addPending} onAdd={onAdd} placeholder="Thêm kế hoạch…" />
+            <AddTaskInput pending={addPending} onAdd={onAdd} placeholder={t('year.months.addPlaceholder')} />
           </>
         )}
       </div>
@@ -334,6 +336,7 @@ function SortableItem({
   onDelete: (item: YearPlanItemDto) => void
   onKey: (key: string) => void
 }) {
+  const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
   })
@@ -369,7 +372,7 @@ function SortableItem({
       <button
         type="button"
         onClick={() => onDelete(item)}
-        aria-label={`Xoá “${item.title}”`}
+        aria-label={t('year.months.deleteItemAria', { title: item.title })}
         className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg text-ink-muted md:size-8 hover:bg-[var(--danger-bg)] hover:text-danger focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
       >
         <X size={15} aria-hidden="true" />
@@ -381,7 +384,7 @@ function SortableItem({
         {...listeners}
         onKeyDown={handleKeyDown}
         aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight"
-        aria-label={`Kéo để sắp xếp hoặc chuyển tháng “${item.title}”`}
+        aria-label={t('year.months.dragItemAria', { title: item.title })}
         className="grid size-11 shrink-0 cursor-grab md:size-8 touch-none place-items-center rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:cursor-grabbing"
       >
         <GripVertical size={16} aria-hidden="true" />

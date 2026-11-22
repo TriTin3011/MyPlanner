@@ -1,7 +1,10 @@
 import { CheckCheck, Droplet, Trophy } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { HabitMonthDto } from '../../api/types'
 import { PeriodNav } from '../../components/PeriodNav'
 import { StatStrip } from '../../components/StatStrip'
+import { INTL_LOCALE } from '../../i18n/languages'
+import { useSettings } from '../../store/settings'
 
 interface HabitsHeaderProps {
   month: HabitMonthDto
@@ -9,12 +12,6 @@ interface HabitsHeaderProps {
   onPrev: () => void
   onNext: () => void
   onCurrent: () => void
-}
-
-// "Tháng 11/2026" dựng thẳng từ khoá tháng "2026-11" BE trả về.
-function subtitle(monthKey: string) {
-  const [year, month] = monthKey.split('-')
-  return `Tháng ${Number(month)}/${year}`
 }
 
 // Đầu trang Theo dõi thói quen (SPEC §8.1). Mọi chỉ số đều do BE tính sẵn trong HabitMonthDto.
@@ -25,19 +22,29 @@ export function HabitsHeader({
   onNext,
   onCurrent,
 }: HabitsHeaderProps) {
+  const { t } = useTranslation()
+  const language = useSettings((s) => s.language)
+  const locale = INTL_LOCALE[language]
   const { longestStreak, mostConsistent } = month
+
+  const [yearPart, monthPart] = month.month.split('-')
+  const subtitle = language === 'vi'
+    ? t('habits.subtitle', { month: Number(monthPart), year: yearPart })
+    : new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(
+        new Date(Number(yearPart), Number(monthPart) - 1, 1),
+      )
 
   return (
     <header className="mb-4 lg:mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
         <h1 className="font-display text-2xl leading-none font-extrabold text-primary-ink lg:text-3xl">
-          Theo dõi thói quen
+          {t('habits.title')}
         </h1>
-        <p className="mt-1 text-sm font-medium text-ink-muted">{subtitle(month.month)}</p>
+        <p className="mt-1 text-sm font-medium text-ink-muted">{subtitle}</p>
         <div className="mt-3">
           <PeriodNav
-            currentLabel="Tháng này"
-            unit="tháng"
+            currentLabel={t('habits.currentMonth')}
+            unit={t('habits.unit')}
             isCurrent={isCurrentMonth}
             onPrev={onPrev}
             onNext={onNext}
@@ -50,18 +57,18 @@ export function HabitsHeader({
         <StatStrip
           items={[
             {
-              label: 'Cả tháng',
+              label: t('habits.stats.wholeMonth'),
               icon: <CheckCheck size={12} aria-hidden="true" />,
               value: `${month.percent}%`,
             },
             {
-              label: 'Chuỗi dài nhất',
+              label: t('habits.stats.longestStreak'),
               icon: <Droplet size={12} aria-hidden="true" />,
               value: longestStreak ? longestStreak.value : '—',
-              suffix: longestStreak ? 'ngày' : undefined,
+              suffix: longestStreak ? t('habits.stats.daysSuffix', { count: longestStreak.value }) : undefined,
             },
             {
-              label: 'Đều đặn nhất',
+              label: t('habits.stats.mostConsistent'),
               icon: <Trophy size={12} aria-hidden="true" />,
               // Tên dài co lại bằng "…" còn phần % luôn hiện: gói cả hai trong một hàng flex
               // vì <dd> của StatStrip không xuống dòng, dùng `suffix` thì % bị đẩy tràn khỏi ô.
@@ -78,7 +85,7 @@ export function HabitsHeader({
         />
         {longestStreak && (
           <p className="mt-1.5 text-xs font-medium text-ink-muted">
-            Chuỗi dài nhất: {longestStreak.title}
+            {t('habits.longestStreakCaption', { title: longestStreak.title })}
           </p>
         )}
       </div>

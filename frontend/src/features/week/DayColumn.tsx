@@ -1,11 +1,20 @@
 import { Flag } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { DeadlineDto } from '../../api/types'
 import { AddTaskInput } from '../../components/AddTaskInput'
 import { NoteCollapsible } from '../../components/NoteCollapsible'
 import { formatDayMonth } from '../../lib/dates'
 
-const DAY_NAMES = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật']
+const DAY_NAME_KEYS = [
+  'week.dayNames.d0',
+  'week.dayNames.d1',
+  'week.dayNames.d2',
+  'week.dayNames.d3',
+  'week.dayNames.d4',
+  'week.dayNames.d5',
+  'week.dayNames.d6',
+] as const
 
 interface DayColumnProps {
   date: string
@@ -36,6 +45,7 @@ export function DayColumn({
   noteContent,
   onSaveNote,
 }: DayColumnProps) {
+  const { t } = useTranslation()
   const titleId = `day-${date}-title`
   return (
     <section
@@ -45,9 +55,11 @@ export function DayColumn({
     >
       <header className="mb-2 flex items-center justify-between gap-2">
         <h3 id={titleId} className="flex items-center gap-2 font-display text-lg font-extrabold text-ink">
-          {DAY_NAMES[dayIndex]}
+          {t(DAY_NAME_KEYS[dayIndex] ?? 'week.dayNames.d0')}
           {isToday && (
-            <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-white">Hôm nay</span>
+            <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-white">
+              {t('week.dayColumn.todayBadge')}
+            </span>
           )}
         </h3>
         <span className="rounded-full bg-accent-tint px-2 py-0.5 text-xs font-bold text-primary-ink">
@@ -56,7 +68,7 @@ export function DayColumn({
       </header>
 
       {deadlines.length > 0 && (
-        <ul className="mb-2 space-y-1.5" aria-label="Hạn trong ngày">
+        <ul className="mb-2 space-y-1.5" aria-label={t('week.dayColumn.deadlinesAria')}>
           {deadlines.map((d) => (
             <DeadlineRow key={`${d.kind}-${d.goalId}-${d.title}`} deadline={d} />
           ))}
@@ -65,17 +77,17 @@ export function DayColumn({
 
       <div className="min-h-12 flex-1">
         {taskCount === 0 && (
-          <p className="py-4 text-center text-sm font-medium text-ink-muted/70">Chưa có việc nào</p>
+          <p className="py-4 text-center text-sm font-medium text-ink-muted/70">{t('week.dayColumn.emptyDay')}</p>
         )}
         {children}
       </div>
 
-      <AddTaskInput pending={addPending} onAdd={onAdd} placeholder="Thêm việc…" />
+      <AddTaskInput pending={addPending} onAdd={onAdd} placeholder={t('week.dayColumn.addTaskPlaceholder')} />
 
       <NoteCollapsible
-        label="Ghi chú"
-        placeholder="Bấm để ghi"
-        textareaPlaceholder="Ghi chú cho ngày này…"
+        label={t('week.dayColumn.noteLabel')}
+        placeholder={t('week.dayColumn.notePlaceholder')}
+        textareaPlaceholder={t('week.dayColumn.noteTextareaPlaceholder')}
         initialContent={noteContent}
         onSave={onSaveNote}
       />
@@ -86,6 +98,7 @@ export function DayColumn({
 // Dòng hạn nền hồng: "⚑ Hạn bước: <bước> · <mục tiêu> · quá hạn" hoặc "⚑ Hạn mục tiêu: <mục tiêu>".
 // Cờ "quá hạn" BE đã tính sẵn (SPEC §13.4), FE chỉ hiện.
 export function DeadlineRow({ deadline }: { deadline: DeadlineDto }) {
+  const { t } = useTranslation()
   const isStep = deadline.kind === 'step'
   return (
     <li
@@ -95,10 +108,10 @@ export function DeadlineRow({ deadline }: { deadline: DeadlineDto }) {
     >
       <Flag size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
       <span>
-        {isStep ? 'Hạn bước' : 'Hạn mục tiêu'}: {deadline.title}
+        {isStep ? t('week.dayColumn.deadlineStep') : t('week.dayColumn.deadlineGoal')}: {deadline.title}
         {isStep && <span className="font-medium"> · {deadline.goalTitle}</span>}
-        {deadline.overdue && <span> · quá hạn</span>}
-        {deadline.done && <span className="sr-only"> (đã xong)</span>}
+        {deadline.overdue && <span> · {t('week.dayColumn.deadlineOverdue')}</span>}
+        {deadline.done && <span className="sr-only">{t('week.dayColumn.deadlineDoneSr')}</span>}
       </span>
     </li>
   )

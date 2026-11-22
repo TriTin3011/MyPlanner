@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useDeleteWeek } from './weekExtrasHooks'
 
 const CONFIRM_TIMEOUT_MS = 4_000
@@ -9,6 +10,7 @@ interface DeleteWeekLinkProps {
 }
 
 export function DeleteWeekLink({ weekKey, onDeleted }: DeleteWeekLinkProps) {
+  const { t } = useTranslation()
   const [isConfirming, setIsConfirming] = useState(false)
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const deleteWeek = useDeleteWeek()
@@ -45,10 +47,10 @@ export function DeleteWeekLink({ weekKey, onDeleted }: DeleteWeekLinkProps) {
   }
 
   const label = deleteWeek.isPending
-    ? 'Đang xóa…'
+    ? t('week.deleteWeek.deleting')
     : isConfirming
-      ? 'Bấm lần nữa để xóa vĩnh viễn'
-      : 'Xóa dữ liệu tuần đang xem'
+      ? t('week.deleteWeek.confirmAgain')
+      : t('week.deleteWeek.deleteWeek')
 
   return (
     <div className="flex flex-col items-center gap-1 py-4 text-center">
@@ -64,7 +66,7 @@ export function DeleteWeekLink({ weekKey, onDeleted }: DeleteWeekLinkProps) {
       </button>
       {deleteWeek.isError && (
         <p role="alert" className="text-xs font-semibold text-danger">
-          {deleteWeek.error instanceof Error ? deleteWeek.error.message : 'Không thể xóa dữ liệu tuần.'}
+          {deleteWeek.error instanceof Error ? deleteWeek.error.message : t('week.deleteWeek.deleteError')}
         </p>
       )}
     </div>

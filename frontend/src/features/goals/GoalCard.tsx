@@ -1,4 +1,5 @@
 import { Clock, Gift } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { GoalCardDto, GoalStatus } from '../../api/types'
 import { formatDmy, GOAL_STATUS_LABEL, lifeArea } from './lifeAreas'
 
@@ -17,6 +18,7 @@ const STATUS_BADGE_CLASS: Record<GoalStatus, string> = {
 
 // Thẻ mục tiêu trong lưới 3 cột (SPEC §7.4). Toàn bộ số %, ngày còn lại và cờ `behind` lấy từ BE.
 export function GoalCard({ goal, onOpen, onToggleDone, disabled = false }: GoalCardProps) {
+  const { t } = useTranslation()
   const isDone = goal.status === 'done'
   const areaInfo = lifeArea(goal.area)
   const AreaIcon = areaInfo.Icon
@@ -36,7 +38,7 @@ export function GoalCard({ goal, onOpen, onToggleDone, disabled = false }: GoalC
                 type="checkbox"
                 checked={isDone}
                 disabled={disabled}
-                aria-label={`Đánh dấu hoàn thành: ${goal.title}`}
+                aria-label={t('goals.card.markDoneAria', { title: goal.title })}
                 onChange={(event) => onToggleDone(goal.id, event.target.checked)}
                 className="size-5 cursor-pointer rounded accent-primary disabled:cursor-not-allowed disabled:opacity-50"
               />
@@ -82,9 +84,9 @@ export function GoalCard({ goal, onOpen, onToggleDone, disabled = false }: GoalC
               {formatDmy(goal.deadline)}
               {!isDone && (
                 <>
-                  {goal.daysLeft > 0 && ` · còn ${goal.daysLeft} ngày`}
-                  {goal.daysLeft === 0 && ' · hôm nay'}
-                  {goal.daysLeft < 0 && ` · quá hạn ${Math.abs(goal.daysLeft)} ngày`}
+                  {goal.daysLeft > 0 && t('goals.card.daysLeft', { count: goal.daysLeft })}
+                  {goal.daysLeft === 0 && t('goals.card.dueToday')}
+                  {goal.daysLeft < 0 && t('goals.card.overdueDays', { count: Math.abs(goal.daysLeft) })}
                 </>
               )}
             </span>
@@ -102,13 +104,13 @@ export function GoalCard({ goal, onOpen, onToggleDone, disabled = false }: GoalC
             )}
             {goal.overdueSteps > 0 && (
               <span className="shrink-0 font-bold text-danger">
-                {goal.overdueSteps} bước quá hạn
+                {t('goals.card.overdueSteps', { count: goal.overdueSteps })}
               </span>
             )}
           </div>
 
           <span className="shrink-0 font-semibold text-ink-muted">
-            {goal.stepsDone}/{goal.stepsTotal} bước
+            {t('goals.card.stepsCount', { done: goal.stepsDone, total: goal.stepsTotal, count: goal.stepsTotal })}
           </span>
         </div>
       </div>
@@ -119,12 +121,12 @@ export function GoalCard({ goal, onOpen, onToggleDone, disabled = false }: GoalC
           {/* Thanh Tiến độ */}
           <div>
             <div className="mb-0.5 flex items-center justify-between text-xs">
-              <span className="font-medium text-ink-muted">Tiến độ</span>
+              <span className="font-medium text-ink-muted">{t('goals.card.progressLabel')}</span>
               <span className="font-bold text-ink">{goal.stepPercent}%</span>
             </div>
             <div
               role="progressbar"
-              aria-label={`Tiến độ ${goal.stepPercent}%`}
+              aria-label={t('goals.card.progressBarAria', { percent: goal.stepPercent })}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={goal.stepPercent}
@@ -141,7 +143,7 @@ export function GoalCard({ goal, onOpen, onToggleDone, disabled = false }: GoalC
           <div>
             <div className="mb-0.5 flex items-center justify-between text-xs">
               <span className={goal.behind ? 'font-bold text-warn-ink' : 'font-medium text-ink-muted'}>
-                Thời gian
+                {t('goals.card.timeLabel')}
               </span>
               <span className={goal.behind ? 'font-bold text-warn-ink' : 'font-bold text-ink'}>
                 {goal.timePercent}%
@@ -149,7 +151,7 @@ export function GoalCard({ goal, onOpen, onToggleDone, disabled = false }: GoalC
             </div>
             <div
               role="progressbar"
-              aria-label={`Thời gian ${goal.timePercent}%`}
+              aria-label={t('goals.card.timeBarAria', { percent: goal.timePercent })}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={goal.timePercent}
@@ -167,7 +169,7 @@ export function GoalCard({ goal, onOpen, onToggleDone, disabled = false }: GoalC
         </div>
 
         {goal.behind && (
-          <p className="text-xs font-bold text-warn-ink">Đang chậm hơn kế hoạch</p>
+          <p className="text-xs font-bold text-warn-ink">{t('goals.card.behindWarning')}</p>
         )}
       </div>
     </article>

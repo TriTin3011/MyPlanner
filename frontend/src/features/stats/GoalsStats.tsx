@@ -1,34 +1,39 @@
+import { useTranslation } from 'react-i18next'
 import type { StatsGoalsDto } from '../../api/types'
-import { lifeArea } from '../goals/lifeAreas'
+import { GOAL_STATUS_LABEL, lifeArea } from '../goals/lifeAreas'
 import { Bar, SimpleTable, StatsCard } from './StatsCard'
-
-const STATUS = [
-  { key: 'done', label: 'Đã hoàn thành', color: 'var(--primary)' },
-  { key: 'inProgress', label: 'Đang thực hiện', color: 'var(--warn)' },
-  { key: 'notStarted', label: 'Chưa bắt đầu', color: 'var(--muted-bar)' },
-] as const
 
 // Thẻ Mục tiêu: thanh trạng thái xếp chồng + danh sách theo lĩnh vực.
 export function GoalsStats({ goals }: { goals: StatsGoalsDto }) {
+  const { t } = useTranslation()
   const total = goals.total
+  const statuses = [
+    { key: 'done' as const, label: GOAL_STATUS_LABEL.done, color: 'var(--primary)' },
+    { key: 'inProgress' as const, label: GOAL_STATUS_LABEL.in_progress, color: 'var(--warn)' },
+    { key: 'notStarted' as const, label: GOAL_STATUS_LABEL.not_started, color: 'var(--muted-bar)' },
+  ]
   return (
     <StatsCard
       id="stats-goals"
-      title="Mục tiêu"
-      extra={<span className="rounded-full bg-accent-tint px-2 py-0.5 text-xs font-bold text-primary-ink">{goals.percentDone}% xong</span>}
+      title={t('stats.goals.title')}
+      extra={
+        <span className="rounded-full bg-accent-tint px-2 py-0.5 text-xs font-bold text-primary-ink">
+          {t('stats.goals.doneBadge', { percent: goals.percentDone })}
+        </span>
+      }
       chart={
         total === 0 ? (
-          <p className="text-sm text-ink-muted">Chưa có mục tiêu nào.</p>
+          <p className="text-sm text-ink-muted">{t('stats.goals.empty')}</p>
         ) : (
           <div className="space-y-4">
             <div>
               <div className="flex h-4 overflow-hidden rounded-full border border-ink/30" aria-hidden="true">
-                {STATUS.map((s) => (
+                {statuses.map((s) => (
                   <span key={s.key} style={{ width: `${(goals.byStatus[s.key] / total) * 100}%`, background: s.color }} />
                 ))}
               </div>
               <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-ink">
-                {STATUS.map((s) => (
+                {statuses.map((s) => (
                   <li key={s.key} className="flex items-center gap-1.5">
                     <span className="inline-block size-2.5 rounded-full" style={{ background: s.color }} aria-hidden="true" />
                     {s.label}: {goals.byStatus[s.key]}
@@ -61,7 +66,7 @@ export function GoalsStats({ goals }: { goals: StatsGoalsDto }) {
       }
       table={
         <SimpleTable
-          head={['Lĩnh vực', 'Xong', 'Tổng']}
+          head={[t('stats.goals.colArea'), t('stats.goals.colDone'), t('stats.goals.colTotal')]}
           rows={goals.byArea.map((a) => [lifeArea(a.area).label, a.done, a.total])}
         />
       }
