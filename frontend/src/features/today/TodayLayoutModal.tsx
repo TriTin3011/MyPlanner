@@ -1,12 +1,14 @@
 import { ArrowDown, ArrowUp, RotateCcw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Modal } from '../../components/Modal'
 import { DEFAULT_TODAY_LAYOUT, type TodayBlockId, useSettings } from '../../store/settings'
-import { normalizeTodayLayout, TODAY_BLOCK_LABELS } from './todayLayout'
+import { normalizeTodayLayout } from './todayLayout'
 
 // Modal "Sắp xếp khối" (SPEC §6.1). Đổi thứ tự bằng nút lên/xuống (dùng được bằng chuột, chạm và bàn phím,
 // không cần kéo thả trong modal nhỏ) và ẩn/hiện từng khối. Mỗi thay đổi lưu ngay vào Zustand (persist
 // xuống localStorage), trang Hôm nay đọc cùng store nên cập nhật tức thì phía sau modal.
 export function TodayLayoutModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation()
   const stored = useSettings((s) => s.todayLayout)
   const setTodayLayout = useSettings((s) => s.setTodayLayout)
   const layout = normalizeTodayLayout(stored)
@@ -26,7 +28,7 @@ export function TodayLayoutModal({ open, onClose }: { open: boolean; onClose: ()
   return (
     <Modal
       open={open}
-      title="Sắp xếp khối"
+      title={t('today.layoutModal.title')}
       onClose={onClose}
       footer={
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -36,24 +38,22 @@ export function TodayLayoutModal({ open, onClose }: { open: boolean; onClose: ()
             className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-3 text-sm font-bold text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           >
             <RotateCcw size={16} aria-hidden="true" />
-            Đặt lại mặc định
+            {t('today.layoutModal.resetDefault')}
           </button>
           <button
             type="button"
             onClick={onClose}
             className="min-h-11 cursor-pointer rounded-full bg-primary px-5 text-sm font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
           >
-            Xong
+            {t('common.done')}
           </button>
         </div>
       }
     >
-      <p className="mb-3 text-sm text-ink-muted">
-        Đổi thứ tự các khối trên trang Hôm nay và chọn khối nào được hiện. Cài đặt lưu trên trình duyệt này.
-      </p>
+      <p className="mb-3 text-sm text-ink-muted">{t('today.layoutModal.description')}</p>
       <ol className="space-y-2">
         {layout.map((block, index) => {
-          const label = TODAY_BLOCK_LABELS[block.id]
+          const label = t(`today.blocks.${block.id}`)
           return (
             <li
               key={block.id}
@@ -75,7 +75,7 @@ export function TodayLayoutModal({ open, onClose }: { open: boolean; onClose: ()
                 type="button"
                 onClick={() => move(index, -1)}
                 disabled={index === 0}
-                aria-label={`Đưa “${label}” lên trên`}
+                aria-label={t('today.layoutModal.moveUp', { label })}
                 className="grid size-11 cursor-pointer place-items-center rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <ArrowUp size={17} aria-hidden="true" />
@@ -84,7 +84,7 @@ export function TodayLayoutModal({ open, onClose }: { open: boolean; onClose: ()
                 type="button"
                 onClick={() => move(index, 1)}
                 disabled={index === layout.length - 1}
-                aria-label={`Đưa “${label}” xuống dưới`}
+                aria-label={t('today.layoutModal.moveDown', { label })}
                 className="grid size-11 cursor-pointer place-items-center rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <ArrowDown size={17} aria-hidden="true" />

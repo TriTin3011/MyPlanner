@@ -9,9 +9,10 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { TaskDto } from '../api/types'
 import { TaskMenu, type TaskMenuProps } from './TaskMenu'
-import { TASK_TAGS as TAGS } from './taskTags'
+import { getTaskTags } from './taskTags'
 
 export type TaskItemMenuActions = Omit<TaskMenuProps, 'task' | 'open' | 'onOpenChange' | 'disabled'>
 
@@ -40,6 +41,8 @@ export function TaskItem({
   menu,
   dragHandle,
 }: TaskItemProps) {
+  const { t } = useTranslation()
+  const tags = getTaskTags(t)
   const [menuOpen, setMenuOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [expanded, setExpanded] = useState(false)
@@ -53,7 +56,6 @@ export function TaskItem({
   const errorId = useId()
   const subtasksListId = useId()
   const completedSubtasks = task.subtasks.filter((subtask) => subtask.done).length
-  const action = task.done ? 'chưa hoàn thành' : 'hoàn thành'
   const trimmedDraft = draft.trim()
 
   useEffect(() => {
@@ -94,7 +96,7 @@ export function TaskItem({
       restoreTitleFocus.current = true
       setEditing(false)
     } catch (reason) {
-      setRenameError(reason instanceof Error ? reason.message : 'Chưa lưu được tiêu đề. Hãy thử lại.')
+      setRenameError(reason instanceof Error ? reason.message : t('common.taskItem.renameError'))
     }
   }
 
@@ -119,7 +121,9 @@ export function TaskItem({
     >
       {dragHandle}
       <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint md:size-9 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
-        <span className="sr-only">Đánh dấu “{task.title}” là {action}</span>
+        <span className="sr-only">
+          {t(task.done ? 'common.taskItem.markUndone' : 'common.taskItem.markDone', { title: task.title })}
+        </span>
         <input
           type="checkbox"
           checked={task.done}
@@ -134,7 +138,7 @@ export function TaskItem({
           <form onSubmit={submitRename} aria-busy={renamePending} className="space-y-1.5">
             <div className="flex min-w-0 gap-2">
               <label htmlFor={inputId} className="sr-only">
-                Tiêu đề công việc
+                {t('common.taskItem.titleLabel')}
               </label>
               <input
                 ref={inputRef}
@@ -150,7 +154,7 @@ export function TaskItem({
               <button
                 type="submit"
                 disabled={renamePending || !trimmedDraft}
-                aria-label={renamePending ? 'Đang lưu tiêu đề' : 'Lưu tiêu đề'}
+                aria-label={renamePending ? t('common.taskItem.savingTitle') : t('common.taskItem.saveTitle')}
                 className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg bg-primary text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 {renamePending ? (
@@ -163,7 +167,7 @@ export function TaskItem({
                 type="button"
                 onClick={cancelEditing}
                 disabled={renamePending}
-                aria-label="Hủy sửa tiêu đề"
+                aria-label={t('common.taskItem.cancelEditTitle')}
                 className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg border-2 border-[var(--line)] text-ink-muted hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <X size={18} aria-hidden="true" />
@@ -181,7 +185,7 @@ export function TaskItem({
             type="button"
             onClick={startEditing}
             disabled={pending || renamePending}
-            aria-label={`Sửa tiêu đề “${task.title}”`}
+            aria-label={t('common.taskItem.editTitle', { title: task.title })}
             className="block min-h-6 w-full cursor-text rounded text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
           >
             <span
@@ -197,8 +201,8 @@ export function TaskItem({
         {(task.tags.length > 0 || task.subtasks.length > 0 || task.recurringId) && (
           <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-bold text-ink-muted">
             {task.tags.map((tag) => (
-              <span key={tag} className={`rounded-full px-1.5 py-0.5 ${TAGS[tag].className}`}>
-                {TAGS[tag].label}
+              <span key={tag} className={`rounded-full px-1.5 py-0.5 ${tags[tag].className}`}>
+                {tags[tag].label}
               </span>
             ))}
             {task.subtasks.length > 0 && (
@@ -214,7 +218,10 @@ export function TaskItem({
                 className="inline-flex cursor-pointer items-center gap-1 rounded bg-[var(--surface)] px-1.5 py-0.5 text-xs font-bold text-ink-muted hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-wait disabled:opacity-50"
               >
                 <span>
-                  {completedSubtasks}/{task.subtasks.length} việc nhỏ
+                  {t('common.taskItem.subtasksCount', {
+                    done: completedSubtasks,
+                    count: task.subtasks.length,
+                  })}
                 </span>
                 <ChevronDown
                   size={14}
@@ -226,7 +233,7 @@ export function TaskItem({
               </button>
             )}
             {task.recurringId && (
-              <span aria-label="Việc lặp lại" title="Việc lặp lại" className="inline-flex items-center">
+              <span aria-label={t('common.taskItem.recurring')} title={t('common.taskItem.recurring')} className="inline-flex items-center">
                 <Repeat2 size={15} aria-hidden="true" />
               </span>
             )}
@@ -243,12 +250,14 @@ export function TaskItem({
             <ul className="space-y-1">
               {task.subtasks.map((subtask) => {
                 const isSubtaskPending = pendingSubtaskId === subtask.id
-                const subtaskAction = subtask.done ? 'chưa hoàn thành' : 'hoàn thành'
                 return (
                   <li key={subtask.id} className="flex min-w-0 items-center gap-2 py-1">
                     <label className="grid min-h-11 min-w-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
                       <span className="sr-only">
-                        Đánh dấu bước “{subtask.title}” là {subtaskAction}
+                        {t(
+                          subtask.done ? 'common.taskItem.markSubtaskUndone' : 'common.taskItem.markSubtaskDone',
+                          { title: subtask.title },
+                        )}
                       </span>
                       <input
                         type="checkbox"
@@ -261,7 +270,7 @@ export function TaskItem({
                             await onToggleSubtask(task, subtask.id, e.target.checked)
                           } catch (reason) {
                             setSubtaskError(
-                              reason instanceof Error ? reason.message : 'Chưa cập nhật được bước con. Hãy thử lại.'
+                              reason instanceof Error ? reason.message : t('common.taskItem.subtaskError')
                             )
                           }
                         }}
@@ -278,7 +287,7 @@ export function TaskItem({
                     {isSubtaskPending && (
                       <span
                         role="status"
-                        aria-label="Đang cập nhật bước con"
+                        aria-label={t('common.taskItem.updatingSubtask')}
                         className="grid size-8 shrink-0 place-items-center text-primary"
                       >
                         <LoaderCircle size={15} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
@@ -295,7 +304,7 @@ export function TaskItem({
       {pending && !editing && (
         <span
           role="status"
-          aria-label="Đang cập nhật công việc"
+          aria-label={t('common.taskItem.updatingTask')}
           className="grid size-11 shrink-0 place-items-center text-primary md:size-9"
         >
           <LoaderCircle size={18} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
