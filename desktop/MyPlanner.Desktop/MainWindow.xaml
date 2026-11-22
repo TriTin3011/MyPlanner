@@ -1,0 +1,73 @@
+﻿<Window x:Class="MyPlanner.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:MyPlanner.Desktop.ViewModels"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:TodayViewModel}"
+        Title="Mầm" Width="900" Height="680"
+        Background="{StaticResource PaperBrush}"
+        Foreground="{StaticResource Ink}"
+        FontFamily="Segoe UI" FontSize="14">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Window.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header: ngày + vòng % (số % lấy từ API) -->
+        <Border Style="{StaticResource SketchCard}" Margin="0,0,0,16">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="‹" Command="{Binding PreviousDayCommand}" Style="{StaticResource SketchButton}" ToolTip="Ngày trước" />
+                    <Button Content="Hôm nay" Command="{Binding TodayCommand}" Style="{StaticResource SketchButton}" />
+                    <Button Content="›" Command="{Binding NextDayCommand}" Style="{StaticResource SketchButton}" ToolTip="Ngày sau" />
+                </StackPanel>
+                <Grid Width="64" Height="64" Margin="0,0,16,0">
+                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Maximum="100" Height="8"
+                                 VerticalAlignment="Bottom" Foreground="{StaticResource Primary}"
+                                 Background="{StaticResource AccentSoft}" BorderThickness="0" />
+                    <TextBlock Text="{Binding Percent, StringFormat={}{0}%}" FontSize="22" FontWeight="Bold"
+                               Foreground="{StaticResource PrimaryInk}" HorizontalAlignment="Center" VerticalAlignment="Top" />
+                </Grid>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{Binding DateLabel}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource PrimaryInk}" />
+                    <TextBlock Text="{Binding Summary}" Foreground="{StaticResource InkMuted}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <TextBlock Grid.Row="1" Text="{Binding Error}" Foreground="#B3261E" Margin="0,0,0,8" TextWrapping="Wrap" />
+
+        <!-- Việc hôm nay -->
+        <Border Grid.Row="2" Style="{StaticResource SketchCard}">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Việc hôm nay" FontSize="18" FontWeight="Bold" Margin="0,0,0,8" />
+                <TextBlock DockPanel.Dock="Top" Text="Đang tải…" Foreground="{StaticResource InkMuted}"
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
+                <ListBox ItemsSource="{Binding Tasks}" BorderThickness="0" Background="Transparent"
+                         HorizontalContentAlignment="Stretch">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:TaskRowViewModel}">
+                            <Border BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="4,8">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Tags}" Foreground="{StaticResource InkMuted}" />
+                                    <CheckBox IsChecked="{Binding Done}" VerticalContentAlignment="Center"
+                                              AutomationProperties.Name="{Binding Title}">
+                                        <TextBlock Text="{Binding Title}" Margin="6,0,0,0" />
+                                    </CheckBox>
+                                </DockPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>
