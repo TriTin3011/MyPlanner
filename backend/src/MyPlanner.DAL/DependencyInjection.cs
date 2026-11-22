@@ -5,6 +5,7 @@ using MyPlanner.DAL.Goals;
 using MyPlanner.DAL.Habits;
 using MyPlanner.DAL.Health;
 using MyPlanner.DAL.Notes;
+using MyPlanner.DAL.Stats;
 using MyPlanner.DAL.Tasks;
 
 namespace MyPlanner.DAL;
@@ -26,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<INoteRepository, NoteRepository>();
         services.AddScoped<IYearRepository, YearRepository>();
         services.AddScoped<IDataRepository, DataRepository>();
+        services.AddScoped<IStatsRepository, StatsRepository>();
 
         return services;
     }

@@ -7,6 +7,7 @@ using MyPlanner.BLL.Goals;
 using MyPlanner.BLL.Habits;
 using MyPlanner.BLL.Health;
 using MyPlanner.BLL.Notes;
+using MyPlanner.BLL.Stats;
 using MyPlanner.BLL.Tasks;
 using MyPlanner.DAL;
 
@@ -33,6 +34,7 @@ public static class DependencyInjection
         services.AddScoped<IYearService, YearService>();
         services.AddScoped<IDataService, DataService>();
         services.AddScoped<ISeedService, SeedService>();
+        services.AddScoped<IStatsService, StatsService>();
 
         // FluentValidation: quét assembly BLL, đăng ký mọi AbstractValidator<T>. ValidationFilter (Api) gọi chúng trước mỗi action.
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
