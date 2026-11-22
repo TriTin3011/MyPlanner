@@ -1376,6 +1376,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Range?: string;
+                    Today?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["StatsDto"];
+                        "application/json": components["schemas"]["StatsDto"];
+                        "text/json": components["schemas"]["StatsDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tasks": {
         parameters: {
             query?: never;
@@ -1809,6 +1849,87 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/dashboard/year": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    year?: number;
+                    today?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["YearDashboardDto"];
+                        "application/json": components["schemas"]["YearDashboardDto"];
+                        "text/json": components["schemas"]["YearDashboardDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/years/{year}/items/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    year: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReorderYearItemsRequest"];
+                    "text/json": components["schemas"]["ReorderYearItemsRequest"];
+                    "application/*+json": components["schemas"]["ReorderYearItemsRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/year-items/{id}": {
         parameters: {
             query?: never;
@@ -2121,6 +2242,11 @@ export interface components {
             date: string;
             ids: string[];
         };
+        ReorderYearItemsRequest: {
+            /** Format: int32 */
+            month: number;
+            ids: string[];
+        };
         SaveGoalRequest: {
             title: string;
             area: components["schemas"]["LifeArea"];
@@ -2173,6 +2299,119 @@ export interface components {
         };
         SetDoneRequest: {
             done: boolean;
+        };
+        StatsDto: {
+            range: string;
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            /** Format: date */
+            previousFrom: string;
+            /** Format: date */
+            previousTo: string;
+            hero: components["schemas"]["StatsHeroDto"];
+            kpis: components["schemas"]["StatsKpisDto"];
+            trend: components["schemas"]["StatsTrendDto"];
+            heatmap: components["schemas"]["StatsHeatmapDayDto"][];
+            weekdayProductivity: components["schemas"]["StatsWeekdayDto"][];
+            habitConsistency: components["schemas"]["StatsHabitDto"][];
+            goals: components["schemas"]["StatsGoalsDto"];
+        };
+        StatsGoalAreaDto: {
+            area: components["schemas"]["LifeArea"];
+            /** Format: int32 */
+            done: number;
+            /** Format: int32 */
+            total: number;
+        };
+        StatsGoalsDto: {
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            percentDone: number;
+            byStatus: components["schemas"]["StatsGoalStatusDto"];
+            byArea: components["schemas"]["StatsGoalAreaDto"][];
+        };
+        StatsGoalStatusDto: {
+            /** Format: int32 */
+            notStarted: number;
+            /** Format: int32 */
+            inProgress: number;
+            /** Format: int32 */
+            done: number;
+        };
+        StatsHabitDto: {
+            /** Format: uuid */
+            habitId: string;
+            title: string;
+            /** Format: int32 */
+            percent: number;
+            /** Format: int32 */
+            doneDays: number;
+            /** Format: int32 */
+            possibleDays: number;
+            /** Format: int32 */
+            currentStreak: number;
+            /** Format: int32 */
+            longestStreak: number;
+        };
+        StatsHeatmapDayDto: {
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            done: number;
+            /** Format: int32 */
+            level: number;
+        };
+        StatsHeroDto: {
+            /** Format: int32 */
+            completionPercent: number;
+            /** Format: int32 */
+            tasksDone: number;
+            /** Format: int32 */
+            tasksTotal: number;
+            /** Format: int32 */
+            deltaPoints: number;
+            /** Format: int32 */
+            bestWeekday: null | number;
+            weeklySparkline: components["schemas"]["StatsWeekPointDto"][];
+        };
+        StatsKpisDto: {
+            /** Format: int32 */
+            tasksDone: number;
+            /** Format: int32 */
+            tasksDonePercentChange: null | number;
+            /** Format: int32 */
+            activityCurrentStreak: number;
+            /** Format: int32 */
+            activityLongestStreak: number;
+            /** Format: int32 */
+            habitPercent: number;
+            /** Format: int32 */
+            habitDeltaPoints: number;
+        };
+        StatsTrendDto: {
+            /** Format: int32 */
+            averagePercent: number;
+            points: components["schemas"]["StatsWeekPointDto"][];
+        };
+        StatsWeekdayDto: {
+            /** Format: int32 */
+            weekday: number;
+            /** Format: double */
+            averageDone: number;
+        };
+        StatsWeekPointDto: {
+            weekKey: string;
+            /** Format: date */
+            monday: string;
+            /** Format: int32 */
+            done: number;
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            percent: number;
         };
         SubtaskDto: {
             /** Format: uuid */
@@ -2285,11 +2524,38 @@ export interface components {
             /** Format: int32 */
             percent: number;
         };
+        YearDashboardDto: {
+            /** Format: int32 */
+            year: number;
+            keyword: string;
+            vision: string;
+            /** Format: int32 */
+            done: number;
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            percent: number;
+            /** Format: int32 */
+            currentMonth: null | number;
+            months: components["schemas"]["YearMonthDto"][];
+        };
         YearMetaDto: {
             /** Format: int32 */
             year: number;
             keyword: string;
             vision: string;
+        };
+        YearMonthDto: {
+            /** Format: int32 */
+            month: number;
+            /** Format: int32 */
+            done: number;
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            percent: number;
+            deadlines: components["schemas"]["DeadlineDto"][];
+            items: components["schemas"]["YearPlanItemDto"][];
         };
         YearPlanItemDto: {
             /** Format: uuid */
