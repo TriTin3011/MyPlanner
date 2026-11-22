@@ -1,0 +1,38 @@
+#!/bin/sh
+# Kiểm tra header commit message theo Conventional Commits (xem CONTRIBUTING.md).
+# Bật bằng: git config core.hooksPath .githooks
+
+msg_file="$1"
+header=$(grep -v '^#' "$msg_file" | sed '/^[[:space:]]*$/d' | head -n 1)
+
+# Commit do git tự sinh hoặc commit tạm sẽ được gộp trước khi push.
+case "$header" in
+  "Merge "*|"Revert \""*|"fixup! "*|"squash! "*|"amend! "*) exit 0 ;;
+esac
+
+types='feat|fix|perf|refactor|test|docs|style|build|ci|chore|revert'
+pattern="^($types)(\([a-z0-9-]+\))?!?: [^A-Z].*[^.]$"
+
+fail() {
+  echo "" >&2
+  echo "✖ Commit message không đúng chuẩn: $1" >&2
+  echo "  Header hiện tại: \"$header\"" >&2
+  echo "  Định dạng đúng : <type>(<scope>): <subject>" >&2
+  echo "  Ví dụ          : feat(year): add 12-month plan board" >&2
+  echo "  Type hợp lệ    : $types" >&2
+  echo "  Xem CONTRIBUTING.md mục 2." >&2
+  echo "" >&2
+  exit 1
+}
+
+[ -n "$header" ] || fail "message rỗng"
+echo "$header" | grep -Eq "$pattern" || fail "sai định dạng, viết hoa chữ đầu subject hoặc có dấu chấm cuối"
+
+len=$(printf '%s' "$header" | wc -m | tr -d ' ')
+[ "$len" -le 72 ] || fail "header dài $len ký tự (tối đa 72)"
+
+# Dòng thứ hai (nếu có) phải trống để tách header với body.
+second=$(grep -v '^#' "$msg_file" | sed -n '2p')
+[ -z "$second" ] || fail "thiếu dòng trống giữa header và body"
+
+exit 0

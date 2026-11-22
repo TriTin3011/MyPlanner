@@ -1,0 +1,13 @@
+# Chuẩn hoá xuống dòng: trong repo luôn là LF, máy Windows checkout theo cấu hình riêng.
+* text=auto
+
+# Script shell và git hook phải giữ LF, nếu thành CRLF thì sh báo lỗi "\r: command not found".
+*.sh        text eol=lf
+.githooks/* text eol=lf
+
+# File nhị phân: không đụng tới xuống dòng, không diff dạng text.
+*.png  binary
+*.jpg  binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
