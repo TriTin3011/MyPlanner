@@ -33,6 +33,7 @@ interface SettingsState {
   chartModes: Record<string, ChartMode>
   chartRanges: Record<string, string>
   statsRange: StatsRange
+  lastExportAt?: string
   lastBackupAt?: string
   setTheme: (theme: ThemeId) => void
   setLanguage: (language: Language) => void
@@ -40,6 +41,7 @@ interface SettingsState {
   setChartMode: (chartId: string, mode: ChartMode) => void
   setChartRange: (chartId: string, range: string) => void
   setStatsRange: (range: StatsRange) => void
+  setLastExportAt: (iso: string) => void
   markBackup: () => void
 }
 
@@ -61,7 +63,11 @@ export const useSettings = create<SettingsState>()(
       setChartRange: (chartId, range) =>
         set((s) => ({ chartRanges: { ...s.chartRanges, [chartId]: range } })),
       setStatsRange: (statsRange) => set({ statsRange }),
-      markBackup: () => set({ lastBackupAt: new Date().toISOString() }),
+      setLastExportAt: (lastExportAt) => set({ lastExportAt, lastBackupAt: lastExportAt }),
+      markBackup: () => {
+        const now = new Date().toISOString()
+        set({ lastExportAt: now, lastBackupAt: now })
+      },
     }),
     { name: 'myplanner-settings' },
   ),

@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Palette } from 'lucide-react'
 import { THEMES, useSettings } from '../store/settings'
+import { BackupControls } from './BackupControls'
 
-// Nút "Bộ màu" ở đáy sidebar (SPEC §3.1, §4.2). Bấm để mở danh sách 4 theme.
+// Nút "Bộ màu" & cài đặt dữ liệu ở đáy sidebar (SPEC §3.1, §4.2, §14.3). Bấm để mở danh sách 4 theme và sao lưu.
 // `compact` dùng trong menu ⋯ trên điện thoại: hiện thẳng danh sách, không cần popover.
 // Tên theme lấy từ bản dịch theo id (theme.forest...), store chỉ giữ id và màu.
 export function ThemePicker({ compact = false }: { compact?: boolean }) {
@@ -57,7 +58,15 @@ export function ThemePicker({ compact = false }: { compact?: boolean }) {
         </span>
       </button>
       {open && (
-        <div className="sketch absolute bottom-full left-0 z-20 mb-2 w-56 p-2">{list}</div>
+        <div className="sketch absolute bottom-full left-0 z-20 mb-2 w-60 p-2">
+          {list}
+          <div className="my-2 border-t border-[var(--line)] pt-2">
+            <p className="mb-1 px-3 text-[10px] font-bold tracking-wider text-ink-muted uppercase">
+              {t('backup.label')}
+            </p>
+            <BackupControls />
+          </div>
+        </div>
       )}
     </div>
   )

@@ -1,17 +1,23 @@
 import { LoaderCircle, Plus } from 'lucide-react'
-import { type FormEvent, useId, useState } from 'react'
+import { type FormEvent, type Ref, useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface AddTaskInputProps {
   pending: boolean
   onAdd: (title: string) => Promise<void>
   placeholder?: string
+  inputRef?: Ref<HTMLInputElement>
+  shortcutHint?: string
 }
 
 export function AddTaskInput({
   pending,
   onAdd,
   placeholder = 'Thêm việc cho hôm nay…',
+  inputRef,
+  shortcutHint,
 }: AddTaskInputProps) {
+  const { t } = useTranslation()
   const [title, setTitle] = useState('')
   const [error, setError] = useState<string | null>(null)
   const inputId = useId()
@@ -36,22 +42,33 @@ export function AddTaskInput({
       <form
         onSubmit={handleSubmit}
         aria-busy={pending}
-        className="flex min-h-11 overflow-hidden rounded-xl border-2 border-ink bg-surface focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
+        className="flex min-h-11 items-center overflow-hidden rounded-xl border-2 border-ink bg-surface focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
       >
         <label htmlFor={inputId} className="sr-only">
           Tên việc mới
         </label>
         <input
+          ref={inputRef}
           id={inputId}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           disabled={pending}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
+          aria-keyshortcuts={shortcutHint ? shortcutHint.toLowerCase() : undefined}
           placeholder={placeholder}
           autoComplete="off"
           className="min-w-0 flex-1 bg-transparent px-3 text-base text-ink placeholder:text-ink-muted focus:outline-none disabled:cursor-wait disabled:opacity-60"
         />
+        {shortcutHint && (
+          <kbd
+            title={t('shortcuts.focusAddTask')}
+            aria-hidden="true"
+            className="mr-2 hidden rounded border border-ink/40 bg-accent-tint px-1.5 py-0.5 font-sans text-[11px] font-bold text-primary-ink sm:inline-block"
+          >
+            {shortcutHint}
+          </kbd>
+        )}
         <button
           type="submit"
           disabled={pending || !trimmedTitle}
