@@ -28,6 +28,12 @@ export function AppShell() {
 
   return (
     <div className="flex h-dvh flex-col bg-app">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-full focus:border-2 focus:border-ink focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white focus:outline-none"
+      >
+        {t('shell.skipToContent')}
+      </a>
       <TopBanner />
       <div className="flex min-h-0 flex-1 gap-4 md:p-4">
         {/* Sidebar: ẩn trên điện thoại */}
@@ -63,7 +69,11 @@ export function AppShell() {
         </aside>
 
         {/* Main panel: khối lớn nền kẻ ô, cuộn riêng */}
-        <main className="sketch paper relative min-w-0 flex-1 overflow-y-auto px-4 pt-3 pb-28 max-md:rounded-none max-md:border-x-0 max-md:shadow-none md:px-5 md:pt-5 md:pb-10 lg:px-7">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="sketch paper relative min-w-0 flex-1 overflow-y-auto px-4 pt-3 pb-28 focus:outline-none max-md:rounded-none max-md:border-x-0 max-md:shadow-none md:px-5 md:pt-5 md:pb-10 lg:px-7"
+        >
           <MobileTopBar onMenu={() => setMenuOpen(true)} />
           <Outlet />
         </main>
