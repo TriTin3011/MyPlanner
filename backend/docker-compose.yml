@@ -1,0 +1,22 @@
+# PostgreSQL cho môi trường dev. Chạy: docker compose up -d (trong thư mục backend/)
+# Mật khẩu chỉ dùng cho máy local; cổng chỉ mở trên 127.0.0.1.
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: myplanner-db
+    environment:
+      POSTGRES_USER: myplanner
+      POSTGRES_PASSWORD: myplanner_dev
+      POSTGRES_DB: myplanner
+    ports:
+      - "127.0.0.1:5440:5432"   # 5432 trên máy đã bị Postgres cài sẵn chiếm
+    volumes:
+      - myplanner-pgdata:/var/lib/postgresql/data   # dữ liệu còn lại sau khi xoá container
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myplanner -d myplanner"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  myplanner-pgdata:
