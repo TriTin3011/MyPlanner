@@ -12,3 +12,5 @@ Web planner cá nhân: việc hằng ngày, thói quen, mục tiêu, kế hoạc
 | `mobile/` | Flutter (Android/iOS), gọi cùng API — làm sau | Google Play / App Store |
 
 FE và BE tách thư mục, build và deploy độc lập; chung một repo để giữ đồng bộ API contract. Hợp đồng API xem ở OpenAPI của backend (`/scalar/v1` khi chạy dev).
+
+Quy ước nhánh, commit message và pull request: xem [CONTRIBUTING.md](CONTRIBUTING.md).

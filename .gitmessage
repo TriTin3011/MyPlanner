@@ -1,0 +1,18 @@
+
+# <type>(<scope>): <subject>          (tối đa 72 ký tự, nên dưới 50)
+#
+# type : feat | fix | perf | refactor | test | docs | style | build | ci | chore | revert
+# scope: core | dal | bll | api | backend | db | frontend | ui | i18n
+#        today | week | habits | recurring | goals | year | stats | settings
+#        deps | desktop | mobile | deploy | auth
+# subject: tiếng Anh, thể mệnh lệnh (add, fix, remove), chữ thường, không dấu chấm cuối
+# Thay đổi phá vỡ tương thích: thêm ! trước dấu ":"  → feat(api)!: ...
+#
+# --- Body (cách header 1 dòng trống, mỗi dòng ≤ 72 ký tự) ---
+# Vì sao cần thay đổi này? Thay đổi gì ở mức ý tưởng? (không chép diff)
+#
+# --- Footer ---
+# BREAKING CHANGE: <mô tả + cách chuyển đổi>
+# Refs: #<issue>   Closes: #<issue>
+#
+# Các dòng bắt đầu bằng # sẽ bị bỏ. Chi tiết: CONTRIBUTING.md
