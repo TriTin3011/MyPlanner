@@ -10,11 +10,6 @@ import {
 } from 'lucide-react'
 import { AppShell } from './AppShell'
 import { TodayPage } from '../features/today/TodayPage'
-import { GoalsPage } from '../features/goals/GoalsPage'
-import { HabitsPage } from '../features/habits/HabitsPage'
-import { WeekPage } from '../features/week/WeekPage'
-import { YearPage } from '../features/year/YearPage'
-import { StatsPage } from '../features/stats/StatsPage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { RequireAuth } from '../features/auth/RequireAuth'
 
@@ -41,6 +36,8 @@ export const NAV_ITEMS: NavItem[] = [
 // /login đứng riêng, ngoài AppShell. Mọi trang còn lại nằm trong RequireAuth:
 // chưa đăng nhập hoặc token hết hạn thì guard chuyển về /login.
 // AppShell là layout route: các trang con hiện vào <Outlet /> bên trong main panel.
+// Hôm nay và Đăng nhập nạp sẵn (trang mở đầu tiên). Năm trang còn lại tách chunk riêng qua `lazy`:
+// router tải file JS của trang khi người dùng vào route đó, nên lần tải đầu nhẹ hơn.
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   {
@@ -52,11 +49,26 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <TodayPage /> },
-      { path: 'goals', element: <GoalsPage /> },
-      { path: 'habits', element: <HabitsPage /> },
-      { path: 'week', element: <WeekPage /> },
-      { path: 'year', element: <YearPage /> },
-      { path: 'stats', element: <StatsPage /> },
+      {
+        path: 'goals',
+        lazy: () => import('../features/goals/GoalsPage').then((m) => ({ Component: m.GoalsPage })),
+      },
+      {
+        path: 'habits',
+        lazy: () => import('../features/habits/HabitsPage').then((m) => ({ Component: m.HabitsPage })),
+      },
+      {
+        path: 'week',
+        lazy: () => import('../features/week/WeekPage').then((m) => ({ Component: m.WeekPage })),
+      },
+      {
+        path: 'year',
+        lazy: () => import('../features/year/YearPage').then((m) => ({ Component: m.YearPage })),
+      },
+      {
+        path: 'stats',
+        lazy: () => import('../features/stats/StatsPage').then((m) => ({ Component: m.StatsPage })),
+      },
       { path: '*', element: <TodayPage /> },
     ],
   },
