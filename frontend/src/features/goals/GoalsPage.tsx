@@ -1,0 +1,163 @@
+import { Info, LoaderCircle, Plus, RotateCcw } from 'lucide-react'
+import { useState } from 'react'
+import type { LifeArea } from '../../api/types'
+import { toLocalDateKey } from '../../lib/dates'
+import { AreaRadar } from './AreaRadar'
+import { GoalCardGrid } from './GoalCardGrid'
+import { GoalDrawer } from './GoalDrawer'
+import { GoalsOverview } from './GoalsOverview'
+import {
+  useAddStep,
+  useCreateGoal,
+  useDeleteGoal,
+  useDeleteStep,
+  useGoal,
+  useGoalBoard,
+  useReorderSteps,
+  useToggleGoalDone,
+  useUpdateGoal,
+  useUpdateStep,
+} from './hooks'
+import { lifeArea } from './lifeAreas'
+
+// Drawer đang đóng, đang tạo mới, hay đang sửa mục tiêu có id.
+type DrawerState = null | { mode: 'create' } | { mode: 'edit'; id: string }
+
+// Màn hình Mục tiêu & tầm nhìn (route "/goals", SPEC §7). Một query GET /dashboard/goals cấp mọi số cho
+// tổng quan, radar và thẻ; drawer đọc bản đầy đủ GET /goals/{id} chỉ khi mở. Trang chỉ nối dây, khối con nhận props.
+export function GoalsPage() {
+  const [today] = useState(() => toLocalDateKey(new Date()))
+  const [selectedArea, setSelectedArea] = useState<LifeArea | null>(null)
+  const [drawer, setDrawer] = useState<DrawerState>(null)
+
+  const board = useGoalBoard(today)
+  const goal = useGoal(drawer?.mode === 'edit' ? drawer.id : null)
+  const createGoal = useCreateGoal()
+  const updateGoal = useUpdateGoal()
+  const deleteGoal = useDeleteGoal()
+  const addStep = useAddStep()
+  const updateStep = useUpdateStep()
+  const deleteStep = useDeleteStep()
+  const reorderSteps = useReorderSteps()
+  const toggleDone = useToggleGoalDone()
+
+  const drawerMutations = [createGoal, updateGoal, deleteGoal, addStep, updateStep, deleteStep, reorderSteps]
+
+  function openDrawer(next: DrawerState) {
+    // Lỗi của lần mở trước không được hiện lại ở lần mở sau.
+    drawerMutations.forEach((m) => m.reset())
+    setDrawer(next)
+  }
+
+  if (board.isPending) {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        className="mx-auto flex min-h-64 w-full max-w-[1320px] items-center justify-center gap-3 text-primary-ink"
+      >
+        <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+        <span className="font-bold">Đang tải mục tiêu…</span>
+      </div>
+    )
+  }
+
+  if (board.isError) {
+    return (
+      <div
+        role="alert"
+        className="sketch mx-auto flex min-h-44 w-full max-w-2xl flex-col items-center justify-center gap-3 p-6 text-center"
+      >
+        <p className="font-bold">Chưa tải được mục tiêu. {board.error.message}</p>
+        <button
+          type="button"
+          onClick={() => board.refetch()}
+          className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+        >
+          <RotateCcw size={17} aria-hidden="true" />
+          Thử lại
+        </button>
+      </div>
+    )
+  }
+
+  const data = board.data
+  // Lọc theo lĩnh vực ở FE là lọc hiển thị, không tính số: các con số trên thẻ vẫn do backend cấp.
+  const goals = selectedArea ? data.goals.filter((g) => g.area === selectedArea) : data.goals
+  const emptyText = selectedArea
+    ? `Chưa có mục tiêu nào ở lĩnh vực ${lifeArea(selectedArea).label}.`
+    : 'Chưa có mục tiêu nào. Bấm "Thêm mục tiêu" để bắt đầu.'
+  const drawerError = drawerMutations.find((m) => m.isError)?.error?.message ?? null
+  const editId = drawer?.mode === 'edit' ? drawer.id : null
+
+  return (
+    <div className="mx-auto w-full max-w-[1320px]">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="flex items-center gap-2 text-2xl font-extrabold text-primary-ink md:text-3xl">
+          Mục tiêu &amp; tầm nhìn
+          <Info
+            size={18}
+            className="text-ink-muted"
+            aria-label="Đặt mục tiêu theo 8 lĩnh vực cuộc sống, chia thành các bước có hạn"
+          />
+        </h1>
+        <button
+          type="button"
+          onClick={() => openDrawer({ mode: 'create' })}
+          className="sketch flex min-h-11 cursor-pointer items-center gap-2 bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+        >
+          <Plus size={18} aria-hidden="true" />
+          Thêm mục tiêu
+        </button>
+      </header>
+
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <GoalsOverview board={data} selectedArea={selectedArea} onSelectArea={setSelectedArea} />
+        <AreaRadar areas={data.areas} />
+      </div>
+
+      {toggleDone.isError && (
+        <p role="alert" className="mt-4 rounded-lg bg-[var(--danger-bg)] px-3 py-2 text-sm font-bold text-danger">
+          Chưa cập nhật được mục tiêu. Hãy thử lại.
+        </p>
+      )}
+
+      <section aria-label="Danh sách mục tiêu" className="mt-6">
+        <GoalCardGrid
+          goals={goals}
+          emptyText={emptyText}
+          onOpen={(id) => openDrawer({ mode: 'edit', id })}
+          onToggleDone={(id, done) => {
+            toggleDone.reset()
+            toggleDone.mutate({ id, done })
+          }}
+        />
+      </section>
+
+      <GoalDrawer
+        open={drawer !== null}
+        mode={drawer?.mode ?? 'create'}
+        goal={goal.data}
+        today={today}
+        isSaving={createGoal.isPending || updateGoal.isPending || deleteGoal.isPending}
+        error={drawerError}
+        onClose={() => setDrawer(null)}
+        onSave={(req) => {
+          if (editId) {
+            updateGoal.mutate({ id: editId, req })
+          } else {
+            // Tạo xong chuyển drawer sang chế độ sửa để thêm bước ngay, không phải mở lại thẻ.
+            createGoal.mutate(req, { onSuccess: (created) => setDrawer({ mode: 'edit', id: created.id }) })
+          }
+        }}
+        onDelete={() => {
+          if (editId) deleteGoal.mutate(editId, { onSuccess: () => setDrawer(null) })
+        }}
+        onAddStep={(req) => editId && addStep.mutate({ goalId: editId, req })}
+        onUpdateStep={(stepId, req) => editId && updateStep.mutate({ goalId: editId, stepId, req })}
+        onDeleteStep={(stepId) => editId && deleteStep.mutate({ goalId: editId, stepId })}
+        onReorderSteps={(ids) => editId && reorderSteps.mutate({ goalId: editId, ids })}
+      />
+    </div>
+  )
+}
