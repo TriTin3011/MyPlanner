@@ -1,32 +1,29 @@
-# React + TypeScript + Vite
+# Mầm · Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Ứng dụng web React 19 + TypeScript + Vite của Mầm. Xem giới thiệu chung ở [README gốc](../README.md).
 
-Currently, two official plugins are available:
+## Lệnh
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Lệnh | Việc làm |
+|------|----------|
+| `npm run dev` | Chạy dev server ở `http://localhost:5173` |
+| `npm run build` | Kiểm tra kiểu (`tsc -b`) rồi build ra `dist/` |
+| `npm test` | Chạy unit test bằng Vitest |
+| `npm run lint` | Chạy oxlint |
+| `npm run gen:api` | Sinh `src/api/schema.ts` từ OpenAPI của backend (backend phải đang chạy ở cổng 5274) |
 
-## React Compiler
+## Cấu hình
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Sao chép `.env.example` thành `.env` rồi đặt `VITE_API_URL` là địa chỉ backend, không có `/api` ở cuối.
 
-## Expanding the Oxlint configuration
+## Tổ chức code
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+| Thư mục | Nội dung |
+|---------|----------|
+| `src/app/` | App shell, router |
+| `src/features/<màn hình>/` | Trang, component, hook và test của từng màn hình |
+| `src/components/` | Component dùng chung (modal, biểu đồ, vòng tiến độ…) |
+| `src/api/` | Axios client, kiểu sinh từ OpenAPI |
+| `src/store/` | Cài đặt giao diện (Zustand, lưu `localStorage`) |
+| `src/i18n/` | Bản dịch tiếng Việt và tiếng Anh |
+| `src/styles/` | Token CSS, 4 bộ màu, phong cách vẽ tay |
