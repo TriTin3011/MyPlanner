@@ -194,7 +194,7 @@ export function WeekDaysBoard({
     >
       <div
         ref={stripRef}
-        className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-2 md:items-start md:gap-5 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-3"
+        className="relative -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-2 md:items-start md:gap-4 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-3"
       >
         {dates.map((date, dayIndex) => (
           <div key={date} data-date={date} className="w-[85%] max-w-sm shrink-0 snap-start md:w-auto md:max-w-none">

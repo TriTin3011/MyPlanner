@@ -41,7 +41,7 @@ export function DayColumn({
     <section
       aria-labelledby={titleId}
       data-today={isToday || undefined}
-      className="sketch flex flex-col p-3 sm:p-4"
+      className="sketch flex flex-col p-3 lg:p-4"
     >
       <header className="mb-2 flex items-center justify-between gap-2">
         <h3 id={titleId} className="flex items-center gap-2 font-display text-lg font-extrabold text-ink">

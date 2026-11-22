@@ -115,10 +115,10 @@ export function TaskItem({
   return (
     <article
       onContextMenu={handleContextMenu}
-      className="flex min-w-0 items-start gap-1 border-b border-[var(--line)] py-2.5 last:border-b-0 sm:gap-2"
+      className="flex min-w-0 items-start gap-1 border-b border-dashed border-[var(--line)] py-0.5 last:border-b-0 sm:gap-1.5"
     >
       {dragHandle}
-      <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
+      <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint md:size-9 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
         <span className="sr-only">Đánh dấu “{task.title}” là {action}</span>
         <input
           type="checkbox"
@@ -129,7 +129,7 @@ export function TaskItem({
         />
       </label>
 
-      <div className="min-w-0 flex-1 py-1.5">
+      <div className="min-w-0 flex-1 py-2.5 md:py-1.5">
         {editing ? (
           <form onSubmit={submitRename} aria-busy={renamePending} className="space-y-1.5">
             <div className="flex min-w-0 gap-2">
@@ -195,9 +195,9 @@ export function TaskItem({
         )}
 
         {(task.tags.length > 0 || task.subtasks.length > 0 || task.recurringId) && (
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-bold text-ink-muted">
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-bold text-ink-muted">
             {task.tags.map((tag) => (
-              <span key={tag} className={`rounded-full px-2 py-1 ${TAGS[tag].className}`}>
+              <span key={tag} className={`rounded-full px-1.5 py-0.5 ${TAGS[tag].className}`}>
                 {TAGS[tag].label}
               </span>
             ))}
@@ -296,7 +296,7 @@ export function TaskItem({
         <span
           role="status"
           aria-label="Đang cập nhật công việc"
-          className="grid size-11 shrink-0 place-items-center text-primary"
+          className="grid size-11 shrink-0 place-items-center text-primary md:size-9"
         >
           <LoaderCircle size={18} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
         </span>

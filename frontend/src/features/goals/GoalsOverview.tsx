@@ -13,7 +13,7 @@ export function GoalsOverview({ board, selectedArea, onSelectArea }: GoalsOvervi
   return (
     <section
       aria-label="Tổng quan mục tiêu"
-      className="sketch flex flex-col items-center justify-center gap-6 bg-surface p-5 sm:p-6"
+      className="sketch flex flex-col items-center justify-center gap-4 bg-surface p-3.5 lg:p-5"
     >
       <div className="flex items-center gap-4">
         <ProgressRing value={board.percent} label="Tỉ lệ mục tiêu đã hoàn thành" />

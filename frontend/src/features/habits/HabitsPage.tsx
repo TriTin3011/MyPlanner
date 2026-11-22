@@ -89,7 +89,7 @@ export function HabitsPage() {
         </p>
       )}
 
-      <div className="mt-6">
+      <div className="mt-3 lg:mt-4">
         <HabitGrid
           // Đổi tháng thì dựng lại lưới, bỏ trạng thái kéo thả và lựa chọn Tháng/Tuần của tháng trước.
           key={data.month}

@@ -24,7 +24,7 @@ export function StatsCard({
   const showTable = mode === 'table'
 
   return (
-    <section aria-label={title} className={`sketch bg-[var(--surface)] p-4 sm:p-5 ${className}`}>
+    <section aria-label={title} className={`sketch bg-[var(--surface)] p-3.5 lg:p-5 ${className}`}>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="font-display text-lg font-extrabold text-ink">{title}</h2>

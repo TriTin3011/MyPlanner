@@ -16,7 +16,7 @@ export function TodayHabitsBlock({
   onToggle,
 }: TodayHabitsBlockProps) {
   return (
-    <section aria-labelledby="today-habits-title" className="sketch p-4 sm:p-5">
+    <section aria-labelledby="today-habits-title" className="sketch p-3.5 lg:p-5">
       <div className="mb-2 flex items-baseline justify-between gap-3">
         <h2 id="today-habits-title" className="font-display text-xl font-extrabold text-primary-ink">
           Thói quen hôm nay
@@ -47,9 +47,9 @@ export function TodayHabitsBlock({
             return (
               <div
                 key={habit.id}
-                className="flex min-w-0 items-center gap-2 border-b border-[var(--line)] py-2.5 last:border-b-0"
+                className="flex min-w-0 items-center gap-1.5 border-b border-dashed border-[var(--line)] py-0.5 last:border-b-0"
               >
-                <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
+                <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint md:size-9 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
                   <span className="sr-only">
                     Đánh dấu thói quen “{habit.title}” là {action}
                   </span>

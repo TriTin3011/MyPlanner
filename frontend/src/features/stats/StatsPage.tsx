@@ -25,7 +25,7 @@ export function StatsPage() {
   const header = (
     <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="font-display text-3xl font-extrabold text-primary-ink">Thống kê</h1>
+        <h1 className="font-display text-2xl leading-none font-extrabold text-primary-ink lg:text-3xl">Thống kê</h1>
         {stats.data && (
           <p className="text-sm font-semibold text-ink-muted">
             {formatDm(stats.data.from)} – {formatDm(stats.data.to)} · so với {formatDm(stats.data.previousFrom)} –{' '}

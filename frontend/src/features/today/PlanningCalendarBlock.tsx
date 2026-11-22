@@ -87,7 +87,7 @@ export function PlanningCalendarBlock({ today, onAddTask, addPending }: Planning
   const formattedTomorrow = `${tomorrowParts[2]}/${tomorrowParts[1]}`
 
   return (
-    <section aria-labelledby="planning-title" className="sketch p-4 sm:p-5">
+    <section aria-labelledby="planning-title" className="sketch p-3.5 lg:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 id="planning-title" className="font-display text-xl font-extrabold text-primary-ink">
           Lên kế hoạch

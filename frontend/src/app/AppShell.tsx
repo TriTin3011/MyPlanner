@@ -61,7 +61,7 @@ export function AppShell() {
         </aside>
 
         {/* Main panel: khối lớn nền kẻ ô, cuộn riêng */}
-        <main className="sketch paper relative min-w-0 flex-1 overflow-y-auto px-3 pt-3 pb-28 max-md:rounded-none max-md:border-x-0 max-md:shadow-none md:p-6">
+        <main className="sketch paper relative min-w-0 flex-1 overflow-y-auto px-4 pt-3 pb-28 max-md:rounded-none max-md:border-x-0 max-md:shadow-none md:px-5 md:pt-5 md:pb-10 lg:px-7">
           <MobileTopBar onMenu={() => setMenuOpen(true)} />
           <Outlet />
         </main>

@@ -138,7 +138,7 @@ function SortableRow({
       aria-keyshortcuts="ArrowUp ArrowDown"
       aria-label={`Kéo để sắp xếp “${task.title}”`}
       disabled={disabled}
-      className="grid size-11 shrink-0 cursor-grab touch-none place-items-center self-start rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-40 sm:size-9"
+      className="grid size-11 shrink-0 cursor-grab touch-none place-items-center self-start rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-40 md:size-9"
     >
       <GripVertical size={16} aria-hidden="true" />
     </button>

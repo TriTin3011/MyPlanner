@@ -26,12 +26,12 @@ export function GoalCard({ goal, onOpen, onToggleDone, disabled = false }: GoalC
   // để bấm đâu trên thẻ cũng mở. Checkbox nằm trên lớp phủ (relative z-10) nên là phần tử ngang hàng,
   // không bị lồng trong role="button" (lồng control trong control là lỗi a11y, trình đọc màn hình bỏ qua).
   return (
-    <article className="sketch relative flex flex-col justify-between gap-2.5 bg-surface p-4 transition-transform focus-within:-translate-y-0.5 hover:-translate-y-0.5">
-      <div className="space-y-2">
+    <article className="sketch relative flex flex-col justify-between gap-1.5 bg-surface px-3.5 py-2.5 transition-transform focus-within:-translate-y-0.5 hover:-translate-y-0.5">
+      <div className="space-y-1">
         {/* Hàng 1: Checkbox hoàn thành + Tiêu đề + Badge trạng thái */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-1">
-            <label className="relative z-10 -ml-2 grid min-h-11 min-w-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint/70">
+            <label className="relative z-10 -ml-2 grid min-h-11 min-w-11 shrink-0 md:-ml-1.5 md:min-h-8 md:min-w-8 cursor-pointer place-items-center rounded-full hover:bg-accent-tint/70">
               <input
                 type="checkbox"
                 checked={isDone}
@@ -114,11 +114,11 @@ export function GoalCard({ goal, onOpen, onToggleDone, disabled = false }: GoalC
       </div>
 
       {/* Hàng 4: Hai thanh tiến độ Tiến độ & Thời gian đặt cạnh nhau + Cảnh báo chậm kế hoạch */}
-      <div className="space-y-1.5 pt-1">
+      <div className="space-y-1">
         <div className="grid grid-cols-2 gap-3">
           {/* Thanh Tiến độ */}
           <div>
-            <div className="mb-1 flex items-center justify-between text-xs">
+            <div className="mb-0.5 flex items-center justify-between text-xs">
               <span className="font-medium text-ink-muted">Tiến độ</span>
               <span className="font-bold text-ink">{goal.stepPercent}%</span>
             </div>
@@ -139,7 +139,7 @@ export function GoalCard({ goal, onOpen, onToggleDone, disabled = false }: GoalC
 
           {/* Thanh Thời gian: chuyển sang màu cam (--warn) khi behind */}
           <div>
-            <div className="mb-1 flex items-center justify-between text-xs">
+            <div className="mb-0.5 flex items-center justify-between text-xs">
               <span className={goal.behind ? 'font-bold text-warn-ink' : 'font-medium text-ink-muted'}>
                 Thời gian
               </span>

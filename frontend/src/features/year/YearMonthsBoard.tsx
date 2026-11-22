@@ -255,9 +255,9 @@ function MonthCard({ month, isCurrent, isOpen, onToggleOpen, itemCount, addPendi
     <li
       ref={setNodeRef}
       data-month={month.month}
-      className={`sketch p-3 transition-colors ${
-        isOpen ? 'col-span-2 sm:col-span-1' : ''
-      } ${isOver && !isOpen ? '[--sketch-bg:var(--accent-tint)]' : ''}`}
+      className={`sketch bg-[var(--surface)] px-3 py-2 transition-colors ${
+        isOpen ? 'col-span-2' : ''
+      } ${isOver && !isOpen ? 'bg-accent-tint' : ''}`}
     >
       <h3>
         <button
@@ -265,7 +265,7 @@ function MonthCard({ month, isCurrent, isOpen, onToggleOpen, itemCount, addPendi
           onClick={onToggleOpen}
           aria-expanded={isOpen}
           aria-controls={bodyId}
-          className="flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-lg text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          className="flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-lg text-left md:min-h-8 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
         >
           <span className="font-display font-extrabold text-ink">Tháng {month.month}</span>
           {isCurrent && (
@@ -360,7 +360,7 @@ function SortableItem({
       />
       <label
         htmlFor={checkboxId}
-        className={`min-h-11 min-w-0 flex-1 cursor-pointer content-center px-2 text-sm break-words ${
+        className={`min-h-11 min-w-0 flex-1 cursor-pointer content-center px-2 text-sm md:min-h-9 break-words ${
           item.done ? 'text-ink-muted line-through' : 'text-ink'
         }`}
       >
@@ -370,7 +370,7 @@ function SortableItem({
         type="button"
         onClick={() => onDelete(item)}
         aria-label={`Xoá “${item.title}”`}
-        className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg text-ink-muted hover:bg-[var(--danger-bg)] hover:text-danger focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+        className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg text-ink-muted md:size-8 hover:bg-[var(--danger-bg)] hover:text-danger focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
       >
         <X size={15} aria-hidden="true" />
       </button>
@@ -382,7 +382,7 @@ function SortableItem({
         onKeyDown={handleKeyDown}
         aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight"
         aria-label={`Kéo để sắp xếp hoặc chuyển tháng “${item.title}”`}
-        className="grid size-11 shrink-0 cursor-grab touch-none place-items-center rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:cursor-grabbing"
+        className="grid size-11 shrink-0 cursor-grab md:size-8 touch-none place-items-center rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:cursor-grabbing"
       >
         <GripVertical size={16} aria-hidden="true" />
       </button>

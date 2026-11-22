@@ -93,7 +93,7 @@ export function GoalsPage() {
   return (
     <div className="mx-auto w-full max-w-[1320px]">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="flex items-center gap-2 text-2xl font-extrabold text-primary-ink md:text-3xl">
+        <h1 className="flex items-center gap-2 font-display text-2xl leading-none font-extrabold text-primary-ink lg:text-3xl">
           Mục tiêu &amp; tầm nhìn
           <Info
             size={18}
@@ -111,7 +111,7 @@ export function GoalsPage() {
         </button>
       </header>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+      <div className="mt-4 grid gap-3 lg:grid-cols-2 lg:gap-4">
         <GoalsOverview board={data} selectedArea={selectedArea} onSelectArea={setSelectedArea} />
         <AreaRadar areas={data.areas} />
       </div>
@@ -122,7 +122,7 @@ export function GoalsPage() {
         </p>
       )}
 
-      <section aria-label="Danh sách mục tiêu" className="mt-6">
+      <section aria-label="Danh sách mục tiêu" className="mt-3 lg:mt-4">
         <GoalCardGrid
           goals={goals}
           emptyText={emptyText}

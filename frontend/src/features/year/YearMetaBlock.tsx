@@ -52,7 +52,7 @@ export function YearMetaBlock({ keyword: initialKeyword, vision: initialVision, 
     'mt-1.5 w-full rounded-xl border-2 border-ink bg-surface px-3 text-ink placeholder:text-ink-muted focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none'
 
   return (
-    <section aria-label="Từ khoá và tầm nhìn năm" className={`sketch bg-[var(--surface)] p-4 sm:p-5 ${className}`}>
+    <section aria-label="Từ khoá và tầm nhìn năm" className={`sketch bg-[var(--surface)] p-3.5 lg:p-5 ${className}`}>
       <label htmlFor={keywordId} className={labelClass}>
         Từ khoá của năm
       </label>

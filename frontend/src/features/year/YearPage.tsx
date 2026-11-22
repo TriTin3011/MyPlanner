@@ -62,9 +62,9 @@ export function YearPage() {
   const data = board.data
   return (
     <div className="mx-auto w-full max-w-[1320px]" aria-busy={board.isPlaceholderData}>
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <header className="mb-4 lg:mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl leading-none font-extrabold text-primary-ink md:text-4xl">
+          <h1 className="font-display text-2xl leading-none font-extrabold text-primary-ink lg:text-3xl">
             Kế hoạch năm
           </h1>
           <p className="mt-1 text-sm font-medium text-ink-muted">Năm {data.year}</p>
@@ -89,7 +89,7 @@ export function YearPage() {
       </header>
 
       {/* Placeholder (năm cũ) đang hiện thì data.year khác year: key theo data.year để khối nhập không lẫn năm. */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
         <YearMetaSection key={data.year} board={data} />
         <YearProgressChart board={data} currentMonth={data.currentMonth ?? null} />
       </div>
@@ -150,7 +150,7 @@ function YearMonthsSection({ board, today }: { board: YearDashboardDto; today: s
   const error = updateItem.isError || deleteItem.isError || reorder.isError
 
   return (
-    <section aria-labelledby="year-months-title" className="mt-6">
+    <section aria-labelledby="year-months-title" className="mt-3 lg:mt-4">
       <h2
         id="year-months-title"
         className="mb-3 flex items-center gap-1.5 font-display text-xl font-extrabold text-primary-ink"

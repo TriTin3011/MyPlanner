@@ -74,7 +74,7 @@ export function HabitGrid(props: HabitGridProps) {
   }
 
   return (
-    <section className="sketch min-w-0 max-w-full bg-surface p-4 sm:p-5" aria-labelledby="habit-grid-title">
+    <section className="sketch min-w-0 max-w-full bg-surface p-3.5 lg:p-5" aria-labelledby="habit-grid-title">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 id="habit-grid-title" className="text-xl font-bold text-ink sm:text-2xl">
           Bảng theo dõi
@@ -96,7 +96,7 @@ export function HabitGrid(props: HabitGridProps) {
               <tr>
                 <th
                   scope="col"
-                  className="sticky left-0 z-20 w-52 min-w-52 sm:w-64 sm:min-w-64 border-b border-line bg-surface px-2 py-2 text-left text-xs font-semibold text-ink-muted"
+                  className="sticky left-0 z-20 w-52 min-w-52 border-b border-line bg-surface px-2 py-2 text-left text-xs font-semibold text-ink-muted"
                 >
                   Thói quen
                 </th>
@@ -154,7 +154,7 @@ function DayHeader({ date, today }: { date: string; today: string }) {
   return (
     <th
       scope="col"
-      className={`w-11 min-w-11 border-b border-line py-1.5 text-center text-xs sm:w-8 sm:min-w-8 ${dayBackground(date, today)} ${isToday ? 'font-bold text-primary-ink' : 'font-semibold text-ink-muted'}`}
+      className={`w-11 min-w-11 border-b border-line py-1.5 text-center text-xs sm:w-7 sm:min-w-7 ${dayBackground(date, today)} ${isToday ? 'font-bold text-primary-ink' : 'font-semibold text-ink-muted'}`}
     >
       <span className="block">{weekdayLabel(date)}</span>
       <span className="block text-ink">{Number(day)}</span>
@@ -202,15 +202,15 @@ function SortableHabitRow({
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={isDragging ? 'relative z-30 bg-surface opacity-90 shadow-lg' : undefined}
     >
-      <th scope="row" className="sticky left-0 z-10 w-52 min-w-52 sm:w-64 sm:min-w-64 border-b border-line bg-surface p-0 text-left">
+      <th scope="row" className="sticky left-0 z-10 w-52 min-w-52 border-b border-line bg-surface p-0 text-left">
         {/* Ô bảng bỏ qua max-width nên khoá rộng ở div trong; nhờ vậy tên dài bị cắt bằng … thay vì đẩy giãn cả cột. */}
-          <div className="flex min-h-14 w-52 items-center px-2 sm:w-64">
-          <div className="min-w-0 flex-1 py-2">
+          <div className="flex min-h-14 w-52 items-center px-2 md:min-h-12">
+          <div className="min-w-0 flex-1 py-2 md:py-1">
             <span className="block truncate font-semibold text-ink" title={habit.title}>
               {habit.title}
             </span>
             {/* % nằm cạnh thanh tiến độ (không cạnh tên) để trên điện thoại tên có trọn một hàng. */}
-            <div className="mt-1.5 flex items-center gap-2">
+            <div className="mt-1 flex items-center gap-2">
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-accent-tint" aria-hidden="true">
                 <div
                   className="h-full rounded-full bg-primary"
@@ -224,7 +224,7 @@ function SortableHabitRow({
             type="button"
             onClick={handleDelete}
             aria-label={`Xoá thói quen ${habit.title}`}
-            className="grid size-11 shrink-0 place-items-center rounded-lg text-ink-muted hover:bg-danger-bg hover:text-danger focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            className="grid size-11 shrink-0 place-items-center rounded-lg text-ink-muted md:size-8 hover:bg-danger-bg hover:text-danger focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           >
             <Trash2 size={16} aria-hidden="true" />
           </button>
@@ -236,7 +236,7 @@ function SortableHabitRow({
             onKeyDown={handleKeyDown}
             aria-label={`Kéo để sắp xếp ${habit.title}`}
             aria-keyshortcuts="ArrowUp ArrowDown"
-            className="grid size-11 shrink-0 cursor-grab touch-none place-items-center rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:cursor-grabbing"
+            className="grid size-11 shrink-0 cursor-grab md:size-8 touch-none place-items-center rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:cursor-grabbing"
           >
             <GripVertical size={17} aria-hidden="true" />
           </button>
@@ -255,7 +255,7 @@ function SortableHabitRow({
               aria-label={`${habit.title} ngày ${Number(day)}/${Number(month)}`}
               disabled={disabled}
               onClick={() => onToggle(habit.id, date, !checked)}
-              className="group grid size-11 place-items-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-35 sm:size-8"
+              className="group grid size-11 place-items-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-35 sm:size-7"
             >
               <span
                 className={`grid size-5 place-items-center rounded-[5px] border-2 ${checked ? 'border-primary bg-primary text-white' : 'border-ink-muted bg-surface text-transparent group-hover:border-primary'}`}

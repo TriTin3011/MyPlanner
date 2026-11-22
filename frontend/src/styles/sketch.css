@@ -1,85 +1,20 @@
 /*
-  Phong cách pixel (SPEC §4.4, §4.5).
+  Phong cách vẽ tay (SPEC §4.4, §4.5).
   Nằm trong @layer components nên class tiện ích của Tailwind (p-4, bg-...)
   viết cùng phần tử vẫn ghi đè được.
-
-  Vì sao vẽ viền bằng box-shadow mà không dùng border:
-  - border luôn nối kín ở 4 góc, không khuyết được "điểm ảnh góc" đặc trưng của pixel art.
-  - 4 lớp bóng đặc (không blur), mỗi lớp lệch đúng 1 "pixel" về một phía, ghép lại thành
-    viền vuông khuyết góc. Bóng nằm ngoài hộp nên không cắt menu/dropdown con
-    (khác clip-path) và không đổi kích thước layout.
-  - Lớp cuối là bóng đổ cứng lệch xuống phải, màu nhạt hơn, như sprite game 8-bit.
 */
 
 @layer components {
-  /*
-    Góc bo kiểu pixel: mỗi góc là bậc thang 3 nấc gồm các đoạn thẳng ngang/dọc.
-    Xét góc trên-trái, mỗi ô là 1 "pixel" (--px) nằm ngoài hộp:
-        . . X X X X   <- cạnh trên (mực) kéo dài thêm 1 ô qua góc hộp
-        . X o o o o   o = nền nới ra (--sketch-bg)
-        X o o o o o
-        X o o [hộp]
-    Lớp bóng nào viết trước nằm trên, nên lớp nền viết trước lớp mực:
-    1. 12 lớp nền: lệch 2 ô theo trục và lệch (1,2)/(2,1) ô theo chéo.
-    2. 16 lớp mực: lệch 3 ô theo trục, (1,3)/(3,1) và (2,2) theo chéo.
-    3. 5 lớp bóng đổ cứng lệch xuống phải, cũng có bậc ở góc.
-  */
+  /* Card viền đậm, bo góc lệch, bóng lệch như nét bút */
   .sketch {
-    --px: 3px;
-    --sketch-bg: var(--surface);
-    --a: var(--px);
-    --b: calc(2 * var(--px));
-    --c: calc(3 * var(--px));
-    --d: calc(4 * var(--px));
-    --na: calc(-1 * var(--px));
-    --nb: calc(-2 * var(--px));
-    --nc: calc(-3 * var(--px));
-    --sketch-shade: color-mix(in srgb, var(--ink) 30%, transparent);
-    background: var(--sketch-bg);
-    border: 0;
-    border-radius: 0;
-    box-shadow:
-      /* nền */
-      0 var(--nb) 0 0 var(--sketch-bg),
-      0 var(--b) 0 0 var(--sketch-bg),
-      var(--nb) 0 0 0 var(--sketch-bg),
-      var(--b) 0 0 0 var(--sketch-bg),
-      var(--na) var(--nb) 0 0 var(--sketch-bg),
-      var(--a) var(--nb) 0 0 var(--sketch-bg),
-      var(--na) var(--b) 0 0 var(--sketch-bg),
-      var(--a) var(--b) 0 0 var(--sketch-bg),
-      var(--nb) var(--na) 0 0 var(--sketch-bg),
-      var(--b) var(--na) 0 0 var(--sketch-bg),
-      var(--nb) var(--a) 0 0 var(--sketch-bg),
-      var(--b) var(--a) 0 0 var(--sketch-bg),
-      /* mực: 4 cạnh */
-      0 var(--nc) 0 0 var(--ink),
-      0 var(--c) 0 0 var(--ink),
-      var(--nc) 0 0 0 var(--ink),
-      var(--c) 0 0 0 var(--ink),
-      /* mực: bậc thang ở 4 góc */
-      var(--na) var(--nc) 0 0 var(--ink),
-      var(--a) var(--nc) 0 0 var(--ink),
-      var(--na) var(--c) 0 0 var(--ink),
-      var(--a) var(--c) 0 0 var(--ink),
-      var(--nc) var(--na) 0 0 var(--ink),
-      var(--c) var(--na) 0 0 var(--ink),
-      var(--nc) var(--a) 0 0 var(--ink),
-      var(--c) var(--a) 0 0 var(--ink),
-      var(--nb) var(--nb) 0 0 var(--ink),
-      var(--b) var(--nb) 0 0 var(--ink),
-      var(--nb) var(--b) 0 0 var(--ink),
-      var(--b) var(--b) 0 0 var(--ink),
-      /* bóng đổ cứng */
-      var(--a) var(--d) 0 0 var(--sketch-shade),
-      var(--d) var(--a) 0 0 var(--sketch-shade),
-      var(--b) var(--d) 0 0 var(--sketch-shade),
-      var(--d) var(--b) 0 0 var(--sketch-shade),
-      var(--c) var(--c) 0 0 var(--sketch-shade);
+    background: var(--surface);
+    border: 2px solid var(--ink);
+    border-radius: 14px 18px 12px 20px / 18px 12px 20px 14px;
+    box-shadow: 2px 3px 0 0 var(--ink);
   }
 
   .sketch--active {
-    --sketch-bg: var(--accent-soft);
+    background: var(--accent-soft);
   }
 
   /* Nền giấy kẻ ô vuông 18px */
@@ -92,9 +27,10 @@
   }
 }
 
-/* Điện thoại: pixel nhỏ hơn để viền không chiếm chỗ (SPEC §3.4) */
+/* Điện thoại: viền mỏng hơn (SPEC §3.4) */
 @media (max-width: 767px) {
   .sketch {
-    --px: 2px;
+    border-width: 1.5px;
+    box-shadow: 1px 2px 0 0 var(--ink);
   }
 }
