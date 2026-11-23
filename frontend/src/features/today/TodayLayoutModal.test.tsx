@@ -52,19 +52,23 @@ describe('TodayLayoutModal', () => {
     render(<TodayLayoutModal open onClose={vi.fn()} />)
     const dialog = screen.getByRole('dialog', { hidden: true })
 
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Đưa “Lên kế hoạch” lên trên', hidden: true }))
+    fireEvent.keyDown(within(dialog).getByRole('button', { name: /Kéo để đổi chỗ “Lên kế hoạch”/, hidden: true }), {
+      key: 'ArrowUp',
+    })
     expect(order()).toEqual(['progress', 'backlog', 'tasks', 'calendar', 'habits'])
 
-    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Tiến độ gần đây', hidden: true }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Hiện khối “Tiến độ gần đây”', hidden: true }))
     expect(useSettings.getState().todayLayout[0]).toEqual({ id: 'progress', hidden: true })
 
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Đặt lại mặc định', hidden: true }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Về thứ tự ban đầu', hidden: true }))
     expect(useSettings.getState().todayLayout).toEqual(DEFAULT_TODAY_LAYOUT)
   })
 
-  it('disables moving the first block up', () => {
+  it('keeps the first block in place when moved up', () => {
     render(<TodayLayoutModal open onClose={vi.fn()} />)
-    const up = screen.getByRole('button', { name: 'Đưa “Tiến độ gần đây” lên trên', hidden: true }) as HTMLButtonElement
-    expect(up.disabled).toBe(true)
+    fireEvent.keyDown(screen.getByRole('button', { name: /Kéo để đổi chỗ “Tiến độ gần đây”/, hidden: true }), {
+      key: 'ArrowUp',
+    })
+    expect(order()).toEqual(DEFAULT_TODAY_LAYOUT.map((b) => b.id))
   })
 })

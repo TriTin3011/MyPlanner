@@ -12,4 +12,7 @@ public class AppException(int statusCode, string title, string? detail = null) :
 
     public static AppException NotFound(string what) => new(404, Messages.NotFoundTitle, Messages.NotFoundDetail(what));
     public static AppException BadRequest(string detail) => new(400, Messages.BadRequestTitle, detail);
+    public static AppException Unauthorized(string detail) => new(401, Messages.UnauthorizedTitle, detail);
+    public static AppException Conflict(string detail) => new(409, Messages.ConflictTitle, detail);
+    public static AppException ServiceUnavailable(string detail) => new(503, Messages.ServiceUnavailableTitle, detail);
 }

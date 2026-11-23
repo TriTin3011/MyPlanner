@@ -1,4 +1,5 @@
 import { CheckCircle2, Flame, Repeat, TrendingDown, TrendingUp } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { StatsDto } from '../../api/types'
 import { StatStrip } from '../../components/StatStrip'
 import { weekdayLabel } from './statsFormat'
@@ -33,21 +34,23 @@ function Sparkline({ values }: { values: number[] }) {
 }
 
 export function StatsHero({ data }: { data: StatsDto }) {
+  const { t } = useTranslation()
   const { hero, kpis } = data
+  const pointsUnit = t('stats.hero.pointsUnit')
   return (
     <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
-      <section aria-label="Tỉ lệ hoàn thành" className="sketch flex flex-wrap items-center justify-between gap-4 bg-primary p-4 text-white lg:p-5">
+      <section aria-label={t('stats.hero.title')} className="sketch flex flex-wrap items-center justify-between gap-4 bg-primary p-4 text-white lg:p-5">
         <div>
-          <p className="text-xs font-extrabold tracking-wide uppercase opacity-90">Tỉ lệ hoàn thành</p>
+          <p className="text-xs font-extrabold tracking-wide uppercase opacity-90">{t('stats.hero.title')}</p>
           <p className="mt-1 flex items-baseline gap-3 font-display text-5xl font-extrabold">
             {hero.completionPercent}%
             <span className="rounded-full bg-white px-2 py-0.5 text-sm">
-              <Delta value={hero.deltaPoints} unit=" điểm" />
+              <Delta value={hero.deltaPoints} unit={pointsUnit} />
             </span>
           </p>
           <p className="mt-1 text-sm font-semibold opacity-95">
-            {hero.tasksDone}/{hero.tasksTotal} việc
-            {hero.bestWeekday ? ` · hiệu quả nhất ${weekdayLabel(hero.bestWeekday)}` : ''}
+            {t('stats.hero.tasksSummary', { done: hero.tasksDone, total: hero.tasksTotal, count: hero.tasksTotal })}
+            {hero.bestWeekday ? t('stats.hero.bestWeekday', { day: weekdayLabel(hero.bestWeekday) }) : ''}
           </p>
         </div>
         <div className="rounded-xl bg-white/95 p-1.5">
@@ -58,22 +61,22 @@ export function StatsHero({ data }: { data: StatsDto }) {
       <StatStrip
         items={[
           {
-            label: 'Việc đã xong',
+            label: t('stats.hero.kpiTasksDone'),
             icon: <CheckCircle2 size={13} aria-hidden="true" />,
             value: kpis.tasksDone,
             suffix: <Delta value={kpis.tasksDonePercentChange} unit="%" />,
           },
           {
-            label: 'Chuỗi hoạt động',
+            label: t('stats.hero.kpiActivityStreak'),
             icon: <Flame size={13} aria-hidden="true" />,
-            value: `${kpis.activityCurrentStreak} ngày`,
-            suffix: `Dài nhất ${kpis.activityLongestStreak}`,
+            value: t('stats.hero.streakDays', { count: kpis.activityCurrentStreak }),
+            suffix: t('stats.hero.longestStreak', { count: kpis.activityLongestStreak }),
           },
           {
-            label: 'Thói quen',
+            label: t('stats.hero.kpiHabits'),
             icon: <Repeat size={13} aria-hidden="true" />,
             value: `${kpis.habitPercent}%`,
-            suffix: <Delta value={kpis.habitDeltaPoints} unit=" điểm" />,
+            suffix: <Delta value={kpis.habitDeltaPoints} unit={pointsUnit} />,
           },
         ]}
       />

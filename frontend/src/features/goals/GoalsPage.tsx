@@ -1,5 +1,6 @@
 import { Info, LoaderCircle, Plus, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { LifeArea } from '../../api/types'
 import { toLocalDateKey } from '../../lib/dates'
 import { AreaRadar } from './AreaRadar'
@@ -26,6 +27,7 @@ type DrawerState = null | { mode: 'create' } | { mode: 'edit'; id: string }
 // Màn hình Mục tiêu & tầm nhìn (route "/goals", SPEC §7). Một query GET /dashboard/goals cấp mọi số cho
 // tổng quan, radar và thẻ; drawer đọc bản đầy đủ GET /goals/{id} chỉ khi mở. Trang chỉ nối dây, khối con nhận props.
 export function GoalsPage() {
+  const { t } = useTranslation()
   const [today] = useState(() => toLocalDateKey(new Date()))
   const [selectedArea, setSelectedArea] = useState<LifeArea | null>(null)
   const [drawer, setDrawer] = useState<DrawerState>(null)
@@ -57,7 +59,7 @@ export function GoalsPage() {
         className="mx-auto flex min-h-64 w-full max-w-[1320px] items-center justify-center gap-3 text-primary-ink"
       >
         <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-        <span className="font-bold">Đang tải mục tiêu…</span>
+        <span className="font-bold">{t('goals.loading')}</span>
       </div>
     )
   }
@@ -68,14 +70,16 @@ export function GoalsPage() {
         role="alert"
         className="sketch mx-auto flex min-h-44 w-full max-w-2xl flex-col items-center justify-center gap-3 p-6 text-center"
       >
-        <p className="font-bold">Chưa tải được mục tiêu. {board.error.message}</p>
+        <p className="font-bold">
+          {t('goals.loadErrorPrefix')} {board.error.message}
+        </p>
         <button
           type="button"
           onClick={() => board.refetch()}
-          className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+          className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
         >
           <RotateCcw size={17} aria-hidden="true" />
-          Thử lại
+          {t('common.retry')}
         </button>
       </div>
     )
@@ -85,8 +89,8 @@ export function GoalsPage() {
   // Lọc theo lĩnh vực ở FE là lọc hiển thị, không tính số: các con số trên thẻ vẫn do backend cấp.
   const goals = selectedArea ? data.goals.filter((g) => g.area === selectedArea) : data.goals
   const emptyText = selectedArea
-    ? `Chưa có mục tiêu nào ở lĩnh vực ${lifeArea(selectedArea).label}.`
-    : 'Chưa có mục tiêu nào. Bấm "Thêm mục tiêu" để bắt đầu.'
+    ? t('goals.emptyInArea', { area: lifeArea(selectedArea).label })
+    : t('goals.emptyAll')
   const drawerError = drawerMutations.find((m) => m.isError)?.error?.message ?? null
   const editId = drawer?.mode === 'edit' ? drawer.id : null
 
@@ -94,11 +98,11 @@ export function GoalsPage() {
     <div className="mx-auto w-full max-w-[1320px]">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="flex items-center gap-2 font-display text-2xl leading-none font-extrabold text-primary-ink lg:text-3xl">
-          Mục tiêu &amp; tầm nhìn
+          {t('goals.title')}
           <Info
             size={18}
             className="text-ink-muted"
-            aria-label="Đặt mục tiêu theo 8 lĩnh vực cuộc sống, chia thành các bước có hạn"
+            aria-label={t('goals.infoAria')}
           />
         </h1>
         <button
@@ -107,7 +111,7 @@ export function GoalsPage() {
           className="sketch flex min-h-11 cursor-pointer items-center gap-2 bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
         >
           <Plus size={18} aria-hidden="true" />
-          Thêm mục tiêu
+          {t('goals.addGoal')}
         </button>
       </header>
 
@@ -118,11 +122,11 @@ export function GoalsPage() {
 
       {toggleDone.isError && (
         <p role="alert" className="mt-4 rounded-lg bg-[var(--danger-bg)] px-3 py-2 text-sm font-bold text-danger">
-          Chưa cập nhật được mục tiêu. Hãy thử lại.
+          {t('goals.updateError')}
         </p>
       )}
 
-      <section aria-label="Danh sách mục tiêu" className="mt-3 lg:mt-4">
+      <section aria-label={t('goals.listAria')} className="mt-3 lg:mt-4">
         <GoalCardGrid
           goals={goals}
           emptyText={emptyText}

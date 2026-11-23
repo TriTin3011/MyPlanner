@@ -1,3 +1,7 @@
+import { useMemo } from 'react'
+import { INTL_LOCALE } from '../i18n/languages'
+import { useSettings } from '../store/settings'
+
 interface ProgressRingProps {
   value: number
   label: string
@@ -5,6 +9,8 @@ interface ProgressRingProps {
 }
 
 export function ProgressRing({ value, label, size = 'md' }: ProgressRingProps) {
+  const language = useSettings((s) => s.language)
+  const numFmt = useMemo(() => new Intl.NumberFormat(INTL_LOCALE[language]), [language])
   const safeValue = Math.min(100, Math.max(0, Math.round(value)))
   const sizeClass = size === 'sm' ? 'size-16' : 'size-20'
 
@@ -41,7 +47,7 @@ export function ProgressRing({ value, label, size = 'md' }: ProgressRingProps) {
         />
       </svg>
       <span className="absolute font-display text-lg font-extrabold text-primary-ink">
-        {safeValue}%
+        {numFmt.format(safeValue)}%
       </span>
     </div>
   )

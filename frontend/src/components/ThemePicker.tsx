@@ -26,7 +26,7 @@ export function ThemePicker({ compact = false }: { compact?: boolean }) {
               setTheme(th.id)
               setOpen(false)
             }}
-            className={`flex min-h-11 w-full items-center gap-3 rounded-full px-3 text-sm font-semibold ${
+            className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-semibold ${
               th.id === theme ? 'bg-accent-soft' : 'hover:bg-accent-tint'
             }`}
           >

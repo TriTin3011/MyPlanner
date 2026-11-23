@@ -1,0 +1,117 @@
+<UserControl x:Class="MyPlanner.Desktop.Views.WeekView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MyPlanner.Desktop.ViewModels"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:WeekViewModel}">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <Style x:Key="StatLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource InkMuted}" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryInk}" />
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <!-- Header: tuần ISO + điều hướng -->
+            <Border Style="{StaticResource SketchCard}" Margin="0,0,0,16">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="‹" Command="{Binding PreviousWeekCommand}" Style="{StaticResource SketchButton}" ToolTip="Tuần trước" />
+                        <Button Content="Tuần này" Command="{Binding ThisWeekCommand}" Style="{StaticResource SketchButton}" />
+                        <Button Content="›" Command="{Binding NextWeekCommand}" Style="{StaticResource SketchButton}" ToolTip="Tuần sau" />
+                    </StackPanel>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock FontSize="22" FontWeight="Bold" Foreground="{StaticResource PrimaryInk}">
+                            <Run Text="Kế hoạch tuần " /><Run Text="{Binding WeekKey, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Text="{Binding RangeLabel}" Foreground="{StaticResource InkMuted}" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <TextBlock Text="{Binding Error}" Foreground="#B3261E" Margin="0,0,0,8" TextWrapping="Wrap" />
+            <TextBlock Text="Đang tải…" Foreground="{StaticResource InkMuted}" Margin="0,0,0,8"
+                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
+
+            <!-- StatStrip: ba con số từ BE -->
+            <UniformGrid Columns="3" Margin="0,0,0,16">
+                <Border Style="{StaticResource SketchCard}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Việc đã xong" Style="{StaticResource StatLabel}" />
+                        <TextBlock Text="{Binding TasksLabel}" Style="{StaticResource StatValue}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource SketchCard}" Margin="4,0">
+                    <StackPanel>
+                        <TextBlock Text="Thói quen" Style="{StaticResource StatLabel}" />
+                        <TextBlock Text="{Binding HabitPercent, StringFormat={}{0}%}" Style="{StaticResource StatValue}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource SketchCard}" Margin="8,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Còn lại hôm nay" Style="{StaticResource StatLabel}" />
+                        <TextBlock Text="{Binding TodayRemaining}" Style="{StaticResource StatValue}" />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Biểu đồ tiến độ 7 ngày (LiveCharts2), đổi Đường/Cột -->
+            <Border Style="{StaticResource SketchCard}" Margin="0,0,0,16">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,8">
+                        <CheckBox DockPanel.Dock="Right" IsChecked="{Binding ShowBars}" VerticalAlignment="Center"
+                                  Content="Dạng cột" ToolTip="Đổi giữa biểu đồ đường và cột" />
+                        <TextBlock Text="Tiến độ trong tuần" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <lvc:CartesianChart Height="180" Series="{Binding Series}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
+                                        LegendPosition="Bottom" AutomationProperties.Name="Biểu đồ việc đã xong và tổng việc theo ngày" />
+                    <!-- Bảng số: thay cho chế độ "Bảng" ở web, ai không đọc được biểu đồ vẫn có số. -->
+                    <ItemsControl ItemsSource="{Binding Days}" Margin="0,8,0,0">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="1" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding Day}" Style="{StaticResource StatLabel}" HorizontalAlignment="Center" />
+                                    <TextBlock HorizontalAlignment="Center">
+                                        <Run Text="{Binding Done, Mode=OneWay}" /><Run Text="/" /><Run Text="{Binding Total, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Nhận xét + insights do BE sinh (đã dịch theo Accept-Language) -->
+            <Border Style="{StaticResource SketchCard}">
+                <StackPanel>
+                    <TextBlock Text="Nhận xét" FontSize="18" FontWeight="Bold" Margin="0,0,0,8" />
+                    <TextBlock Text="{Binding Comment}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                    <ItemsControl ItemsSource="{Binding Insights}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource InkMuted}">
+                                    <Run Text="• " /><Run Text="{Binding Mode=OneWay}" />
+                                </TextBlock>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

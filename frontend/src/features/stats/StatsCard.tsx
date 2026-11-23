@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSettings } from '../../store/settings'
 
 // Khung chung cho mỗi thẻ ở màn Thống kê: tiêu đề, phần phụ (huy hiệu), nút "Bảng" bật/tắt
@@ -19,6 +20,7 @@ export function StatsCard({
   table: ReactNode
   className?: string
 }) {
+  const { t } = useTranslation()
   const mode = useSettings((s) => s.chartModes[id])
   const setChartMode = useSettings((s) => s.setChartMode)
   const showTable = mode === 'table'
@@ -27,18 +29,18 @@ export function StatsCard({
     <section aria-label={title} className={`sketch bg-[var(--surface)] p-3.5 lg:p-5 ${className}`}>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="font-display text-lg font-extrabold text-ink">{title}</h2>
+          <h2 className="font-display text-xl font-extrabold text-ink">{title}</h2>
           {extra}
         </div>
         <button
           type="button"
           aria-pressed={showTable}
           onClick={() => setChartMode(id, showTable ? 'line' : 'table')}
-          className={`min-h-9 cursor-pointer rounded-lg border-2 border-ink px-3 text-xs font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
-            showTable ? 'bg-primary text-white' : 'bg-[var(--surface)] text-ink hover:bg-accent-tint'
+          className={`min-h-9 cursor-pointer rounded-lg px-3 text-xs font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
+            showTable ? 'bg-accent-soft text-primary-ink' : 'text-ink-muted hover:bg-accent-tint hover:text-ink'
           }`}
         >
-          Bảng
+          {t('stats.tableBtn')}
         </button>
       </div>
       {showTable ? table : chart}

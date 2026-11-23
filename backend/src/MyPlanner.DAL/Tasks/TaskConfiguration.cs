@@ -14,9 +14,9 @@ public class TaskConfiguration : IEntityTypeConfiguration<TaskItem>
         // Mảng nhỏ → cột mảng native của Postgres (text[]); enum lưu dạng chữ cho dễ đọc khi xem DB.
         b.PrimitiveCollection(t => t.Tags).ElementType().HasConversion<string>();
         b.HasMany(t => t.Subtasks).WithOne().HasForeignKey(s => s.TaskId).OnDelete(DeleteBehavior.Cascade);
-        // Index theo SPEC §14.1: lọc theo ngày, theo (ngày, đã xong) cho backlog/thống kê, theo việc lặp lại.
-        b.HasIndex(t => t.Date);
-        b.HasIndex(t => new { t.Date, t.Done });
+        // Index theo SPEC §14.1 (mở đầu bằng UserId vì mọi truy vấn đều có filter người dùng): lọc theo ngày, theo (ngày, đã xong) cho backlog/thống kê, theo việc lặp lại.
+        b.HasIndex(t => new { t.UserId, t.Date });
+        b.HasIndex(t => new { t.UserId, t.Date, t.Done });
         b.HasIndex(t => t.RecurringId);
     }
 }

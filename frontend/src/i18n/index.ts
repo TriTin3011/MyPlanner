@@ -1,5 +1,6 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
+import { queryClient } from '../app/queryClient'
 import { useSettings } from '../store/settings'
 import { en } from './en'
 import type { Language } from './languages'
@@ -22,12 +23,15 @@ i18n.use(initReactI18next).init({
 // (để trình đọc màn hình đọc đúng giọng, trình duyệt gạch chính tả đúng ngôn ngữ, Google hiểu trang).
 export function applyLanguage(lang: Language) {
   if (i18n.language !== lang) void i18n.changeLanguage(lang)
-  document.documentElement.lang = lang
+  if (typeof document !== 'undefined') document.documentElement.lang = lang
 }
 
 applyLanguage(useSettings.getState().language)
 useSettings.subscribe((state, prev) => {
-  if (state.language !== prev.language) applyLanguage(state.language)
+  if (state.language !== prev.language) {
+    applyLanguage(state.language)
+    void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+  }
 })
 
 export default i18n

@@ -1,19 +1,23 @@
 ﻿import axios, { AxiosError } from 'axios'
 import i18n from '../i18n'
+import { useSession } from '../features/auth/session'
 
 // Một instance axios dùng chung cho cả app (tương đương một HttpClient cấu hình sẵn bên .NET).
 // - baseURL lấy từ biến môi trường VITE_API_URL (file .env), đổi theo môi trường dev/prod.
-// - Interceptor request gắn "Authorization: Bearer <JWT>" nếu đã đăng nhập (giai đoạn 11).
-// - Interceptor response đổi lỗi ProblemDetails của backend thành Error có message dễ đọc.
-export const TOKEN_KEY = 'myplanner-token'
-
+// - Interceptor request gắn "Authorization: Bearer <JWT>" nếu đã đăng nhập (giống DelegatingHandler bên WPF).
+// - Interceptor response đổi lỗi ProblemDetails của backend thành Error có message dễ đọc,
+//   và gặp 401 thì đăng xuất: RequireAuth thấy phiên trống sẽ đưa về /login.
 export const api = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL ?? 'http://localhost:5274'}/api`,
   timeout: 15_000,
 })
 
+// Riêng các endpoint đăng nhập: 401 ở đây là "sai thông tin", không phải "phiên hết hạn".
+const SIGN_IN_URLS = ['/auth/login', '/auth/google']
+
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY)
+  // getState() đọc store ngoài React (interceptor không phải component nên không dùng hook được).
+  const token = useSession.getState().token
   if (token) config.headers.Authorization = `Bearer ${token}`
   // Báo backend ngôn ngữ người dùng đang xem (chuẩn HTTP, giống trình duyệt tự gửi).
   // Backend có thể dùng để trả thông báo lỗi đúng ngôn ngữ; WPF và Flutter gửi cùng header này.
@@ -30,9 +34,8 @@ interface ProblemDetails {
 api.interceptors.response.use(
   (res) => res,
   (err: AxiosError<ProblemDetails>) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem(TOKEN_KEY)
-      window.dispatchEvent(new Event('myplanner:unauthorized'))
+    if (err.response?.status === 401 && !SIGN_IN_URLS.includes(err.config?.url ?? '')) {
+      useSession.getState().signOut()
     }
     const p = err.response?.data
     const firstFieldError = p?.errors ? Object.values(p.errors)[0]?.[0] : undefined

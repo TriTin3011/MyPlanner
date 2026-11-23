@@ -1,8 +1,12 @@
 import { ChevronLeft, ChevronRight, Flag } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { DayProgressDto } from '../../api/types'
 import { AddTaskInput } from '../../components/AddTaskInput'
+import { INTL_LOCALE } from '../../i18n/languages'
 import { addDays, getMonthCalendarGrid, parseDateKey, startOfWeek, type CalendarDay } from '../../lib/dates'
+import { useSettings } from '../../store/settings'
+import { getWeekdays } from '../recurring/weekdays'
 import { useDayProgress, useTasksRange } from './hooks'
 
 interface PlanningCalendarBlockProps {
@@ -11,9 +15,27 @@ interface PlanningCalendarBlockProps {
   addPending: boolean
 }
 
-const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+function formatDayMonthByLocale(dateStr: string, locale: string): string {
+  const parts = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).formatToParts(
+    parseDateKey(dateStr),
+  )
+  return parts.map((p) => (p.type === 'literal' ? '/' : p.value)).join('')
+}
+
+function formatMonthPeriodLabel(year: number, month: number, locale: string, tMonthPeriod: (month: string, year: number) => string) {
+  const dateObj = new Date(year, month - 1, 1)
+  if (locale.toLowerCase().startsWith('vi')) {
+    const monthNum = new Intl.DateTimeFormat(locale, { month: 'numeric' }).format(dateObj).replace(/\D/g, '') || String(month)
+    return tMonthPeriod(monthNum, year)
+  }
+  return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(dateObj)
+}
 
 export function PlanningCalendarBlock({ today, onAddTask, addPending }: PlanningCalendarBlockProps) {
+  const { t } = useTranslation()
+  const language = useSettings((s) => s.language)
+  const locale = INTL_LOCALE[language]
+  const weekdayHeaders = useMemo(() => getWeekdays(locale).map((w) => w.short), [locale])
   const todayDate = useMemo(() => parseDateKey(today), [today])
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month')
   const [currentYear, setCurrentYear] = useState(todayDate.getFullYear())
@@ -75,28 +97,30 @@ export function PlanningCalendarBlock({ today, onAddTask, addPending }: Planning
     setViewMode(mode)
   }
 
-  const fmt = (key: string) => `${key.slice(8, 10)}/${key.slice(5, 7)}`
+  const fmt = (key: string) => formatDayMonthByLocale(key, locale)
   const periodLabel =
-    viewMode === 'month' ? `Tháng ${currentMonth}/${currentYear}` : `Tuần ${fmt(rangeFrom)} – ${fmt(rangeTo)}`
-  const selectedDoneCount = selectedTasks.filter((t) => t.done).length
+    viewMode === 'month'
+      ? formatMonthPeriodLabel(currentYear, currentMonth, locale, (m, y) =>
+          t('today.calendar.monthPeriod', { month: m, year: y }),
+        )
+      : t('today.calendar.weekPeriod', { from: fmt(rangeFrom), to: fmt(rangeTo) })
+  const selectedDoneCount = selectedTasks.filter((task) => task.done).length
   const isSelectedToday = selectedDate === today
 
-  const selectedDateParts = selectedDate.split('-')
-  const formattedSelectedDay = `${selectedDateParts[2]}/${selectedDateParts[1]}`
-  const tomorrowParts = tomorrow.split('-')
-  const formattedTomorrow = `${tomorrowParts[2]}/${tomorrowParts[1]}`
+  const formattedSelectedDay = fmt(selectedDate)
+  const formattedTomorrow = fmt(tomorrow)
 
   return (
     <section aria-labelledby="planning-title" className="sketch p-3.5 lg:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 id="planning-title" className="font-display text-xl font-extrabold text-primary-ink">
-          Lên kế hoạch
+          {t('today.calendar.title')}
         </h2>
 
         {/* Toggle Tháng / Tuần */}
         <div
           role="radiogroup"
-          aria-label="Chế độ xem lịch"
+          aria-label={t('today.calendar.viewModeAria')}
           className="flex rounded-lg border-2 border-[var(--ink)] bg-[var(--surface)] p-0.5 shadow-[2px_2px_0_0_var(--ink)]"
         >
           <button
@@ -110,7 +134,7 @@ export function PlanningCalendarBlock({ today, onAddTask, addPending }: Planning
                 : 'text-ink-muted hover:text-ink'
             }`}
           >
-            Tháng
+            {t('today.calendar.modeMonth')}
           </button>
           <button
             type="button"
@@ -123,7 +147,7 @@ export function PlanningCalendarBlock({ today, onAddTask, addPending }: Planning
                 : 'text-ink-muted hover:text-ink'
             }`}
           >
-            Tuần
+            {t('today.calendar.modeWeek')}
           </button>
         </div>
       </div>
@@ -133,7 +157,7 @@ export function PlanningCalendarBlock({ today, onAddTask, addPending }: Planning
         <button
           type="button"
           onClick={prev}
-          aria-label={viewMode === 'month' ? 'Tháng trước' : 'Tuần trước'}
+          aria-label={viewMode === 'month' ? t('today.calendar.prevMonth') : t('today.calendar.prevWeek')}
           className="grid size-9 cursor-pointer place-items-center rounded-lg hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <ChevronLeft size={18} aria-hidden="true" />
@@ -146,7 +170,7 @@ export function PlanningCalendarBlock({ today, onAddTask, addPending }: Planning
         <button
           type="button"
           onClick={next}
-          aria-label={viewMode === 'month' ? 'Tháng sau' : 'Tuần sau'}
+          aria-label={viewMode === 'month' ? t('today.calendar.nextMonth') : t('today.calendar.nextWeek')}
           className="grid size-9 cursor-pointer place-items-center rounded-lg hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <ChevronRight size={18} aria-hidden="true" />
@@ -154,9 +178,9 @@ export function PlanningCalendarBlock({ today, onAddTask, addPending }: Planning
       </div>
 
       {/* Lưới lịch */}
-      <div role="grid" aria-label={`Lịch ${periodLabel}`} className="w-full">
+      <div role="grid" aria-label={t('today.calendar.gridAria', { period: periodLabel })} className="w-full">
         <div role="row" className="grid grid-cols-7 text-center">
-          {WEEKDAYS.map((wd) => (
+          {weekdayHeaders.map((wd) => (
             <div key={wd} role="columnheader" className="py-1 text-xs font-bold text-ink-muted">
               {wd}
             </div>
@@ -177,7 +201,10 @@ export function PlanningCalendarBlock({ today, onAddTask, addPending }: Planning
                 type="button"
                 role="gridcell"
                 aria-selected={isSelected}
-                aria-label={`Ngày ${fmt(day.date)}, ${taskCount} việc${hasDeadline ? ', có hạn mục tiêu' : ''}`}
+                aria-label={t(
+                  hasDeadline ? 'today.calendar.cellAriaDeadline' : 'today.calendar.cellAria',
+                  { date: fmt(day.date), count: taskCount },
+                )}
                 onClick={() => setSelectedDate(day.date)}
                 className={`relative flex min-h-[58px] sm:min-h-[68px] flex-col items-center justify-between rounded-lg p-1.5 text-center transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
                   isSelected
@@ -221,41 +248,51 @@ export function PlanningCalendarBlock({ today, onAddTask, addPending }: Planning
         <div className="mb-2 flex items-baseline justify-between gap-2">
           <h3 className="font-display text-base font-bold text-ink">
             {isSelectedToday
-              ? `Hôm nay · ${formattedSelectedDay} (${selectedDoneCount}/${selectedTasks.length})`
-              : `Ngày ${formattedSelectedDay} (${selectedDoneCount}/${selectedTasks.length})`}
+              ? t('today.calendar.selectedTodayHeading', {
+                  date: formattedSelectedDay,
+                  done: selectedDoneCount,
+                  total: selectedTasks.length,
+                })
+              : t('today.calendar.selectedDayHeading', {
+                  date: formattedSelectedDay,
+                  done: selectedDoneCount,
+                  total: selectedTasks.length,
+                })}
           </h3>
           <button
             type="button"
             onClick={() => setSelectedDate(tomorrow)}
             className="text-xs font-bold text-primary hover:underline"
           >
-            Lên kế hoạch ngày mai ({formattedTomorrow}) ›
+            {t('today.calendar.planTomorrow', { date: formattedTomorrow })}
           </button>
         </div>
 
         {isSelectedToday ? (
           <p className="text-xs text-ink-muted">
-            Việc của hôm nay nằm ở khung <strong>Việc hôm nay</strong> phía trên. Bấm một ngày khác trên lịch để xem hoặc thêm việc cho ngày đó.
+            {t('today.calendar.todayHintBefore')}
+            <strong>{t('today.calendar.todayHintStrong')}</strong>
+            {t('today.calendar.todayHintAfter')}
           </p>
         ) : (
           <div className="space-y-3">
             {selectedTasks.length === 0 ? (
-              <p className="text-xs text-ink-muted">Chưa có công việc nào cho ngày này.</p>
+              <p className="text-xs text-ink-muted">{t('today.calendar.emptyDay')}</p>
             ) : (
               <ul className="space-y-1.5 divide-y divide-[var(--line)]">
-                {selectedTasks.map((t) => (
-                  <li key={t.id} className="flex items-center justify-between pt-1.5 text-xs">
-                    <span className={`font-medium ${t.done ? 'line-through text-ink-muted' : 'text-ink'}`}>
-                      {t.title}
+                {selectedTasks.map((item) => (
+                  <li key={item.id} className="flex items-center justify-between pt-1.5 text-xs">
+                    <span className={`font-medium ${item.done ? 'line-through text-ink-muted' : 'text-ink'}`}>
+                      {item.title}
                     </span>
-                    {t.done && <span className="text-[10px] font-bold text-primary">Đã xong</span>}
+                    {item.done && <span className="text-[10px] font-bold text-primary">{t('today.calendar.doneBadge')}</span>}
                   </li>
                 ))}
               </ul>
             )}
 
             <AddTaskInput
-              placeholder={`Thêm việc cho ngày ${formattedSelectedDay}…`}
+              placeholder={t('today.calendar.addForDayPlaceholder', { date: formattedSelectedDay })}
               pending={addPending}
               onAdd={(title) => onAddTask(title, selectedDate)}
             />

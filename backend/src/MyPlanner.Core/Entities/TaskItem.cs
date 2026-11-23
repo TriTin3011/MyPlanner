@@ -2,8 +2,9 @@ namespace MyPlanner.Core.Entities;
 
 // Việc (SPEC §12.1). Đặt tên TaskItem để không trùng System.Threading.Tasks.Task.
 // Entity là class có setter: EF Core cần tạo và gán giá trị khi đọc từ DB, change tracker theo dõi khi sửa.
-public class TaskItem
+public class TaskItem : IUserOwned
 {
+    public Guid UserId { get; set; }
     public Guid Id { get; set; }
     public string Title { get; set; } = "";
     public DateOnly Date { get; set; }               // ngày được lên lịch (giờ địa phương của người dùng)
@@ -18,8 +19,9 @@ public class TaskItem
     public DateTimeOffset UpdatedAt { get; set; }
 }
 
-public class Subtask
+public class Subtask : IUserOwned
 {
+    public Guid UserId { get; set; }
     public Guid Id { get; set; }
     public Guid TaskId { get; set; }
     public string Title { get; set; } = "";
@@ -28,8 +30,9 @@ public class Subtask
 }
 
 // Việc lặp lại (SPEC §12.2): khuôn để sinh TaskItem theo thứ trong tuần.
-public class RecurringTask
+public class RecurringTask : IUserOwned
 {
+    public Guid UserId { get; set; }
     public Guid Id { get; set; }
     public string Title { get; set; } = "";
     public List<int> Weekdays { get; set; } = [];          // 1 = Thứ 2 … 7 = Chủ nhật

@@ -17,7 +17,10 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { Check, GripVertical, Repeat, Trash2 } from 'lucide-react'
 import { type FormEvent, type KeyboardEvent, useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { HabitMonthDto, HabitMonthRowDto } from '../../api/types'
+import { INTL_LOCALE } from '../../i18n/languages'
+import { useSettings } from '../../store/settings'
 import { getHabitGridDays, isWeekend, type HabitGridView, weekdayLabel } from './habitGridDays'
 
 export interface HabitGridProps {
@@ -33,6 +36,9 @@ export interface HabitGridProps {
 }
 
 export function HabitGrid(props: HabitGridProps) {
+  const { t } = useTranslation()
+  const language = useSettings((s) => s.language)
+  const locale = INTL_LOCALE[language]
   const [view, setView] = useState<HabitGridView>('month')
   const days = getHabitGridDays(props.month.from, props.month.to, view, props.today)
   const propsOrder = [...props.month.habits].sort((a, b) => a.order - b.order).map((habit) => habit.id)
@@ -77,15 +83,15 @@ export function HabitGrid(props: HabitGridProps) {
     <section className="sketch min-w-0 max-w-full bg-surface p-3.5 lg:p-5" aria-labelledby="habit-grid-title">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 id="habit-grid-title" className="text-xl font-bold text-ink sm:text-2xl">
-          Bảng theo dõi
+          {t('habits.grid.title')}
         </h2>
         <button
           type="button"
           onClick={() => setView((current) => (current === 'month' ? 'week' : 'month'))}
-          aria-label={view === 'month' ? 'Đang xem cả tháng, bấm để xem tuần' : 'Đang xem tuần, bấm để xem cả tháng'}
+          aria-label={view === 'month' ? t('habits.grid.viewMonthAria') : t('habits.grid.viewWeekAria')}
           className="min-h-11 shrink-0 rounded-xl bg-accent-tint px-3 font-semibold text-primary-ink hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
         >
-          {view === 'month' ? 'Tháng ▴' : 'Tuần ▾'}
+          {view === 'month' ? t('habits.grid.viewMonthBtn') : t('habits.grid.viewWeekBtn')}
         </button>
       </div>
 
@@ -98,10 +104,10 @@ export function HabitGrid(props: HabitGridProps) {
                   scope="col"
                   className="sticky left-0 z-20 w-52 min-w-52 border-b border-line bg-surface px-2 py-2 text-left text-xs font-semibold text-ink-muted"
                 >
-                  Thói quen
+                  {t('habits.grid.habitColumn')}
                 </th>
                 {days.map((date) => (
-                  <DayHeader key={date} date={date} today={props.today} />
+                  <DayHeader key={date} date={date} today={props.today} locale={locale} />
                 ))}
               </tr>
             </thead>
@@ -121,7 +127,7 @@ export function HabitGrid(props: HabitGridProps) {
                 {habits.length === 0 && (
                   <tr>
                     <td colSpan={days.length + 1} className="px-4 py-8 text-center text-ink-muted">
-                      Chưa có thói quen nào. Hãy thêm thói quen đầu tiên của bạn.
+                      {t('habits.grid.empty')}
                     </td>
                   </tr>
                 )}
@@ -134,21 +140,21 @@ export function HabitGrid(props: HabitGridProps) {
       <AddHabitForm isAdding={props.isAdding ?? false} onAdd={props.onAdd} />
 
       <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-muted">
-        <span>Muốn đặt việc cố định theo thứ (VD mỗi thứ 7)?</span>
+        <span>{t('habits.grid.recurringPrompt')}</span>
         <button
           type="button"
           onClick={props.onOpenRecurring}
           className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-1 font-semibold text-primary-ink underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
         >
           <Repeat size={16} aria-hidden="true" />
-          Dùng Việc lặp lại ({props.recurringCount})
+          {t('habits.grid.useRecurring', { count: props.recurringCount })}
         </button>
       </div>
     </section>
   )
 }
 
-function DayHeader({ date, today }: { date: string; today: string }) {
+function DayHeader({ date, today, locale }: { date: string; today: string; locale: string }) {
   const [, , day] = date.split('-')
   const isToday = date === today
   return (
@@ -156,7 +162,7 @@ function DayHeader({ date, today }: { date: string; today: string }) {
       scope="col"
       className={`w-11 min-w-11 border-b border-line py-1.5 text-center text-xs sm:w-7 sm:min-w-7 ${dayBackground(date, today)} ${isToday ? 'font-bold text-primary-ink' : 'font-semibold text-ink-muted'}`}
     >
-      <span className="block">{weekdayLabel(date)}</span>
+      <span className="block">{weekdayLabel(date, locale)}</span>
       <span className="block text-ink">{Number(day)}</span>
     </th>
   )
@@ -177,13 +183,14 @@ function SortableHabitRow({
   onDelete: HabitGridProps['onDelete']
   onMoveKey: (key: string) => void
 }) {
+  const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: habit.id,
   })
   const doneDates = new Set(habit.doneDates)
 
   function handleDelete() {
-    if (window.confirm(`Xoá thói quen “${habit.title}”?`)) onDelete(habit.id)
+    if (window.confirm(t('habits.grid.confirmDelete', { title: habit.title }))) onDelete(habit.id)
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
@@ -223,7 +230,7 @@ function SortableHabitRow({
           <button
             type="button"
             onClick={handleDelete}
-            aria-label={`Xoá thói quen ${habit.title}`}
+            aria-label={t('habits.grid.deleteAria', { title: habit.title })}
             className="grid size-11 shrink-0 place-items-center rounded-lg text-ink-muted md:size-8 hover:bg-danger-bg hover:text-danger focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           >
             <Trash2 size={16} aria-hidden="true" />
@@ -234,7 +241,7 @@ function SortableHabitRow({
             {...attributes}
             {...listeners}
             onKeyDown={handleKeyDown}
-            aria-label={`Kéo để sắp xếp ${habit.title}`}
+            aria-label={t('habits.grid.dragAria', { title: habit.title })}
             aria-keyshortcuts="ArrowUp ArrowDown"
             className="grid size-11 shrink-0 cursor-grab md:size-8 touch-none place-items-center rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:cursor-grabbing"
           >
@@ -252,7 +259,7 @@ function SortableHabitRow({
               type="button"
               role="checkbox"
               aria-checked={checked}
-              aria-label={`${habit.title} ngày ${Number(day)}/${Number(month)}`}
+              aria-label={t('habits.grid.cellAria', { title: habit.title, day: Number(day), month: Number(month) })}
               disabled={disabled}
               onClick={() => onToggle(habit.id, date, !checked)}
               className="group grid size-11 place-items-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-35 sm:size-7"
@@ -272,6 +279,7 @@ function SortableHabitRow({
 }
 
 function AddHabitForm({ isAdding, onAdd }: { isAdding: boolean; onAdd: HabitGridProps['onAdd'] }) {
+  const { t } = useTranslation()
   const [title, setTitle] = useState('')
   const inputId = useId()
   const trimmedTitle = title.trim()
@@ -290,7 +298,7 @@ function AddHabitForm({ isAdding, onAdd }: { isAdding: boolean; onAdd: HabitGrid
       className="mt-3 flex min-h-11 overflow-hidden rounded-xl border-2 border-ink bg-surface focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
     >
       <label htmlFor={inputId} className="sr-only">
-        Tên thói quen mới
+        {t('habits.grid.newHabitLabel')}
       </label>
       <input
         id={inputId}
@@ -298,16 +306,16 @@ function AddHabitForm({ isAdding, onAdd }: { isAdding: boolean; onAdd: HabitGrid
         onChange={(event) => setTitle(event.target.value)}
         disabled={isAdding}
         autoComplete="off"
-        placeholder="Thêm thói quen mới, ví dụ: Thiền 10 phút"
+        placeholder={t('habits.grid.newHabitPlaceholder')}
         className="min-w-0 flex-1 bg-transparent px-3 text-base text-ink placeholder:text-ink-muted focus:outline-none disabled:cursor-wait disabled:opacity-60"
       />
       <button
         type="submit"
         disabled={isAdding || !trimmedTitle}
-        aria-label="Thêm thói quen"
+        aria-label={t('habits.grid.addHabitAria')}
         className="min-h-11 shrink-0 bg-primary px-4 font-semibold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-45"
       >
-        + Thêm
+        {t('habits.grid.addHabitBtn')}
       </button>
     </form>
   )

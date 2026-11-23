@@ -2,14 +2,6 @@ import { DEFAULT_TODAY_LAYOUT, type TodayBlockId } from '../../store/settings'
 
 export type TodayLayout = { id: TodayBlockId; hidden: boolean }[]
 
-export const TODAY_BLOCK_LABELS: Record<TodayBlockId, string> = {
-  progress: 'Tiến độ gần đây',
-  backlog: 'Việc còn tồn',
-  tasks: 'Việc hôm nay',
-  habits: 'Thói quen hôm nay',
-  calendar: 'Lên kế hoạch',
-}
-
 // Chuẩn hoá bố cục đọc từ localStorage: bỏ id lạ, bỏ trùng, thêm khối mới (nếu bản sau thêm khối)
 // vào cuối. Nhờ vậy dữ liệu cũ trong trình duyệt không làm hỏng trang khi danh sách khối thay đổi.
 export function normalizeTodayLayout(layout: TodayLayout | undefined): TodayLayout {
@@ -24,6 +16,15 @@ export function normalizeTodayLayout(layout: TodayLayout | undefined): TodayLayo
   }
   for (const block of DEFAULT_TODAY_LAYOUT) if (!seen.has(block.id)) result.push({ ...block })
   return result
+}
+
+// Đưa một khối tới vị trí mới. Vị trí ngoài danh sách thì giữ nguyên (ví dụ bấm ↑ ở dòng đầu).
+export function moveTodayBlock(layout: TodayLayout, from: number, to: number): TodayLayout {
+  if (from < 0 || from >= layout.length || to < 0 || to >= layout.length || from === to) return layout
+  const next = [...layout]
+  const [block] = next.splice(from, 1)
+  next.splice(to, 0, block)
+  return next
 }
 
 // Nhóm các khối đang hiện theo thứ tự bố cục. "Việc hôm nay" và "Thói quen" đứng cạnh nhau thì ghép

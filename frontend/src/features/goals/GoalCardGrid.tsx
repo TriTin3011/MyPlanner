@@ -1,4 +1,5 @@
 import type { GoalCardDto } from '../../api/types'
+import { EmptyState } from '../../components/EmptyState'
 import { GoalCard } from './GoalCard'
 
 export interface GoalCardGridProps {
@@ -13,8 +14,8 @@ export interface GoalCardGridProps {
 export function GoalCardGrid({ goals, onOpen, onToggleDone, emptyText }: GoalCardGridProps) {
   if (goals.length === 0) {
     return (
-      <div className="rounded-2xl border-2 border-dashed border-line bg-surface/60 px-4 py-10 text-center text-sm font-medium text-ink-muted">
-        {emptyText}
+      <div className="rounded-2xl border-2 border-dashed border-line bg-surface/60 px-4 py-4">
+        <EmptyState text={emptyText} />
       </div>
     )
   }

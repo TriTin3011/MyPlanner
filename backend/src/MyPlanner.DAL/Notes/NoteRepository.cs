@@ -14,8 +14,9 @@ public class NoteRepository(AppDbContext db) : INoteRepository
         db.WeekNotes.AsNoTracking().Where(n => n.WeekKey == weekKey)
             .Select(n => new WeekNoteDto(n.WeekKey, n.Content, n.UpdatedAt)).FirstOrDefaultAsync(ct);
 
-    public Task<DayNote?> FindDayAsync(DateOnly date, CancellationToken ct) => db.DayNotes.FindAsync([date], ct).AsTask();
-    public Task<WeekNote?> FindWeekAsync(string weekKey, CancellationToken ct) => db.WeekNotes.FindAsync([weekKey], ct).AsTask();
+    // Khoá là (UserId, Date) nên không dùng FindAsync([date]); query thường thì filter người dùng tự thêm UserId.
+    public Task<DayNote?> FindDayAsync(DateOnly date, CancellationToken ct) => db.DayNotes.FirstOrDefaultAsync(n => n.Date == date, ct);
+    public Task<WeekNote?> FindWeekAsync(string weekKey, CancellationToken ct) => db.WeekNotes.FirstOrDefaultAsync(n => n.WeekKey == weekKey, ct);
 
     public async Task<int> DeleteWeekAsync(string weekKey, DateOnly from, DateOnly to, CancellationToken ct) =>
         await db.WeekNotes.Where(n => n.WeekKey == weekKey).ExecuteDeleteAsync(ct)

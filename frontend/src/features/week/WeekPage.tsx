@@ -1,5 +1,6 @@
 import { AlertCircle, Info, LoaderCircle, Repeat2, RotateCcw } from 'lucide-react'
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { DeadlineDto, TaskDto } from '../../api/types'
 import { TaskItem, type TaskItemMenuActions } from '../../components/TaskItem'
 import { addDays, isoWeekKey, startOfWeek, toLocalDateKey } from '../../lib/dates'
@@ -32,6 +33,7 @@ import { WeekProgressChartBlock } from './WeekProgressChartBlock'
 // Màn hình Kế hoạch tuần (route "/week", SPEC §9). Trang giữ "tuần đang xem" (Thứ 2 của tuần),
 // hook lấy số liệu theo tuần đó, các khối con chỉ nhận props.
 export function WeekPage() {
+  const { t } = useTranslation()
   // "Hôm nay" theo giờ máy người dùng, chốt một lần khi mở trang (giống TodayPage).
   const [today] = useState(() => toLocalDateKey(new Date()))
   const [monday, setMonday] = useState(() => startOfWeek(today))
@@ -48,7 +50,7 @@ export function WeekPage() {
         className="mx-auto flex min-h-64 w-full max-w-[1320px] items-center justify-center gap-3 text-primary-ink"
       >
         <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-        <span className="font-bold">Đang tải kế hoạch tuần…</span>
+        <span className="font-bold">{t('week.loading')}</span>
       </div>
     )
   }
@@ -60,14 +62,16 @@ export function WeekPage() {
         className="sketch mx-auto flex min-h-44 w-full max-w-2xl flex-col items-center justify-center gap-3 p-6 text-center"
       >
         <AlertCircle className="text-danger" aria-hidden="true" />
-        <p className="font-bold">{week.error.message}</p>
+        <p className="font-bold">
+          {t('week.loadErrorPrefix')} {week.error.message}
+        </p>
         <button
           type="button"
           onClick={() => week.refetch()}
-          className="flex min-h-11 items-center gap-2 rounded-full bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <RotateCcw size={17} aria-hidden="true" />
-          Thử lại
+          {t('common.retry')}
         </button>
       </div>
     )
@@ -97,6 +101,7 @@ export function WeekPage() {
 // Khối "Công việc trong tuần" (SPEC §9.4): 7 cột ngày. Tách riêng để header không phải chờ dữ liệu việc,
 // và mỗi khối có trạng thái tải/lỗi của riêng nó.
 function WeekTasksSection({ monday, today }: { monday: string; today: string }) {
+  const { t } = useTranslation()
   const sunday = addDays(monday, 6)
   // Memo theo tuần: bảng tự cuộn tới hôm nay khi `dates` đổi, nên mảng mới mỗi lần render sẽ cuộn liên tục.
   const dates = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(monday, i)), [monday])
@@ -169,14 +174,14 @@ function WeekTasksSection({ monday, today }: { monday: string; today: string }) 
     <section aria-labelledby="week-tasks-title" className="mt-3 lg:mt-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 id="week-tasks-title" className="flex items-center gap-1.5 font-display text-xl font-extrabold text-primary-ink">
-          Công việc trong tuần
+          {t('week.tasksSection.title')}
           <span
-            title="Kéo tay nắm ⋮⋮ để đổi thứ tự hoặc chuyển việc sang ngày khác. Dòng hồng là hạn của bước và mục tiêu."
+            title={t('week.tasksSection.infoTitle')}
             className="text-ink-muted"
           >
             <Info size={16} aria-hidden="true" />
             <span className="sr-only">
-              Kéo tay nắm để đổi thứ tự hoặc chuyển việc sang ngày khác. Dòng hồng là hạn của bước và mục tiêu.
+              {t('week.tasksSection.infoSr')}
             </span>
           </span>
         </h2>
@@ -184,10 +189,10 @@ function WeekTasksSection({ monday, today }: { monday: string; today: string }) 
           type="button"
           onClick={() => setRecurringOpen(true)}
           aria-haspopup="dialog"
-          className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full px-3 text-sm font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+          className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
         >
           <Repeat2 size={16} aria-hidden="true" />
-          Việc lặp lại
+          {t('week.tasksSection.recurringButton')}
           {recurring.data && (
             <span className="rounded-full bg-accent-tint px-2 py-0.5 text-xs">
               {recurring.data.filter((r) => r.active).length}
@@ -198,14 +203,14 @@ function WeekTasksSection({ monday, today }: { monday: string; today: string }) 
 
       {error && (
         <p role="alert" className="mb-3 rounded-lg bg-[var(--danger-bg)] px-3 py-2 text-sm font-bold text-danger">
-          Chưa cập nhật được. Hãy thử lại.
+          {t('week.tasksSection.updateError')}
         </p>
       )}
 
       {tasks.isPending ? (
         <div role="status" className="flex min-h-40 items-center justify-center gap-2 text-primary-ink">
           <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-          <span className="font-bold">Đang tải công việc…</span>
+          <span className="font-bold">{t('week.tasksSection.loadingTasks')}</span>
         </div>
       ) : tasks.isError ? (
         <div role="alert" className="sketch flex flex-col items-center gap-3 p-6 text-center">
@@ -213,10 +218,10 @@ function WeekTasksSection({ monday, today }: { monday: string; today: string }) 
           <button
             type="button"
             onClick={() => tasks.refetch()}
-            className="flex min-h-11 items-center gap-2 rounded-full bg-primary px-4 font-bold text-white hover:opacity-90"
+            className="flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 font-bold text-white hover:opacity-90"
           >
             <RotateCcw size={17} aria-hidden="true" />
-            Thử lại
+            {t('common.retry')}
           </button>
         </div>
       ) : (

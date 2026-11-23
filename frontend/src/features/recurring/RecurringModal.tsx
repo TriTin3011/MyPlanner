@@ -1,10 +1,14 @@
 import { LoaderCircle, Pencil, Plus, Trash2 } from 'lucide-react'
-import { type FormEvent, useId, useState } from 'react'
+import { type FormEvent, useId, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { RecurringTaskDto, SaveRecurringRequest, TaskTag } from '../../api/types'
+import { EmptyState } from '../../components/EmptyState'
 import { Modal } from '../../components/Modal'
-import { TAG_ORDER, TASK_TAGS } from '../../components/taskTags'
+import { getTaskTags, TAG_ORDER } from '../../components/taskTags'
+import { INTL_LOCALE } from '../../i18n/languages'
+import { useSettings } from '../../store/settings'
 import { useCreateRecurring, useDeleteRecurring, useRecurring, useUpdateRecurring } from './hooks'
-import { formatWeekdays, WEEKDAYS } from './weekdays'
+import { formatWeekdays, getWeekdays } from './weekdays'
 
 interface RecurringModalProps {
   open: boolean
@@ -13,6 +17,10 @@ interface RecurringModalProps {
 }
 
 export function RecurringModal({ open, today, onClose }: RecurringModalProps) {
+  const { t } = useTranslation()
+  const language = useSettings((s) => s.language)
+  const locale = INTL_LOCALE[language]
+  const taskTags = getTaskTags(t)
   const rules = useRecurring()
   const create = useCreateRecurring(today)
   const update = useUpdateRecurring(today)
@@ -50,30 +58,27 @@ export function RecurringModal({ open, today, onClose }: RecurringModalProps) {
   const listError = update.isError || remove.isError
 
   return (
-    <Modal open={open} title="Việc lặp lại" onClose={onClose}>
-      <p className="mb-4 text-sm text-ink-muted">
-        Việc lặp lại tự sinh thành công việc vào các thứ đã chọn (tối đa 7 ngày tới). Khác thói quen: thói quen chỉ
-        tick có hoặc không mỗi ngày.
-      </p>
+    <Modal open={open} title={t('recurring.title')} onClose={onClose}>
+      <p className="mb-4 text-sm text-ink-muted">{t('recurring.description')}</p>
 
-      <section aria-label="Danh sách việc lặp lại">
+      <section aria-label={t('recurring.listAria')}>
         {rules.isPending && (
           <p role="status" className="flex items-center gap-2 py-4 text-sm font-semibold text-ink-muted">
             <LoaderCircle size={16} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-            Đang tải…
+            {t('recurring.loading')}
           </p>
         )}
         {rules.isError && (
           <p role="alert" className="rounded-lg bg-[var(--danger-bg)] px-3 py-2 text-sm font-bold text-danger">
-            Chưa tải được danh sách việc lặp lại.
+            {t('recurring.loadError')}
           </p>
         )}
         {rules.data && rules.data.length === 0 && (
-          <p className="py-3 text-center text-sm font-medium text-ink-muted">Chưa có việc lặp lại nào.</p>
+          <EmptyState text={t('recurring.empty')} />
         )}
         {listError && (
           <p role="alert" className="mb-2 rounded-lg bg-[var(--danger-bg)] px-3 py-2 text-sm font-bold text-danger">
-            Chưa lưu được thay đổi. Hãy thử lại.
+            {t('recurring.saveChangesError')}
           </p>
         )}
         {rules.data && rules.data.length > 0 && (
@@ -90,10 +95,10 @@ export function RecurringModal({ open, today, onClose }: RecurringModalProps) {
                       {rule.title}
                     </p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs font-bold text-ink-muted">
-                      <span>{formatWeekdays(rule.weekdays)}</span>
+                      <span>{formatWeekdays(rule.weekdays, locale, t('recurring.everyDay'))}</span>
                       {rule.tags.map((tag) => (
-                        <span key={tag} className={`rounded-full px-2 py-0.5 ${TASK_TAGS[tag].className}`}>
-                          {TASK_TAGS[tag].label}
+                        <span key={tag} className={`rounded-full px-2 py-0.5 ${taskTags[tag].className}`}>
+                          {taskTags[tag].label}
                         </span>
                       ))}
                     </p>
@@ -101,7 +106,7 @@ export function RecurringModal({ open, today, onClose }: RecurringModalProps) {
 
                   {confirming ? (
                     <div className="flex items-center gap-1">
-                      <span className="text-sm font-bold text-danger">Xoá quy tắc này?</span>
+                      <span className="text-sm font-bold text-danger">{t('recurring.confirmDelete')}</span>
                       <button
                         type="button"
                         disabled={busy}
@@ -112,14 +117,14 @@ export function RecurringModal({ open, today, onClose }: RecurringModalProps) {
                         }}
                         className="min-h-11 cursor-pointer rounded-lg bg-danger px-3 text-sm font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-wait disabled:opacity-50"
                       >
-                        Xoá
+                        {t('common.delete')}
                       </button>
                       <button
                         type="button"
                         onClick={() => setConfirmDeleteId(null)}
                         className="min-h-11 cursor-pointer rounded-lg px-3 text-sm font-bold text-ink-muted hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                       >
-                        Huỷ
+                        {t('common.cancel')}
                       </button>
                     </div>
                   ) : (
@@ -135,8 +140,8 @@ export function RecurringModal({ open, today, onClose }: RecurringModalProps) {
                           }
                           className="size-4 cursor-pointer accent-primary disabled:cursor-wait"
                         />
-                        <span>Bật</span>
-                        <span className="sr-only">việc lặp lại “{rule.title}”</span>
+                        <span>{t('recurring.activeLabel')}</span>
+                        <span className="sr-only">{t('recurring.activeSrSuffix', { title: rule.title })}</span>
                       </label>
                       <button
                         type="button"
@@ -145,7 +150,7 @@ export function RecurringModal({ open, today, onClose }: RecurringModalProps) {
                           setEditing(rule)
                           setFormKey((k) => k + 1)
                         }}
-                        aria-label={`Sửa “${rule.title}”`}
+                        aria-label={t('recurring.editRule', { title: rule.title })}
                         className="grid size-11 cursor-pointer place-items-center rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none disabled:opacity-50"
                       >
                         <Pencil size={16} aria-hidden="true" />
@@ -154,7 +159,7 @@ export function RecurringModal({ open, today, onClose }: RecurringModalProps) {
                         type="button"
                         disabled={busy}
                         onClick={() => setConfirmDeleteId(rule.id)}
-                        aria-label={`Xoá “${rule.title}”`}
+                        aria-label={t('recurring.deleteRule', { title: rule.title })}
                         className="grid size-11 cursor-pointer place-items-center rounded-lg text-ink-muted hover:bg-[var(--danger-bg)] hover:text-danger focus-visible:ring-2 focus-visible:ring-danger focus-visible:outline-none disabled:opacity-50"
                       >
                         {busy ? (
@@ -193,6 +198,11 @@ interface RecurringFormProps {
 }
 
 function RecurringForm({ initial, today, pending, onSave, onCancelEdit }: RecurringFormProps) {
+  const { t } = useTranslation()
+  const language = useSettings((s) => s.language)
+  const locale = INTL_LOCALE[language]
+  const weekdayOptions = useMemo(() => getWeekdays(locale), [locale])
+  const taskTags = getTaskTags(t)
   const [title, setTitle] = useState(initial?.title ?? '')
   const [weekdays, setWeekdays] = useState<number[]>(initial?.weekdays ?? [])
   const [tags, setTags] = useState<TaskTag[]>(initial?.tags ?? [])
@@ -220,34 +230,34 @@ function RecurringForm({ initial, today, pending, onSave, onCancelEdit }: Recurr
         startDate,
       })
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Chưa lưu được. Hãy thử lại.')
+      setError(reason instanceof Error ? reason.message : t('common.saveError'))
     }
   }
 
   return (
     <form onSubmit={submit} aria-busy={pending} className="mt-5 space-y-3 rounded-xl bg-accent-tint/40 p-3">
       <h3 className="font-display text-lg font-bold text-primary-ink">
-        {initial ? 'Sửa việc lặp lại' : 'Thêm việc lặp lại'}
+        {initial ? t('recurring.editTitle') : t('recurring.addTitle')}
       </h3>
 
       <div>
         <label htmlFor={titleId} className="mb-1 block text-sm font-bold">
-          Tên việc
+          {t('recurring.nameLabel')}
         </label>
         <input
           id={titleId}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="VD: Dọn nhà, Đi chợ…"
+          placeholder={t('recurring.namePlaceholder')}
           maxLength={500}
           className="min-h-11 w-full rounded-lg border-2 border-[var(--line)] bg-surface px-3 text-base focus-visible:border-primary focus-visible:outline-none"
         />
       </div>
 
       <fieldset>
-        <legend className="mb-1 text-sm font-bold">Lặp vào các thứ</legend>
+        <legend className="mb-1 text-sm font-bold">{t('recurring.weekdaysLegend')}</legend>
         <div className="flex flex-wrap gap-1.5">
-          {WEEKDAYS.map((day) => {
+          {weekdayOptions.map((day) => {
             const checked = weekdays.includes(day.value)
             return (
               <button
@@ -256,7 +266,7 @@ function RecurringForm({ initial, today, pending, onSave, onCancelEdit }: Recurr
                 aria-pressed={checked}
                 aria-label={day.long}
                 onClick={() => setWeekdays((prev) => toggle(prev, day.value))}
-                className={`grid size-11 cursor-pointer place-items-center rounded-full border-2 text-sm font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
+                className={`grid size-11 cursor-pointer place-items-center rounded-xl border-2 text-sm font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
                   checked
                     ? 'border-primary bg-primary text-white'
                     : 'border-[var(--line)] bg-surface text-ink hover:bg-accent-tint'
@@ -270,7 +280,7 @@ function RecurringForm({ initial, today, pending, onSave, onCancelEdit }: Recurr
       </fieldset>
 
       <fieldset>
-        <legend className="mb-1 text-sm font-bold">Tag</legend>
+        <legend className="mb-1 text-sm font-bold">{t('common.tag')}</legend>
         <div className="flex flex-wrap gap-1.5">
           {TAG_ORDER.map((tag) => {
             const checked = tags.includes(tag)
@@ -280,11 +290,11 @@ function RecurringForm({ initial, today, pending, onSave, onCancelEdit }: Recurr
                 type="button"
                 aria-pressed={checked}
                 onClick={() => setTags((prev) => toggle(prev, tag))}
-                className={`min-h-11 cursor-pointer rounded-full border-2 px-3 text-sm font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
-                  checked ? `border-[var(--ink)] ${TASK_TAGS[tag].className}` : 'border-[var(--line)] bg-surface text-ink-muted'
+                className={`min-h-11 cursor-pointer rounded-xl border-2 px-3 text-sm font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
+                  checked ? `border-[var(--ink)] ${taskTags[tag].className}` : 'border-[var(--line)] bg-surface text-ink-muted'
                 }`}
               >
-                {TASK_TAGS[tag].label}
+                {taskTags[tag].label}
               </button>
             )
           })}
@@ -293,7 +303,7 @@ function RecurringForm({ initial, today, pending, onSave, onCancelEdit }: Recurr
 
       <div>
         <label htmlFor={startId} className="mb-1 block text-sm font-bold">
-          Bắt đầu từ ngày
+          {t('recurring.startDateLabel')}
         </label>
         <input
           id={startId}
@@ -318,7 +328,7 @@ function RecurringForm({ initial, today, pending, onSave, onCancelEdit }: Recurr
             disabled={pending}
             className="min-h-11 cursor-pointer rounded-lg px-4 text-sm font-bold text-ink-muted hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           >
-            Huỷ sửa
+            {t('recurring.cancelEdit')}
           </button>
         )}
         <button
@@ -331,7 +341,7 @@ function RecurringForm({ initial, today, pending, onSave, onCancelEdit }: Recurr
           ) : (
             !initial && <Plus size={15} aria-hidden="true" />
           )}
-          {initial ? 'Lưu thay đổi' : 'Thêm'}
+          {initial ? t('recurring.saveChanges') : t('common.add')}
         </button>
       </div>
     </form>

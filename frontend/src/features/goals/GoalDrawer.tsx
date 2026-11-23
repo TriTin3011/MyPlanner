@@ -25,6 +25,8 @@ import {
   useState,
   useEffect,
 } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Select } from '../../components/Select'
 import type {
   GoalDto,
   GoalStatus,
@@ -55,6 +57,7 @@ export interface GoalDrawerProps {
 const STATUS_ORDER: readonly GoalStatus[] = ['not_started', 'in_progress', 'done']
 
 export function GoalDrawer(props: GoalDrawerProps) {
+  const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   const loading = props.mode === 'edit' && !props.goal
@@ -98,12 +101,12 @@ export function GoalDrawer(props: GoalDrawerProps) {
         <div className="flex h-dvh min-w-0 flex-col">
           <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--line)] px-4 py-3">
             <h2 id={titleId} className="font-display text-xl font-extrabold text-primary-ink">
-              {props.mode === 'create' ? 'Thêm mục tiêu' : 'Sửa mục tiêu'}
+              {props.mode === 'create' ? t('goals.addGoal') : t('goals.editGoal')}
             </h2>
             <button
               type="button"
               onClick={props.onClose}
-              aria-label="Đóng"
+              aria-label={t('common.close')}
               className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink active:opacity-70 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             >
               <X size={19} aria-hidden="true" />
@@ -119,7 +122,7 @@ export function GoalDrawer(props: GoalDrawerProps) {
             {loading ? (
               <p role="status" className="flex items-center gap-2 py-8 text-sm font-bold text-ink-muted">
                 <LoaderCircle size={17} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-                Đang tải mục tiêu…
+                {t('goals.loading')}
               </p>
             ) : (
               <>
@@ -134,7 +137,7 @@ export function GoalDrawer(props: GoalDrawerProps) {
 
                 {props.mode === 'create' ? (
                   <p className="mt-5 rounded-xl bg-accent-tint px-3 py-3 text-sm font-semibold text-ink-muted">
-                    Lưu mục tiêu trước rồi thêm các bước.
+                    {t('goals.drawer.saveFirstHint')}
                   </p>
                 ) : (
                   props.goal && (
@@ -193,6 +196,7 @@ function GoalForm({
   isSaving,
   onSave,
 }: Pick<GoalDrawerProps, 'mode' | 'goal' | 'today' | 'isSaving' | 'onSave'>) {
+  const { t } = useTranslation()
   const [form, setForm] = useState(() => initialForm(mode, goal, today))
   const titleId = useId()
   const areaId = useId()
@@ -218,7 +222,7 @@ function GoalForm({
     <form onSubmit={submit} aria-busy={isSaving} className="min-w-0 space-y-3">
       <div>
         <label htmlFor={titleId} className="mb-1 block text-sm font-bold">
-          Tên mục tiêu
+          {t('goals.drawer.titleLabel')}
         </label>
         <input
           id={titleId}
@@ -233,39 +237,29 @@ function GoalForm({
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="min-w-0">
           <label htmlFor={areaId} className="mb-1 block text-sm font-bold">
-            Lĩnh vực
+            {t('goals.drawer.areaLabel')}
           </label>
-          <select
+          <Select<LifeArea>
             id={areaId}
             value={form.area}
-            onChange={(event) => setForm((current) => ({ ...current, area: event.target.value as LifeArea }))}
-            className={inputClass}
-          >
-            {LIFE_AREAS.map((area) => (
-              <option key={area.key} value={area.key}>
-                {area.label}
-              </option>
-            ))}
-          </select>
+            options={LIFE_AREAS.map((area) => ({ value: area.key, label: area.label }))}
+            onChange={(area) => setForm((current) => ({ ...current, area }))}
+            className={`${inputClass} !font-normal`}
+          />
         </div>
 
         {mode === 'edit' && (
           <div className="min-w-0">
             <label htmlFor={statusId} className="mb-1 block text-sm font-bold">
-              Trạng thái
+              {t('goals.drawer.statusLabel')}
             </label>
-            <select
+            <Select<GoalStatus>
               id={statusId}
               value={form.status}
-              onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as GoalStatus }))}
-              className={inputClass}
-            >
-              {STATUS_ORDER.map((status) => (
-                <option key={status} value={status}>
-                  {GOAL_STATUS_LABEL[status]}
-                </option>
-              ))}
-            </select>
+              options={STATUS_ORDER.map((status) => ({ value: status, label: GOAL_STATUS_LABEL[status] }))}
+              onChange={(status) => setForm((current) => ({ ...current, status }))}
+              className={`${inputClass} !font-normal`}
+            />
           </div>
         )}
       </div>
@@ -273,7 +267,7 @@ function GoalForm({
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="min-w-0">
           <label htmlFor={startId} className="mb-1 block text-sm font-bold">
-            Ngày bắt đầu
+            {t('goals.drawer.startDateLabel')}
           </label>
           <input
             id={startId}
@@ -286,7 +280,7 @@ function GoalForm({
         </div>
         <div className="min-w-0">
           <label htmlFor={deadlineId} className="mb-1 block text-sm font-bold">
-            Hạn chót
+            {t('goals.drawer.deadlineLabel')}
           </label>
           <input
             id={deadlineId}
@@ -300,7 +294,7 @@ function GoalForm({
           />
           {deadlineInvalid && (
             <p id={deadlineErrorId} role="alert" className="mt-1 text-sm font-bold text-danger">
-              Hạn chót phải sau ngày bắt đầu.
+              {t('goals.drawer.deadlineInvalid')}
             </p>
           )}
         </div>
@@ -308,7 +302,7 @@ function GoalForm({
 
       <div>
         <label htmlFor={rewardId} className="mb-1 block text-sm font-bold">
-          Phần thưởng
+          {t('goals.drawer.rewardLabel')}
         </label>
         <input
           id={rewardId}
@@ -320,7 +314,7 @@ function GoalForm({
 
       <div>
         <label htmlFor={whyId} className="mb-1 block text-sm font-bold">
-          Vì sao?
+          {t('goals.drawer.whyLabel')}
         </label>
         <textarea
           id={whyId}
@@ -340,7 +334,7 @@ function GoalForm({
           {isSaving && (
             <LoaderCircle size={16} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
           )}
-          Lưu
+          {t('goals.drawer.saveBtn')}
         </button>
       </div>
     </form>
@@ -358,6 +352,7 @@ interface GoalStepsProps {
 }
 
 function GoalSteps(props: GoalStepsProps) {
+  const { t } = useTranslation()
   // useId thay cho id cứng: hai drawer (hoặc test render hai lần) không trùng id trong cùng trang.
   const headingId = useId()
   const sortedIds = [...props.steps].sort((a, b) => a.order - b.order).map((step) => step.id)
@@ -402,11 +397,11 @@ function GoalSteps(props: GoalStepsProps) {
   return (
     <section className="sketch mt-5 min-w-0 bg-accent-tint/35 p-3" aria-labelledby={headingId}>
       <h3 id={headingId} className="mb-3 font-display text-lg font-extrabold text-primary-ink">
-        Các bước ({doneCount}/{props.steps.length})
+        {t('goals.drawer.stepsHeading', { done: doneCount, total: props.steps.length })}
       </h3>
 
       {orderedSteps.length === 0 ? (
-        <p className="mb-3 text-sm font-medium text-ink-muted">Chưa có bước nào.</p>
+        <p className="mb-3 text-sm font-medium text-ink-muted">{t('goals.drawer.stepsEmpty')}</p>
       ) : (
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
           <SortableContext items={draftOrder.ids} strategy={verticalListSortingStrategy}>
@@ -444,6 +439,7 @@ function SortableStep({
   onDelete: GoalDrawerProps['onDeleteStep']
   onMoveKey: (key: string) => void
 }) {
+  const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: step.id,
   })
@@ -506,7 +502,7 @@ function SortableStep({
         {...attributes}
         {...listeners}
         onKeyDown={handleDragKeyDown}
-        aria-label={`Kéo để sắp xếp: ${step.title}`}
+        aria-label={t('goals.drawer.dragStepAria', { title: step.title })}
         aria-keyshortcuts="ArrowUp ArrowDown"
         className="grid size-11 cursor-grab touch-none place-items-center rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
       >
@@ -518,7 +514,7 @@ function SortableStep({
           type="checkbox"
           checked={step.done}
           onChange={() => update({ done: !step.done })}
-          aria-label={`Hoàn thành bước: ${step.title}`}
+          aria-label={t('goals.drawer.completeStepAria', { title: step.title })}
           className="size-5 cursor-pointer accent-primary"
         />
       </label>
@@ -530,7 +526,7 @@ function SortableStep({
           onChange={(event) => setTitleEdit((current) => ({ ...current, value: event.target.value }))}
           onBlur={commitTitle}
           onKeyDown={handleTitleKeyDown}
-          aria-label={`Sửa tên bước: ${step.title}`}
+          aria-label={t('goals.drawer.editStepAria', { title: step.title })}
           className="min-h-11 min-w-0 w-full rounded-lg border-2 border-primary bg-surface px-2 text-base font-semibold focus:outline-none"
         />
       ) : (
@@ -546,7 +542,7 @@ function SortableStep({
       <button
         type="button"
         onClick={() => onDelete(step.id)}
-        aria-label={`Xoá bước: ${step.title}`}
+        aria-label={t('goals.drawer.deleteStepAria', { title: step.title })}
         className="grid size-11 cursor-pointer place-items-center rounded-lg text-ink-muted hover:bg-[var(--danger-bg)] hover:text-danger active:opacity-70 focus-visible:ring-2 focus-visible:ring-danger focus-visible:outline-none"
       >
         <Trash2 size={16} aria-hidden="true" />
@@ -557,16 +553,17 @@ function SortableStep({
           type="date"
           value={step.deadline ?? ''}
           onChange={(event) => update({ deadline: event.target.value || null })}
-          aria-label={`Hạn chót bước: ${step.title}`}
+          aria-label={t('goals.drawer.stepDeadlineAria', { title: step.title })}
           className="min-h-11 min-w-0 max-w-full rounded-lg border-2 border-[var(--line)] bg-surface px-2 text-sm focus-visible:border-primary focus-visible:outline-none"
         />
-        {isStepOverdue(step, today) && <span className="text-xs font-bold text-danger">quá hạn</span>}
+        {isStepOverdue(step, today) && <span className="text-xs font-bold text-danger">{t('goals.drawer.stepOverdue')}</span>}
       </div>
     </div>
   )
 }
 
 function AddStepForm({ onAddStep }: Pick<GoalDrawerProps, 'onAddStep'>) {
+  const { t } = useTranslation()
   const [title, setTitle] = useState('')
   const [deadline, setDeadline] = useState('')
   const inputId = useId()
@@ -587,17 +584,17 @@ function AddStepForm({ onAddStep }: Pick<GoalDrawerProps, 'onAddStep'>) {
       className="mt-3 grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2 sm:grid-cols-[minmax(0,1fr)_9rem_auto]"
     >
       <label htmlFor={inputId} className="sr-only">
-        Tên bước mới
+        {t('goals.drawer.newStepLabel')}
       </label>
       <input
         id={inputId}
         value={title}
         onChange={(event) => setTitle(event.target.value)}
-        placeholder="Thêm bước…"
+        placeholder={t('goals.drawer.newStepPlaceholder')}
         className="col-span-2 min-h-11 min-w-0 rounded-lg border-2 border-[var(--line)] bg-surface px-3 text-base focus-visible:border-primary focus-visible:outline-none sm:col-span-1"
       />
       <label htmlFor={deadlineId} className="sr-only">
-        Hạn chót bước mới
+        {t('goals.drawer.newStepDeadlineLabel')}
       </label>
       <input
         id={deadlineId}
@@ -611,33 +608,34 @@ function AddStepForm({ onAddStep }: Pick<GoalDrawerProps, 'onAddStep'>) {
         disabled={!trimmedTitle}
         className="min-h-11 cursor-pointer rounded-lg bg-primary px-4 text-sm font-bold text-white hover:opacity-90 active:opacity-75 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-45"
       >
-        Thêm
+        {t('common.add')}
       </button>
     </form>
   )
 }
 
 function DeleteGoalFooter({ onDelete }: Pick<GoalDrawerProps, 'onDelete'>) {
+  const { t } = useTranslation()
   const [confirming, setConfirming] = useState(false)
 
   return (
     <footer className="shrink-0 border-t border-[var(--line)] bg-surface px-4 py-3 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))]">
       {confirming ? (
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <p className="min-w-0 flex-1 text-sm font-bold text-danger">Xoá mục tiêu này? Các bước cũng bị xoá.</p>
+          <p className="min-w-0 flex-1 text-sm font-bold text-danger">{t('goals.drawer.confirmDeleteGoal')}</p>
           <button
             type="button"
             onClick={onDelete}
             className="min-h-11 cursor-pointer rounded-lg bg-danger px-4 text-sm font-bold text-white hover:opacity-90 active:opacity-75 focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 focus-visible:outline-none"
           >
-            Xoá
+            {t('common.delete')}
           </button>
           <button
             type="button"
             onClick={() => setConfirming(false)}
             className="min-h-11 cursor-pointer rounded-lg px-4 text-sm font-bold text-ink-muted hover:bg-accent-tint active:opacity-70 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           >
-            Huỷ
+            {t('common.cancel')}
           </button>
         </div>
       ) : (
@@ -646,7 +644,7 @@ function DeleteGoalFooter({ onDelete }: Pick<GoalDrawerProps, 'onDelete'>) {
           onClick={() => setConfirming(true)}
           className="min-h-11 cursor-pointer rounded-lg px-3 text-sm font-bold text-danger hover:bg-[var(--danger-bg)] active:opacity-70 focus-visible:ring-2 focus-visible:ring-danger focus-visible:outline-none"
         >
-          Xoá mục tiêu
+          {t('goals.drawer.deleteGoalBtn')}
         </button>
       )}
     </footer>

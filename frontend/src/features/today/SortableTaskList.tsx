@@ -16,6 +16,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { TaskDto } from '../../api/types'
 
 interface SortableTaskListProps {
@@ -30,6 +31,7 @@ interface SortableTaskListProps {
 // Danh sách kéo thả để sắp xếp Việc hôm nay (SPEC §6.3). dnd-kit tách "cảm biến" (sensor: chuột, chạm,
 // bàn phím) khỏi logic sắp xếp, nên cùng một danh sách dùng được trên desktop, điện thoại và bằng phím.
 export function SortableTaskList({ tasks, onReorder, disabled, renderItem }: SortableTaskListProps) {
+  const { t } = useTranslation()
   const sensors = useSensors(
     // Chuột: phải kéo quá 5px mới tính là kéo, để click thường vẫn là click.
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -42,19 +44,25 @@ export function SortableTaskList({ tasks, onReorder, disabled, renderItem }: Sor
   const [announcement, setAnnouncement] = useState('')
 
   function moveBy(id: string, delta: -1 | 1) {
-    const from = tasks.findIndex((t) => t.id === id)
+    const from = tasks.findIndex((item) => item.id === id)
     const to = from + delta
     if (from < 0 || to < 0 || to >= tasks.length) return
-    onReorder(arrayMove(tasks, from, to).map((t) => t.id))
-    setAnnouncement(`Đã chuyển ${titleOf(tasks, id)} tới vị trí ${to + 1} trên ${tasks.length}.`)
+    onReorder(arrayMove(tasks, from, to).map((item) => item.id))
+    setAnnouncement(
+      t('today.sortable.movedAnnouncement', {
+        title: titleOf(tasks, id),
+        position: to + 1,
+        total: tasks.length,
+      }),
+    )
   }
 
   function handleDragEnd({ active, over }: DragEndEvent) {
     if (!over || active.id === over.id) return
-    const from = tasks.findIndex((t) => t.id === active.id)
-    const to = tasks.findIndex((t) => t.id === over.id)
+    const from = tasks.findIndex((item) => item.id === active.id)
+    const to = tasks.findIndex((item) => item.id === over.id)
     if (from < 0 || to < 0) return
-    onReorder(arrayMove(tasks, from, to).map((t) => t.id))
+    onReorder(arrayMove(tasks, from, to).map((item) => item.id))
   }
 
   return (
@@ -64,20 +72,31 @@ export function SortableTaskList({ tasks, onReorder, disabled, renderItem }: Sor
       onDragEnd={handleDragEnd}
       accessibility={{
         screenReaderInstructions: {
-          draggable:
-            'Dùng phím mũi tên lên hoặc xuống để đổi chỗ việc này, hoặc giữ chuột / giữ ngón tay rồi kéo.',
+          draggable: t('today.sortable.instructions'),
         },
         announcements: {
-          onDragStart: ({ active }) => `Đã nhấc ${titleOf(tasks, active.id)}.`,
+          onDragStart: ({ active }) => t('today.sortable.dragStart', { title: titleOf(tasks, active.id) }),
           onDragOver: ({ active, over }) =>
-            over ? `${titleOf(tasks, active.id)} đang ở vị trí ${positionOf(tasks, over.id)}.` : undefined,
+            over
+              ? t('today.sortable.dragOver', {
+                  title: titleOf(tasks, active.id),
+                  position: tasks.findIndex((item) => item.id === over.id) + 1,
+                  total: tasks.length,
+                })
+              : undefined,
           onDragEnd: ({ active, over }) =>
-            over ? `Đã thả ${titleOf(tasks, active.id)} ở vị trí ${positionOf(tasks, over.id)}.` : undefined,
-          onDragCancel: ({ active }) => `Đã huỷ kéo ${titleOf(tasks, active.id)}.`,
+            over
+              ? t('today.sortable.dragEnd', {
+                  title: titleOf(tasks, active.id),
+                  position: tasks.findIndex((item) => item.id === over.id) + 1,
+                  total: tasks.length,
+                })
+              : undefined,
+          onDragCancel: ({ active }) => t('today.sortable.dragCancel', { title: titleOf(tasks, active.id) }),
         },
       }}
     >
-      <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy} disabled={disabled}>
+      <SortableContext items={tasks.map((item) => item.id)} strategy={verticalListSortingStrategy} disabled={disabled}>
         {tasks.map((task) => (
           <SortableRow
             key={task.id}
@@ -96,11 +115,7 @@ export function SortableTaskList({ tasks, onReorder, disabled, renderItem }: Sor
 }
 
 function titleOf(tasks: TaskDto[], id: string | number) {
-  return `“${tasks.find((t) => t.id === id)?.title ?? ''}”`
-}
-
-function positionOf(tasks: TaskDto[], id: string | number) {
-  return `${tasks.findIndex((t) => t.id === id) + 1} trên ${tasks.length}`
+  return tasks.find((item) => item.id === id)?.title ?? ''
 }
 
 function SortableRow({
@@ -114,6 +129,7 @@ function SortableRow({
   renderItem: SortableTaskListProps['renderItem']
   onMove: (delta: -1 | 1) => void
 }) {
+  const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     disabled,
@@ -136,7 +152,7 @@ function SortableRow({
       {...listeners}
       onKeyDown={handleKeyDown}
       aria-keyshortcuts="ArrowUp ArrowDown"
-      aria-label={`Kéo để sắp xếp “${task.title}”`}
+      aria-label={t('today.sortable.dragHandleAria', { title: task.title })}
       disabled={disabled}
       className="grid size-11 shrink-0 cursor-grab touch-none place-items-center self-start rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-40 md:size-9"
     >

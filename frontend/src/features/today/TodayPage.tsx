@@ -1,5 +1,6 @@
 import { AlertCircle, LoaderCircle, RotateCcw } from 'lucide-react'
 import { Fragment, type ReactNode, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { TaskDto } from '../../api/types'
 import type { TaskItemMenuActions } from '../../components/TaskItem'
 import { toLocalDateKey } from '../../lib/dates'
@@ -32,6 +33,7 @@ import {
 
 // Màn hình Hôm nay (route "/", SPEC §6). Trang ghép các khối; hook giữ server state.
 export function TodayPage() {
+  const { t } = useTranslation()
   const [today] = useState(() => toLocalDateKey(new Date()))
   const dashboard = useTodayDashboard(today)
   const toggleTask = useToggleTask()
@@ -81,7 +83,7 @@ export function TodayPage() {
         className="mx-auto flex min-h-64 w-full max-w-[1320px] items-center justify-center gap-3 text-primary-ink"
       >
         <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-        <span className="font-bold">Đang tải dữ liệu hôm nay…</span>
+        <span className="font-bold">{t('today.loading')}</span>
       </div>
     )
   }
@@ -97,10 +99,10 @@ export function TodayPage() {
         <button
           type="button"
           onClick={() => dashboard.refetch()}
-          className="flex min-h-11 items-center gap-2 rounded-full bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <RotateCcw size={17} aria-hidden="true" />
-          Thử lại
+          {t('common.retry')}
         </button>
       </div>
     )

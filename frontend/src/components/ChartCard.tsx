@@ -1,9 +1,13 @@
-import { Calendar, ChevronDown, Info } from 'lucide-react'
-import { type ReactNode, useId, useMemo, useState } from 'react'
+import { Calendar, Info } from 'lucide-react'
+import { type ReactNode, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { INTL_LOCALE } from '../i18n/languages'
 import { buildAreaPath, buildSmoothCurvePath, type ChartPoint } from '../lib/chartSvg'
 import { useElementWidth } from '../lib/useElementWidth'
+import { useSettings, type ChartMode } from '../store/settings'
+import { Select } from './Select'
 
-export type ChartDisplayMode = 'line' | 'bar' | 'table'
+export type ChartDisplayMode = ChartMode
 
 export interface RangeOption {
   value: string
@@ -44,12 +48,15 @@ export function ChartCard({
   isLoading = false,
   errorMessage,
   onRetry,
-  totalLabel = 'Tổng việc',
+  totalLabel,
   className = '',
 }: ChartCardProps) {
+  const { t } = useTranslation()
+  const language = useSettings((s) => s.language)
+  const numFmt = useMemo(() => new Intl.NumberFormat(INTL_LOCALE[language]), [language])
+  const resolvedTotalLabel = totalLabel ?? t('common.chart.defaultTotalLabel')
   const [showInfo, setShowInfo] = useState(false)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const selectId = useId()
 
   // viewBox rộng đúng bằng bề rộng thật của vùng vẽ và cao cố định 150px (như bản tham chiếu),
   // nên chữ trục luôn đúng 11px, biểu đồ không phình to khi thẻ rộng ra.
@@ -98,7 +105,6 @@ export function ChartCard({
   const doneCurvePath = useMemo(() => buildSmoothCurvePath(donePoints), [donePoints])
   const areaPath = useMemo(() => buildAreaPath(donePoints, baseY), [donePoints, baseY])
 
-  // Tổng hợp dữ liệu cho bảng Table View
   const totals = useMemo(() => {
     const totalDone = data.reduce((sum, d) => sum + d.done, 0)
     const totalAll = data.reduce((sum, d) => sum + d.total, 0)
@@ -120,7 +126,7 @@ export function ChartCard({
               <div className="relative">
                 <button
                   type="button"
-                  aria-label="Thông tin biểu đồ"
+                  aria-label={t('common.chart.infoAria')}
                   aria-expanded={showInfo}
                   onClick={() => setShowInfo((v) => !v)}
                   className="text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full p-0.5"
@@ -143,27 +149,14 @@ export function ChartCard({
 
           {/* Dropdown chọn khoảng thời gian */}
           {rangeOptions.length > 0 && (
-          <div className="relative inline-flex items-center">
-            <label htmlFor={selectId} className="sr-only">
-              Khoảng thời gian
-            </label>
-            <div className="flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1 text-xs font-bold text-ink shadow-xs">
-              <Calendar size={13} className="text-primary" aria-hidden="true" />
-              <select
-                id={selectId}
-                value={range}
-                onChange={(e) => onRangeChange?.(e.target.value)}
-                className="cursor-pointer bg-transparent pr-4 font-bold text-ink focus:outline-none"
-              >
-                {rangeOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown size={13} className="-ml-3 pointer-events-none text-ink-muted" aria-hidden="true" />
-            </div>
-          </div>
+            <Select
+              ariaLabel={t('common.chart.rangeLabel')}
+              value={range}
+              options={rangeOptions}
+              onChange={(next) => onRangeChange?.(next)}
+              icon={<Calendar size={14} className="shrink-0 text-primary" aria-hidden="true" />}
+              className="min-h-9 min-w-28 rounded-lg border-2 border-ink bg-surface px-2.5 text-xs hover:bg-accent-tint"
+            />
           )}
         </div>
 
@@ -172,21 +165,21 @@ export function ChartCard({
           <div className="hidden sm:flex items-center gap-3 text-xs font-medium text-ink-muted">
             <span className="flex items-center gap-1.5">
               <span className="inline-block h-1 w-3.5 rounded-full bg-primary" />
-              <span className="text-ink font-semibold">Đã xong</span>
+              <span className="text-ink font-semibold">{t('common.chart.doneLabel')}</span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="inline-block h-1 w-3.5 rounded-full bg-gray-400" />
-              <span>{totalLabel}</span>
+              <span>{resolvedTotalLabel}</span>
             </span>
           </div>
 
           <div
             role="radiogroup"
-            aria-label="Chế độ hiển thị biểu đồ"
-            className="flex rounded-lg border-2 border-[var(--ink)] bg-[var(--surface)] p-0.5 shadow-[2px_2px_0_0_var(--ink)]"
+            aria-label={t('common.chart.displayModeAria')}
+            className="flex items-center gap-0.5"
           >
             {(['line', 'bar', 'table'] as const).map((m) => {
-              const label = m === 'line' ? 'Đường' : m === 'bar' ? 'Cột' : 'Bảng'
+              const label = t(m === 'line' ? 'common.chart.modeLine' : m === 'bar' ? 'common.chart.modeBar' : 'common.chart.modeTable')
               const isSelected = mode === m
               return (
                 <button
@@ -195,8 +188,8 @@ export function ChartCard({
                   role="radio"
                   aria-checked={isSelected}
                   onClick={() => onModeChange(m)}
-                  className={`rounded-md px-2.5 py-0.5 text-xs font-bold transition-colors ${
-                    isSelected ? 'bg-primary text-white' : 'text-ink-muted hover:text-ink'
+                  className={`min-h-9 cursor-pointer rounded-lg px-3 text-xs font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none transition-colors ${
+                    isSelected ? 'bg-accent-soft text-primary-ink' : 'text-ink-muted hover:bg-accent-tint hover:text-ink'
                   }`}
                 >
                   {label}
@@ -219,9 +212,9 @@ export function ChartCard({
               <button
                 type="button"
                 onClick={onRetry}
-                className="min-h-11 rounded-full bg-primary px-4 text-sm font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="min-h-11 rounded-xl bg-primary px-4 text-sm font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
-                Thử lại
+                {t('common.retry')}
               </button>
             )}
           </div>
@@ -231,7 +224,7 @@ export function ChartCard({
             role="status"
             className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--surface)]/70 backdrop-blur-xs"
           >
-            <span className="text-xs font-bold text-primary">Đang cập nhật biểu đồ…</span>
+            <span className="text-xs font-bold text-primary">{t('common.chart.loading')}</span>
           </div>
         )}
 
@@ -241,7 +234,7 @@ export function ChartCard({
             <svg
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}
               className="w-full overflow-visible font-sans"
-              aria-label="Biểu đồ tiến độ đường cong"
+              aria-label={t('common.chart.lineChartAria')}
               role="img"
             >
               <defs>
@@ -272,7 +265,7 @@ export function ChartCard({
                       textAnchor="end"
                       className="fill-ink-muted text-[10px] sm:text-[11px] font-medium"
                     >
-                      {val}
+                      {numFmt.format(val)}
                     </text>
                   </g>
                 )
@@ -336,7 +329,7 @@ export function ChartCard({
                         textAnchor="middle"
                         className="fill-ink text-[11px] font-bold"
                       >
-                        {p.total}
+                        {numFmt.format(p.total)}
                       </text>
                     )}
 
@@ -357,7 +350,7 @@ export function ChartCard({
                           textAnchor="middle"
                           className="fill-primary font-extrabold text-[11px]"
                         >
-                          {p.done}
+                          {numFmt.format(p.done)}
                         </text>
                       </g>
                     )}
@@ -397,7 +390,14 @@ export function ChartCard({
                 className="mt-1 flex items-center justify-center gap-2 text-xs font-bold text-ink"
               >
                 <span className="text-primary">{data[hoveredIndex].date} ({data[hoveredIndex].label}):</span>
-                <span>{data[hoveredIndex].done}/{data[hoveredIndex].total} việc ({data[hoveredIndex].percent}%)</span>
+                <span>
+                  {t('common.chart.hoverTasks', {
+                    count: data[hoveredIndex].total,
+                    done: numFmt.format(data[hoveredIndex].done),
+                    total: numFmt.format(data[hoveredIndex].total),
+                    percent: numFmt.format(data[hoveredIndex].percent),
+                  })}
+                </span>
               </div>
             )}
           </div>
@@ -409,7 +409,7 @@ export function ChartCard({
             <svg
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}
               className="w-full font-sans"
-              aria-label="Biểu đồ tiến độ hình cột"
+              aria-label={t('common.chart.barChartAria')}
               role="img"
             >
               {/* Lưới ngang */}
@@ -432,7 +432,7 @@ export function ChartCard({
                       textAnchor="end"
                       className="fill-ink-muted text-[10px] font-medium"
                     >
-                      {val}
+                      {numFmt.format(val)}
                     </text>
                   </g>
                 )
@@ -483,16 +483,16 @@ export function ChartCard({
           </div>
         )}
 
-        {/* Chế độ Bảng (Table View) theo SPEC §5 */}
+        {/* Chế độ Bảng */}
         {mode === 'table' && (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="border-b border-[var(--line)] text-ink-muted font-bold">
                 <tr>
-                  <th scope="col" className="py-2 px-3">Thời gian</th>
-                  <th scope="col" className="py-2 px-3 text-right">Đã xong</th>
-                  <th scope="col" className="py-2 px-3 text-right">{totalLabel}</th>
-                  <th scope="col" className="py-2 px-3 text-right">Tỉ lệ</th>
+                  <th scope="col" className="py-2 px-3">{t('common.chart.tableTime')}</th>
+                  <th scope="col" className="py-2 px-3 text-right">{t('common.chart.doneLabel')}</th>
+                  <th scope="col" className="py-2 px-3 text-right">{resolvedTotalLabel}</th>
+                  <th scope="col" className="py-2 px-3 text-right">{t('common.chart.tableRate')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--line)]/50">
@@ -501,18 +501,18 @@ export function ChartCard({
                     <td className="py-2 px-3 font-semibold text-ink">
                       {d.label} <span className="text-xs text-ink-muted">({d.date})</span>
                     </td>
-                    <td className="py-2 px-3 text-right font-bold text-primary">{d.done}</td>
-                    <td className="py-2 px-3 text-right text-ink">{d.total}</td>
-                    <td className="py-2 px-3 text-right font-bold text-ink">{d.percent}%</td>
+                    <td className="py-2 px-3 text-right font-bold text-primary">{numFmt.format(d.done)}</td>
+                    <td className="py-2 px-3 text-right text-ink">{numFmt.format(d.total)}</td>
+                    <td className="py-2 px-3 text-right font-bold text-ink">{numFmt.format(d.percent)}%</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot className="border-t-2 border-[var(--ink)] font-bold text-ink">
                 <tr>
-                  <td className="py-2 px-3">Tổng cộng</td>
-                  <td className="py-2 px-3 text-right text-primary">{totals.totalDone}</td>
-                  <td className="py-2 px-3 text-right">{totals.totalAll}</td>
-                  <td className="py-2 px-3 text-right">{totals.avgPercent}%</td>
+                  <td className="py-2 px-3">{t('common.chart.tableTotal')}</td>
+                  <td className="py-2 px-3 text-right text-primary">{numFmt.format(totals.totalDone)}</td>
+                  <td className="py-2 px-3 text-right">{numFmt.format(totals.totalAll)}</td>
+                  <td className="py-2 px-3 text-right">{numFmt.format(totals.avgPercent)}%</td>
                 </tr>
               </tfoot>
             </table>

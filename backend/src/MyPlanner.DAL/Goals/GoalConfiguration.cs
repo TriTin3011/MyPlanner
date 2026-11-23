@@ -13,7 +13,7 @@ public class GoalConfiguration : IEntityTypeConfiguration<Goal>
         b.Property(g => g.Area).HasConversion<string>().HasMaxLength(20);
         b.Property(g => g.Status).HasConversion<string>().HasMaxLength(20);
         b.HasMany(g => g.Steps).WithOne().HasForeignKey(s => s.GoalId).OnDelete(DeleteBehavior.Cascade);
-        b.HasIndex(g => g.Deadline);
+        b.HasIndex(g => new { g.UserId, g.Deadline });
     }
 }
 
@@ -23,6 +23,6 @@ public class GoalStepConfiguration : IEntityTypeConfiguration<GoalStep>
     {
         b.ToTable("GoalSteps");
         b.Property(s => s.Title).HasMaxLength(300);
-        b.HasIndex(s => s.Deadline);
+        b.HasIndex(s => new { s.UserId, s.Deadline });
     }
 }

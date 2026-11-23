@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyPlanner.BLL.Health;
 using MyPlanner.Core.Dtos;
@@ -5,7 +6,9 @@ using MyPlanner.Core.Dtos;
 namespace MyPlanner.Api.Controllers;
 
 // Controller mỏng: nhận HTTP, gọi service (BLL), đổi kết quả thành status code.
+// AllowAnonymous: health dùng cho load balancer/Docker và chấm xanh trên FE trước khi đăng nhập.
 [ApiController]
+[AllowAnonymous]
 [Route("api/health")]
 public class HealthController(IHealthService healthService) : ControllerBase
 {

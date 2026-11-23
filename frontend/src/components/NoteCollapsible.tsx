@@ -1,5 +1,6 @@
 import { Check, ChevronDown, LoaderCircle, Pencil } from 'lucide-react'
 import { type ChangeEvent, useEffect, useId, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface NoteCollapsibleProps {
   label?: string
@@ -12,13 +13,17 @@ interface NoteCollapsibleProps {
 }
 
 export function NoteCollapsible({
-  label = 'Ghi chú hôm nay',
-  placeholder = 'Bấm để ghi…',
-  textareaPlaceholder = 'Viết ghi chú nhanh cho hôm nay…',
+  label,
+  placeholder,
+  textareaPlaceholder,
   initialContent = '',
   onSave,
   disabled = false,
 }: NoteCollapsibleProps) {
+  const { t } = useTranslation()
+  const resolvedLabel = label ?? t('common.note.defaultLabel')
+  const resolvedPlaceholder = placeholder ?? t('common.note.defaultPlaceholder')
+  const resolvedTextareaPlaceholder = textareaPlaceholder ?? t('common.note.defaultTextareaPlaceholder')
   const [isOpen, setIsOpen] = useState(() => Boolean(initialContent.trim()))
   const [content, setContent] = useState(initialContent)
   const [savedContent, setSavedContent] = useState(initialContent)
@@ -57,7 +62,7 @@ export function NoteCollapsible({
       setStatus('saved')
     } catch (error) {
       setStatus('error')
-      setErrorMessage(error instanceof Error ? error.message : 'Chưa lưu được ghi chú. Hãy thử lại.')
+      setErrorMessage(error instanceof Error ? error.message : t('common.note.error'))
     }
   }
 
@@ -105,21 +110,21 @@ export function NoteCollapsible({
       >
         <span className="flex items-center gap-1.5">
           <Pencil size={15} className="text-primary" aria-hidden="true" />
-          <span>{label}</span>
-          <span className="text-xs font-normal text-ink-muted">· {placeholder}</span>
+          <span>{resolvedLabel}</span>
+          <span className="text-xs font-normal text-ink-muted">· {resolvedPlaceholder}</span>
         </span>
 
         <span className="flex items-center gap-2">
           {status === 'saving' && (
-            <span role="status" aria-label="Đang lưu ghi chú" className="flex items-center gap-1 text-xs text-primary">
+            <span role="status" aria-label={t('common.note.savingAria')} className="flex items-center gap-1 text-xs text-primary">
               <LoaderCircle size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-              <span>Đang lưu…</span>
+              <span>{t('common.note.saving')}</span>
             </span>
           )}
           {status === 'saved' && (
-            <span role="status" aria-label="Đã lưu ghi chú" className="flex items-center gap-1 text-xs text-primary">
+            <span role="status" aria-label={t('common.note.savedAria')} className="flex items-center gap-1 text-xs text-primary">
               <Check size={13} aria-hidden="true" />
-              <span>Đã lưu</span>
+              <span>{t('common.note.saved')}</span>
             </span>
           )}
           <ChevronDown
@@ -135,7 +140,7 @@ export function NoteCollapsible({
       {isOpen && (
         <div id={contentId} className="mt-2 space-y-2">
           <label htmlFor={textareaId} className="sr-only">
-            {label}
+            {resolvedLabel}
           </label>
           <textarea
             ref={textareaRef}
@@ -144,7 +149,7 @@ export function NoteCollapsible({
             onChange={handleChange}
             onBlur={handleBlur}
             disabled={disabled}
-            placeholder={textareaPlaceholder}
+            placeholder={resolvedTextareaPlaceholder}
             rows={3}
             className="w-full resize-y rounded-lg border-2 border-[var(--line)] bg-[var(--surface)] p-2.5 text-sm text-ink placeholder:text-ink-muted/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           />

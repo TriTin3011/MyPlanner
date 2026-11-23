@@ -36,6 +36,12 @@
 }
 
 @layer base {
+  /* Tắt hiệu ứng kéo tràn của cả trang: app có khung cố định, chỉ vùng nội dung cuộn. */
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+
   body {
     background-color: var(--bg-app);
     color: var(--ink);
@@ -54,6 +60,41 @@
   :focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
+  }
+
+  /*
+    Thanh cuộn gọn: rãnh trong suốt, không mũi tên, con trượt mờ và chỉ đậm lên khi rê chuột.
+    Dùng ::-webkit-scrollbar (Chrome, Edge, WebView2, Safari) thay vì scrollbar-width,
+    vì khi có scrollbar-width thì Chromium bỏ qua toàn bộ kiểu ::-webkit-scrollbar.
+  */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--ink) 18%, transparent);
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--ink) 40%, transparent);
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--ink) 25%, transparent) transparent;
+    }
   }
 
   /* iOS tự zoom khi input nhỏ hơn 16px (SPEC §3.4) */

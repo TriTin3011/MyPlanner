@@ -5,6 +5,12 @@ import type { components } from './schema'
 type S = components['schemas']
 
 export type HealthDto = S['HealthDto']
+export type LoginRequest = S['LoginRequest']
+export type LoginResponse = S['LoginResponse']
+export type RegisterRequest = S['RegisterRequest']
+export type GoogleLoginRequest = S['GoogleLoginRequest']
+export type CurrentUserDto = S['CurrentUserDto']
+export type AvatarDto = S['AvatarDto']
 export type TodayDashboardDto = S['TodayDashboardDto']
 export type TodayHabitDto = S['TodayHabitDto']
 export type DayProgressDto = S['DayProgressDto']

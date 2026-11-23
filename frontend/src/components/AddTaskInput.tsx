@@ -13,11 +13,12 @@ interface AddTaskInputProps {
 export function AddTaskInput({
   pending,
   onAdd,
-  placeholder = 'Thêm việc cho hôm nay…',
+  placeholder,
   inputRef,
   shortcutHint,
 }: AddTaskInputProps) {
   const { t } = useTranslation()
+  const resolvedPlaceholder = placeholder ?? t('common.addTask.defaultPlaceholder')
   const [title, setTitle] = useState('')
   const [error, setError] = useState<string | null>(null)
   const inputId = useId()
@@ -33,7 +34,7 @@ export function AddTaskInput({
       await onAdd(trimmedTitle)
       setTitle('')
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Chưa thêm được việc. Hãy thử lại.')
+      setError(reason instanceof Error ? reason.message : t('common.addTask.error'))
     }
   }
 
@@ -42,10 +43,10 @@ export function AddTaskInput({
       <form
         onSubmit={handleSubmit}
         aria-busy={pending}
-        className="flex min-h-11 items-center overflow-hidden rounded-xl border-2 border-ink bg-surface focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
+        className="flex min-h-11 items-center rounded-xl border-2 border-ink bg-surface focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
       >
         <label htmlFor={inputId} className="sr-only">
-          Tên việc mới
+          {t('common.addTask.label')}
         </label>
         <input
           ref={inputRef}
@@ -56,7 +57,7 @@ export function AddTaskInput({
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           aria-keyshortcuts={shortcutHint ? shortcutHint.toLowerCase() : undefined}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           autoComplete="off"
           className="min-w-0 flex-1 bg-transparent px-3 text-base text-ink placeholder:text-ink-muted focus:outline-none disabled:cursor-wait disabled:opacity-60"
         />
@@ -72,14 +73,17 @@ export function AddTaskInput({
         <button
           type="submit"
           disabled={pending || !trimmedTitle}
-          aria-label={pending ? 'Đang thêm việc' : 'Thêm việc'}
-          className="grid size-11 shrink-0 cursor-pointer place-items-center bg-primary text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-45"
+          aria-label={pending ? t('common.addTask.adding') : t('common.addTask.submit')}
+          className="group grid size-11 shrink-0 cursor-pointer place-items-center focus-visible:outline-none disabled:cursor-not-allowed"
         >
-          {pending ? (
-            <LoaderCircle size={19} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-          ) : (
-            <Plus size={20} aria-hidden="true" />
-          )}
+          {/* Vùng bấm 44px cho cảm ứng, phần nhìn thấy là ô vuông bo 32px nằm gọn trong ô nhập. */}
+          <span className="grid size-8 place-items-center rounded-lg bg-accent-soft text-primary-ink transition-colors group-hover:bg-primary group-hover:text-white group-focus-visible:ring-2 group-focus-visible:ring-primary group-disabled:opacity-60 group-disabled:group-hover:bg-accent-soft group-disabled:group-hover:text-primary-ink">
+            {pending ? (
+              <LoaderCircle size={17} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+            ) : (
+              <Plus size={18} aria-hidden="true" />
+            )}
+          </span>
         </button>
       </form>
 

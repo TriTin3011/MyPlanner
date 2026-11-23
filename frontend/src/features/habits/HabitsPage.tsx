@@ -1,5 +1,6 @@
 import { LoaderCircle, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toLocalDateKey } from '../../lib/dates'
 import { useRecurring } from '../recurring/hooks'
 import { RecurringModal } from '../recurring/RecurringModal'
@@ -19,6 +20,7 @@ import {
 // Màn hình Theo dõi thói quen (route "/habits", SPEC §8). Trang giữ "tháng đang xem", một query
 // GET /dashboard/habits cấp số cho cả header, biểu đồ và lưới; các khối con chỉ nhận props.
 export function HabitsPage() {
+  const { t } = useTranslation()
   // "Hôm nay" theo giờ máy người dùng, chốt một lần khi mở trang (giống TodayPage, WeekPage).
   const [today] = useState(() => toLocalDateKey(new Date()))
   const [month, setMonth] = useState(() => monthOf(today))
@@ -39,7 +41,7 @@ export function HabitsPage() {
         className="mx-auto flex min-h-64 w-full max-w-[1320px] items-center justify-center gap-3 text-primary-ink"
       >
         <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-        <span className="font-bold">Đang tải thói quen…</span>
+        <span className="font-bold">{t('habits.loading')}</span>
       </div>
     )
   }
@@ -50,14 +52,16 @@ export function HabitsPage() {
         role="alert"
         className="sketch mx-auto flex min-h-44 w-full max-w-2xl flex-col items-center justify-center gap-3 p-6 text-center"
       >
-        <p className="font-bold">Chưa tải được thói quen. {habitMonth.error.message}</p>
+        <p className="font-bold">
+          {t('habits.loadErrorPrefix')} {habitMonth.error.message}
+        </p>
         <button
           type="button"
           onClick={() => habitMonth.refetch()}
-          className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+          className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
         >
           <RotateCcw size={17} aria-hidden="true" />
-          Thử lại
+          {t('common.retry')}
         </button>
       </div>
     )
@@ -85,7 +89,7 @@ export function HabitsPage() {
 
       {error && (
         <p role="alert" className="mt-4 rounded-lg bg-[var(--danger-bg)] px-3 py-2 text-sm font-bold text-danger">
-          Chưa cập nhật được. Hãy thử lại.
+          {t('habits.updateError')}
         </p>
       )}
 

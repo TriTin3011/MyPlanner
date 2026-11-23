@@ -1,5 +1,6 @@
 import { Info } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { AreaSummaryDto } from '../../api/types'
 import { radarPoints } from './areaRadarGeometry'
 import { lifeArea } from './lifeAreas'
@@ -19,6 +20,7 @@ function toPolygonPoints(points: { x: number; y: number }[]) {
 
 // Khối radar "Cân bằng các lĩnh vực" kèm chế độ chuyển sang Bảng (SPEC §7.3).
 export function AreaRadar({ areas }: AreaRadarProps) {
+  const { t } = useTranslation()
   const [mode, setMode] = useState<'chart' | 'table'>('chart')
   // ⓘ là nút thật (bấm được bằng chạm và bàn phím), không chỉ dựa vào `title` vốn chỉ hiện khi rê chuột.
   const [showHelp, setShowHelp] = useState(false)
@@ -39,20 +41,20 @@ export function AreaRadar({ areas }: AreaRadarProps) {
     .join(', ')
 
   return (
-    <section aria-label="Cân bằng các lĩnh vực" className="sketch flex flex-col bg-surface p-3.5 lg:p-5">
+    <section aria-label={t('goals.radar.title')} className="sketch flex flex-col bg-surface p-3.5 lg:p-5">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <h2 className="font-display text-lg font-extrabold text-ink sm:text-xl">
-            Cân bằng các lĩnh vực
+            {t('goals.radar.title')}
           </h2>
           <button
             type="button"
-            title="Tiến độ trung bình các mục tiêu của từng lĩnh vực"
-            aria-label="Giải thích biểu đồ"
+            title={t('goals.radar.helpTitle')}
+            aria-label={t('goals.radar.helpAria')}
             aria-expanded={showHelp}
             aria-controls="area-radar-help"
             onClick={() => setShowHelp((v) => !v)}
-            className="grid min-h-11 min-w-11 cursor-pointer place-items-center rounded-full text-ink-muted hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:min-h-8 sm:min-w-8"
+            className="grid min-h-11 min-w-11 cursor-pointer place-items-center rounded-xl text-ink-muted hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:min-h-8 sm:min-w-8"
           >
             <Info size={16} aria-hidden="true" />
           </button>
@@ -60,17 +62,17 @@ export function AreaRadar({ areas }: AreaRadarProps) {
 
         <button
           type="button"
-          aria-label={mode === 'chart' ? 'Xem dạng bảng' : 'Xem dạng biểu đồ'}
+          aria-label={mode === 'chart' ? t('goals.radar.viewTableAria') : t('goals.radar.viewChartAria')}
           onClick={() => setMode((m) => (m === 'chart' ? 'table' : 'chart'))}
-          className="min-h-11 cursor-pointer rounded-full px-3 text-xs font-bold text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:min-h-8"
+          className="min-h-11 sm:min-h-9 cursor-pointer rounded-lg px-3 text-xs font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none text-ink-muted hover:bg-accent-tint hover:text-ink"
         >
-          {mode === 'chart' ? 'Bảng' : 'Biểu đồ'}
+          {mode === 'chart' ? t('goals.radar.tableBtn') : t('goals.radar.chartBtn')}
         </button>
       </div>
 
       {showHelp && (
         <p id="area-radar-help" className="-mt-1 mb-2 text-xs text-ink-muted">
-          Tiến độ trung bình các mục tiêu của từng lĩnh vực.
+          {t('goals.radar.helpText')}
         </p>
       )}
 
@@ -79,7 +81,7 @@ export function AreaRadar({ areas }: AreaRadarProps) {
           <svg
             viewBox="0 0 360 280"
             role="img"
-            aria-label={`Biểu đồ radar cân bằng các lĩnh vực: ${ariaSummary}`}
+            aria-label={t('goals.radar.svgAria', { summary: ariaSummary })}
             className="w-full max-w-[380px] select-none font-sans"
           >
             {/* Các trục nối từ tâm ra đỉnh 100% */}
@@ -176,13 +178,13 @@ export function AreaRadar({ areas }: AreaRadarProps) {
             <thead className="border-b border-line font-bold text-ink-muted">
               <tr>
                 <th scope="col" className="px-3 py-2">
-                  Lĩnh vực
+                  {t('goals.radar.colArea')}
                 </th>
                 <th scope="col" className="px-3 py-2 text-right">
-                  Số mục tiêu
+                  {t('goals.radar.colCount')}
                 </th>
                 <th scope="col" className="px-3 py-2 text-right">
-                  Tiến độ TB
+                  {t('goals.radar.colAvg')}
                 </th>
               </tr>
             </thead>

@@ -32,6 +32,26 @@ public static class Messages
 
     public static string NotFoundTitle => Text("Không tìm thấy", "Not found");
     public static string BadRequestTitle => Text("Yêu cầu không hợp lệ", "Invalid request");
+    public static string UnauthorizedTitle => Text("Chưa đăng nhập", "Unauthorized");
+    // Cố ý không nói sai tên hay sai mật khẩu: nói rõ sẽ giúp kẻ dò biết tên đăng nhập nào có thật.
+    public static string InvalidCredentials => Text("Sai tên đăng nhập hoặc mật khẩu.", "Incorrect username or password.");
+    public static string TooManyLoginAttempts => Text("Đăng nhập sai quá nhiều lần, thử lại sau một phút.", "Too many login attempts. Try again in a minute.");
+    public static string UserNameRequired => Text("Tên đăng nhập không được trống.", "Username is required.");
+    public static string PasswordRequired => Text("Mật khẩu không được trống.", "Password is required.");
+    public static string ConflictTitle => Text("Bị trùng", "Conflict");
+    public static string UserNameTaken => Text("Tên đăng nhập này đã có người dùng.", "This username is already taken.");
+    public static string ServiceUnavailableTitle => Text("Dịch vụ tạm thời không khả dụng", "Service temporarily unavailable");
+    public static string StorageUnavailable => Text("Chưa lưu được ảnh vì kho lưu trữ đang không hoạt động.", "The photo could not be saved because storage is unavailable.");
+    public static string AvatarInvalid => Text("Chỉ nhận ảnh JPG, PNG hoặc WebP hợp lệ.", "Only valid JPG, PNG or WebP images are accepted.");
+    public static string AvatarTooLarge => Text("Ảnh tối đa 5 MB.", "Images can be at most 5 MB.");
+    public static string TooManyUploads => Text("Bạn đổi ảnh quá nhiều lần, hãy thử lại sau.", "Too many photo changes. Please try again later.");
+    public static string UserNameFormat => Text(
+        "Tên đăng nhập dài 3–64 ký tự, chỉ gồm chữ không dấu, số, dấu chấm, gạch ngang hoặc gạch dưới.",
+        "Username must be 3–64 characters: letters a–z, digits, dot, hyphen or underscore.");
+    public static string DisplayNameInvalid => Text("Tên hiển thị tối đa 50 ký tự và không chứa ký tự điều khiển.", "Display name must be at most 50 characters with no control characters.");
+    public static string PasswordTooShort => Text("Mật khẩu phải dài ít nhất 8 ký tự.", "Password must be at least 8 characters.");
+    public static string InvalidGoogleToken => Text("Không xác thực được tài khoản Google.", "Could not verify your Google account.");
+    public static string TooManyRegistrations => Text("Tạo tài khoản quá nhiều lần, thử lại sau.", "Too many sign-ups. Try again later.");
     public static string NotFoundDetail(string item) => Format("{0} không tồn tại.", "{0} was not found.", item);
 
     public static string Task => Text("Việc", "Task");

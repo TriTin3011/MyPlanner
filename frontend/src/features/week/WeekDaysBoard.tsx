@@ -17,6 +17,7 @@ import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { DeadlineDto, TaskDto } from '../../api/types'
 import { formatDayMonth } from '../../lib/dates'
 import { DayColumn } from './DayColumn'
@@ -56,6 +57,7 @@ export function WeekDaysBoard({
   onAdd,
   onSaveNote,
 }: WeekDaysBoardProps) {
+  const { t } = useTranslation()
   const sensors = useSensors(
     // MouseSensor (không phải PointerSensor): PointerSensor cũng bắt sự kiện chạm và kích hoạt sau 5px,
     // nên trên điện thoại sẽ "cướp" thao tác trước TouchSensor (giữ 200ms) và chặn cuộn ngang.
@@ -85,7 +87,7 @@ export function WeekDaysBoard({
   }
 
   function titleOf(id: UniqueIdentifier) {
-    return `“${taskById.get(String(id))?.title ?? ''}”`
+    return taskById.get(String(id))?.title ?? ''
   }
 
   function handleDragStart({ active }: DragStartEvent) {
@@ -149,14 +151,14 @@ export function WeekDaysBoard({
       const next = index + (key === 'ArrowUp' ? -1 : 1)
       if (next < 0 || next >= ids.length) return
       onArrange({ date, ids: arrayMove(ids, index, next) })
-      setAnnouncement(`Đã chuyển ${titleOf(id)} tới vị trí ${next + 1} trên ${ids.length}.`)
+      setAnnouncement(t('week.dnd.movedInDay', { title: titleOf(id), position: next + 1, total: ids.length }))
       return
     }
     const dayIndex = dates.indexOf(date) + (key === 'ArrowLeft' ? -1 : 1)
     if (dayIndex < 0 || dayIndex >= dates.length) return
     const target = dates[dayIndex]
     onArrange({ date: target, ids: [...fromProps[target], id] })
-    setAnnouncement(`Đã chuyển ${titleOf(id)} sang ngày ${formatDayMonth(target)}.`)
+    setAnnouncement(t('week.dnd.movedToDay', { title: titleOf(id), date: formatDayMonth(target) }))
   }
 
   // Điện thoại: dải cột cuộn ngang, tự cuộn tới cột hôm nay khi mở tuần. Desktop là lưới nên không cuộn.
@@ -181,14 +183,13 @@ export function WeekDaysBoard({
       }}
       accessibility={{
         screenReaderInstructions: {
-          draggable:
-            'Phím lên hoặc xuống để đổi chỗ trong ngày, trái hoặc phải để chuyển sang ngày bên cạnh. Hoặc giữ chuột / giữ ngón tay rồi kéo.',
+          draggable: t('week.dnd.instructions'),
         },
         announcements: {
-          onDragStart: ({ active }) => `Đã nhấc ${titleOf(active.id)}.`,
+          onDragStart: ({ active }) => t('week.dnd.dragStart', { title: titleOf(active.id) }),
           onDragOver: () => undefined,
-          onDragEnd: ({ active, over }) => (over ? `Đã thả ${titleOf(active.id)}.` : undefined),
-          onDragCancel: ({ active }) => `Đã huỷ kéo ${titleOf(active.id)}.`,
+          onDragEnd: ({ active, over }) => (over ? t('week.dnd.dragEnd', { title: titleOf(active.id) }) : undefined),
+          onDragCancel: ({ active }) => t('week.dnd.dragCancel', { title: titleOf(active.id) }),
         },
       }}
     >
@@ -260,6 +261,7 @@ function SortableRow({
   renderTask: WeekDaysBoardProps['renderTask']
   onKey: (key: string) => void
 }) {
+  const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   })
@@ -278,7 +280,7 @@ function SortableRow({
       {...listeners}
       onKeyDown={handleKeyDown}
       aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight"
-      aria-label={`Kéo để sắp xếp hoặc chuyển ngày “${task.title}”`}
+      aria-label={t('week.dnd.dragHandleAria', { title: task.title })}
       className="grid size-11 shrink-0 cursor-grab touch-none place-items-center self-start rounded-lg text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:cursor-grabbing"
     >
       <GripVertical size={16} aria-hidden="true" />

@@ -35,6 +35,10 @@ interface SettingsState {
   statsRange: StatsRange
   lastExportAt?: string
   lastBackupAt?: string
+  musicUrl?: string
+  setMusicUrl: (url: string) => void
+  musicFrame?: { x: number; y: number; width: number }
+  setMusicFrame: (frame: { x: number; y: number; width: number }) => void
   setTheme: (theme: ThemeId) => void
   setLanguage: (language: Language) => void
   setTodayLayout: (layout: { id: TodayBlockId; hidden: boolean }[]) => void
@@ -55,6 +59,8 @@ export const useSettings = create<SettingsState>()(
       chartModes: {},
       chartRanges: {},
       statsRange: '8w',
+      setMusicUrl: (musicUrl) => set({ musicUrl }),
+      setMusicFrame: (musicFrame) => set({ musicFrame }),
       setTheme: (theme) => set({ theme }),
       setLanguage: (language) => set({ language }),
       setTodayLayout: (todayLayout) => set({ todayLayout }),

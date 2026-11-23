@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet } from 'react-router'
+import { matchPath, NavLink, Outlet, useLocation } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { Clock, MoreHorizontal, X } from 'lucide-react'
 import { NAV_ITEMS } from './routes'
@@ -8,9 +8,15 @@ import { BackupControls } from '../components/BackupControls'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { ThemePicker } from '../components/ThemePicker'
 import { INTL_LOCALE } from '../i18n/languages'
-import { applyTheme, useSettings } from '../store/settings'
+import { useSettings } from '../store/settings'
 import { TopBanner } from '../components/TopBanner'
-import { HealthDot } from '../components/HealthDot'
+import { AccountControls } from '../features/auth/AccountControls'
+import { MusicBoxIcon } from '../features/music/MusicBoxIcon'
+import { MusicPlayer } from '../features/music/MusicPlayer'
+import { PomodoroMini } from '../features/pomodoro/PomodoroMini'
+import { PomodoroModal } from '../features/pomodoro/PomodoroModal'
+import { usePomodoro, usePomodoroTicker } from '../features/pomodoro/store'
+import { TomatoIcon } from '../features/pomodoro/TomatoIcon'
 
 // Khung chung của mọi trang (SPEC §3):
 // - Desktop (≥1024px): sidebar 230px + main panel.
@@ -19,20 +25,41 @@ import { HealthDot } from '../components/HealthDot'
 // Mọi chữ lấy qua t('khoá') của react-i18next: đổi ngôn ngữ thì hook báo component vẽ lại với bản dịch mới.
 export function AppShell() {
   const { t } = useTranslation()
-  const theme = useSettings((s) => s.theme)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [musicOpen, setMusicOpen] = useState(false)
+  const [musicPlaying, setMusicPlaying] = useState(false)
+  const [pomodoroOpen, setPomodoroOpen] = useState(false)
+  usePomodoroTicker()
+  const { pathname } = useLocation()
+  const activeTab = NAV_ITEMS.findIndex((item) => matchPath({ path: item.path, end: item.path === '/' }, pathname))
 
-  // Đồng bộ theme (state React) ra DOM (thuộc tính data-theme trên <html>): đúng việc của effect.
-  useEffect(() => applyTheme(theme), [theme])
 
   return (
     <div className="flex h-dvh flex-col bg-app">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-xl focus:border-2 focus:border-ink focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white focus:outline-none"
+      >
+        {t('shell.skipToContent')}
+      </a>
       <TopBanner />
       <div className="flex min-h-0 flex-1 gap-4 md:p-4">
         {/* Sidebar: ẩn trên điện thoại */}
         <aside className="sketch hidden w-[72px] shrink-0 flex-col p-3 md:flex lg:w-[230px]">
           <Logo />
-          <nav aria-label={t('shell.mainNav')} className="mt-6 flex flex-col gap-1">
+          {/* Cửa sổ thấp thì chỉ danh sách tab cuộn, cụm điều khiển ở đáy luôn thấy được. */}
+          <nav
+            aria-label={t('shell.mainNav')}
+            className="relative -mx-1 mt-6 flex min-h-0 flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto overscroll-none px-1 py-1"
+          >
+            {/* Một khung duy nhất trượt theo tab đang chọn: mỗi tab cao 44px + khe 4px = 48px. */}
+            {activeTab >= 0 && (
+              <span
+                aria-hidden="true"
+                className="nav-pill sketch sketch--active absolute inset-x-1 top-1 h-11"
+                style={{ transform: `translateY(${activeTab * 48}px)` }}
+              />
+            )}
             {NAV_ITEMS.map((item) => (
               <NavLink
                 key={item.path}
@@ -40,28 +67,49 @@ export function AppShell() {
                 end={item.path === '/'}
                 title={t(`nav.${item.key}.label`)}
                 className={({ isActive }) =>
-                  `flex min-h-11 items-center gap-3 px-3 text-sm max-lg:justify-center ${
-                    isActive
-                      ? 'sketch sketch--active font-bold'
-                      : 'rounded-full font-semibold text-ink-muted hover:bg-accent-tint hover:text-ink'
+                  `nav-tab relative z-10 flex h-11 shrink-0 items-center gap-3 rounded-xl px-3 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none max-lg:justify-center ${
+                    isActive ? 'text-ink' : 'text-ink-muted hover:text-ink'
                   }`
                 }
               >
-                <item.icon size={18} aria-hidden />
-                <span className="max-lg:sr-only">{t(`nav.${item.key}.label`)}</span>
+                <item.icon size={18} className="nav-tab__icon shrink-0" aria-hidden />
+                <span className="truncate max-lg:sr-only">{t(`nav.${item.key}.label`)}</span>
               </NavLink>
             ))}
           </nav>
-          <div className="mt-auto flex flex-col gap-3">
-            <HealthDot />
-            <ClockButton />
-            <LanguageSwitcher />
+          <div className="mt-2 flex shrink-0 flex-col gap-3">
+            <div className="flex items-center justify-between max-lg:flex-col">
+              <div className="flex items-center gap-1 max-lg:flex-col">
+                <ClockButton />
+                <PomodoroButton onOpen={() => setPomodoroOpen(true)} />
+              </div>
+              <LanguageSwitcher mini />
+            </div>
             <ThemePicker />
+            <div className="flex items-center gap-1 max-lg:flex-col">
+              <AccountControls />
+              <button
+                type="button"
+                aria-label={t(musicOpen ? 'music.close' : 'music.open')}
+                aria-pressed={musicOpen}
+                title={t('music.title')}
+                onClick={() => setMusicOpen((open) => !open)}
+                className={`grid size-11 shrink-0 cursor-pointer place-items-center rounded-xl text-primary hover:bg-accent-tint ${
+                  musicOpen ? 'bg-accent-soft' : ''
+                }`}
+              >
+                <MusicBoxIcon playing={musicPlaying} size={30} />
+              </button>
+            </div>
           </div>
         </aside>
 
         {/* Main panel: khối lớn nền kẻ ô, cuộn riêng */}
-        <main className="sketch paper relative min-w-0 flex-1 overflow-y-auto px-4 pt-3 pb-28 max-md:rounded-none max-md:border-x-0 max-md:shadow-none md:px-5 md:pt-5 md:pb-10 lg:px-7">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="sketch paper relative min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-none px-4 pt-3 pb-28 focus:outline-none max-md:rounded-none max-md:border-x-0 max-md:shadow-none md:px-5 md:pt-5 md:pb-10 lg:px-7"
+        >
           <MobileTopBar onMenu={() => setMenuOpen(true)} />
           <Outlet />
         </main>
@@ -95,7 +143,23 @@ export function AppShell() {
         ))}
       </nav>
 
-      {menuOpen && <MobileMenu onClose={() => setMenuOpen(false)} />}
+      {musicOpen && <MusicPlayer onClose={() => setMusicOpen(false)} onPlayingChange={setMusicPlaying} />}
+      <PomodoroModal open={pomodoroOpen} onClose={() => setPomodoroOpen(false)} />
+      {!pomodoroOpen && <PomodoroMini onExpand={() => setPomodoroOpen(true)} />}
+      {menuOpen && (
+        <MobileMenu
+          onClose={() => setMenuOpen(false)}
+          onPomodoro={() => {
+            setMenuOpen(false)
+            setPomodoroOpen(true)
+          }}
+          musicPlaying={musicPlaying}
+          onMusic={() => {
+            setMenuOpen(false)
+            setMusicOpen(true)
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -130,7 +194,7 @@ function ClockButton() {
           setNow(new Date())
           setOpen((o) => !o)
         }}
-        className="grid size-11 place-items-center rounded-full text-primary hover:bg-accent-tint"
+        className="grid size-11 place-items-center rounded-xl text-primary hover:bg-accent-tint"
       >
         <Clock size={20} aria-hidden />
       </button>
@@ -144,6 +208,26 @@ function ClockButton() {
   )
 }
 
+// Chấm nhỏ trên quả cà chua báo đồng hồ đang chạy, kể cả khi modal đã đóng.
+function PomodoroButton({ onOpen }: { onOpen: () => void }) {
+  const { t } = useTranslation()
+  const running = usePomodoro((s) => s.endsAt !== null)
+  return (
+    <button
+      type="button"
+      aria-label={t(running ? 'pomodoro.openRunning' : 'pomodoro.open')}
+      title={t('pomodoro.title')}
+      onClick={onOpen}
+      className="relative grid size-11 shrink-0 cursor-pointer place-items-center rounded-xl hover:bg-accent-tint"
+    >
+      <TomatoIcon size={24} />
+      {running && (
+        <span className="absolute top-1.5 right-1.5 size-2.5 rounded-full border border-surface bg-primary motion-safe:animate-pulse" />
+      )}
+    </button>
+  )
+}
+
 function MobileTopBar({ onMenu }: { onMenu: () => void }) {
   const { t } = useTranslation()
   return (
@@ -154,7 +238,7 @@ function MobileTopBar({ onMenu }: { onMenu: () => void }) {
         type="button"
         aria-label={t('shell.openMenu')}
         onClick={onMenu}
-        className="ml-auto grid size-11 place-items-center rounded-full hover:bg-accent-tint"
+        className="ml-auto grid size-11 place-items-center rounded-xl hover:bg-accent-tint"
       >
         <MoreHorizontal size={22} aria-hidden />
       </button>
@@ -163,7 +247,17 @@ function MobileTopBar({ onMenu }: { onMenu: () => void }) {
 }
 
 // Menu ⋯ trên điện thoại: chứa đồng hồ, ngôn ngữ và bộ màu (SPEC §3.4), hiện dạng bottom sheet.
-function MobileMenu({ onClose }: { onClose: () => void }) {
+function MobileMenu({
+  onClose,
+  onMusic,
+  onPomodoro,
+  musicPlaying,
+}: {
+  onClose: () => void
+  onMusic: () => void
+  onPomodoro: () => void
+  musicPlaying: boolean
+}) {
   const { t } = useTranslation()
   const language = useSettings((s) => s.language)
   const [now] = useState(() => new Date())
@@ -173,7 +267,7 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
         role="dialog"
         aria-label={t('shell.menu')}
         onClick={(e) => e.stopPropagation()}
-        className="sketch absolute inset-x-0 bottom-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
+        className="sketch absolute inset-x-0 bottom-0 max-h-[calc(100dvh-1rem)] overflow-y-auto p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
       >
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-bold">{t('shell.quickSettings')}</h2>
@@ -181,7 +275,7 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
             type="button"
             aria-label={t('shell.closeMenu')}
             onClick={onClose}
-            className="grid size-11 place-items-center rounded-full hover:bg-accent-tint"
+            className="grid size-11 place-items-center rounded-xl hover:bg-accent-tint"
           >
             <X size={20} aria-hidden />
           </button>
@@ -189,6 +283,22 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
         <p className="mb-3 font-display text-2xl font-extrabold">
           {now.toLocaleTimeString(INTL_LOCALE[language], { hour: '2-digit', minute: '2-digit' })}
         </p>
+        <button
+          type="button"
+          onClick={onPomodoro}
+          className="mb-1 flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-xl px-3 text-sm font-bold text-ink-muted hover:bg-accent-tint hover:text-ink"
+        >
+          <TomatoIcon size={24} />
+          {t('pomodoro.title')}
+        </button>
+        <button
+          type="button"
+          onClick={onMusic}
+          className="mb-4 flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-xl px-3 text-sm font-bold text-ink-muted hover:bg-accent-tint hover:text-ink"
+        >
+          <MusicBoxIcon playing={musicPlaying} size={24} />
+          {t('music.title')}
+        </button>
         <p className="mb-2 text-xs font-bold tracking-wider text-ink-muted uppercase">{t('language.label')}</p>
         <div className="mb-4">
           <LanguageSwitcher compact />
@@ -199,6 +309,8 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
         </div>
         <p className="mb-2 text-xs font-bold tracking-wider text-ink-muted uppercase">{t('backup.label')}</p>
         <BackupControls compact />
+        <p className="mt-4 mb-2 text-xs font-bold tracking-wider text-ink-muted uppercase">{t('auth.account')}</p>
+        <AccountControls compact />
       </div>
     </div>
   )

@@ -1,5 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi as vitest } from 'vitest'
+import { queryClient } from '../app/queryClient'
+import { GOAL_STATUS_LABEL, lifeArea } from '../features/goals/lifeAreas'
+import { STATS_RANGES, weekdayLabel } from '../features/stats/statsFormat'
+import { useSettings } from '../store/settings'
 import { en } from './en'
+import i18n from './index'
 import { detectLanguage } from './languages'
 import { vi } from './vi'
 
@@ -27,5 +32,22 @@ describe('bản dịch', () => {
   it('en có đúng các khoá của vi và không có chuỗi rỗng', () => {
     expect(flatKeys(en).sort()).toEqual(flatKeys(vi).sort())
     expect(JSON.stringify(en)).not.toContain('""')
+  })
+
+  it('đổi ngôn ngữ trong settings đồng bộ i18next, nhãn động và invalidate cache dashboard', () => {
+    const spy = vitest.spyOn(queryClient, 'invalidateQueries')
+    try {
+      useSettings.getState().setLanguage('en')
+      expect(i18n.language).toBe('en')
+      expect(lifeArea('health').label).toBe('Health & Wellness')
+      expect(GOAL_STATUS_LABEL.in_progress).toBe('In progress')
+      expect(STATS_RANGES[0].label).toBe('4 weeks')
+      expect(weekdayLabel(1, true)).toBe('Mon')
+      expect(spy).toHaveBeenCalledWith({ queryKey: ['dashboard'] })
+    } finally {
+      useSettings.getState().setLanguage('vi')
+      spy.mockRestore()
+    }
+    expect(lifeArea('health').label).toBe('Sức khỏe & Lành mạnh')
   })
 })
