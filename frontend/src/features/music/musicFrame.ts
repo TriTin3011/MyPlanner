@@ -1,6 +1,7 @@
 import type { MusicProvider } from './musicLink'
 
-// bar: chỉ thanh tiêu đề, chưa có iframe. mini: khung nhỏ vẫn thấy trình phát. full: khung đầy đủ.
+// bar: chỉ thanh tiêu đề, chưa có iframe. full: khung đầy đủ.
+// mini: iframe vẫn sống; YouTube được giấu ngoài màn hình, Spotify và Apple Music giữ khung nhỏ.
 export type PlayerView = 'bar' | 'mini' | 'full'
 
 export interface MusicFrame {
@@ -34,9 +35,10 @@ export function miniFrameHeight(provider: MusicProvider, embedHeight: number | n
   return embedHeight === null ? MINI_HEIGHT[provider] : Math.min(MINI_HEIGHT[provider], embedHeight)
 }
 
-// Thu gọn khung đầy đủ: đang phát thì giữ mini để nhạc chạy tiếp, không phát thì về thanh tiêu đề.
-export function collapsedView(playing: boolean): PlayerView {
-  return playing ? 'mini' : 'bar'
+// Thu gọn khung đầy đủ. YouTube luôn giữ iframe (điều khiển được qua postMessage, không mất vị trí nghe).
+// Nhà cung cấp khác không có lệnh phát từ ngoài: đang phát thì giữ mini, không phát thì về thanh tiêu đề.
+export function collapsedView(provider: MusicProvider, playing: boolean): PlayerView {
+  return provider === 'YouTube' || playing ? 'mini' : 'bar'
 }
 
 export function clampWidth(width: number, viewport: FrameViewport) {

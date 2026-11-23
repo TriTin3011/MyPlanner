@@ -18,8 +18,13 @@ describe('miniFrameHeight', () => {
 })
 
 describe('collapsedView', () => {
-  it('đang phát thì về mini, không phát thì về thanh tiêu đề', () => {
-    expect(collapsedView(true)).toBe('mini')
-    expect(collapsedView(false)).toBe('bar')
+  it('YouTube luôn giữ iframe dù đang dừng', () => {
+    expect(collapsedView('YouTube', true)).toBe('mini')
+    expect(collapsedView('YouTube', false)).toBe('mini')
+  })
+
+  it('nhà cung cấp khác chỉ giữ khung khi đang phát', () => {
+    expect(collapsedView('Spotify', true)).toBe('mini')
+    expect(collapsedView('Spotify', false)).toBe('bar')
   })
 })

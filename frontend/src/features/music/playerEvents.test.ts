@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { clampPosition, clampWidth } from './musicFrame'
 import type { MusicEmbed } from './musicLink'
-import { oembedUrl, parsePlayerMessage, playerSrc, YOUTUBE_ORIGIN } from './playerEvents'
+import { oembedUrl, parsePlayerMessage, playerSrc, YOUTUBE_ORIGIN, youtubeCommand } from './playerEvents'
 
 const youtube: MusicEmbed = { provider: 'YouTube', src: `${YOUTUBE_ORIGIN}/embed/abcdefghijk?list=PL123456789`, height: null }
 const viewport = { width: 1000, height: 700, bottomInset: 8 }
@@ -28,9 +28,21 @@ describe('parsePlayerMessage', () => {
     expect(parsePlayerMessage('YouTube', YOUTUBE_ORIGIN, '{hỏng')).toBeNull()
   })
 
+  it('báo lỗi khi video YouTube không phát được', () => {
+    const data = JSON.stringify({ event: 'onError', info: 150 })
+    expect(parsePlayerMessage('YouTube', YOUTUBE_ORIGIN, data)).toEqual({ playing: false, failed: true })
+  })
+
   it('đọc trạng thái Spotify', () => {
     const data = { type: 'playback_update', payload: { isPaused: true } }
     expect(parsePlayerMessage('Spotify', 'https://open.spotify.com', data)).toEqual({ playing: false })
+  })
+})
+
+describe('youtubeCommand', () => {
+  it('dựng đúng tin nhắn phát và dừng', () => {
+    expect(JSON.parse(youtubeCommand('playVideo'))).toEqual({ event: 'command', func: 'playVideo', args: [] })
+    expect(JSON.parse(youtubeCommand('pauseVideo'))).toEqual({ event: 'command', func: 'pauseVideo', args: [] })
   })
 })
 

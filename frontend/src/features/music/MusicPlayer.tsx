@@ -24,7 +24,14 @@ import {
   type PlayerView,
 } from './musicFrame'
 import { parseMusicLink } from './musicLink'
-import { oembedUrl, parsePlayerMessage, playerSrc, type PlayerResume, YOUTUBE_ORIGIN } from './playerEvents'
+import {
+  oembedUrl,
+  parsePlayerMessage,
+  playerSrc,
+  type PlayerResume,
+  YOUTUBE_ORIGIN,
+  youtubeCommand,
+} from './playerEvents'
 
 const KEY_STEP = 24
 const ARROWS: Record<string, [number, number]> = {
@@ -59,8 +66,9 @@ interface Gesture {
 
 // Khung phát nổi, gắn ở AppShell ngoài <Outlet /> nên chuyển trang không ngắt nhạc.
 // Giữa mini và full, iframe vẫn là cùng một phần tử nên nhạc không bị tải lại.
-// Về thanh tiêu đề sẽ gỡ iframe để nhạc dừng thật, vì điều khoản YouTube không cho phát khi giấu trình phát;
-// vị trí đang nghe được nhớ lại để lần phát sau nghe tiếp.
+// YouTube ở mini được đẩy ra ngoài màn hình và điều khiển qua postMessage. Đây là lựa chọn của chủ dự án,
+// điều khoản YouTube không cho phát khi giấu trình phát nên phải xem lại trước khi mở app cho công chúng.
+// Spotify và Apple Music không có lệnh phát từ ngoài nên giữ khung nhỏ; về thanh tiêu đề thì gỡ iframe và nhớ vị trí.
 export function MusicPlayer({
   onClose,
   onPlayingChange,
@@ -108,6 +116,9 @@ export function MusicPlayer({
   const isPlaying = frameOpen && (provider === 'Apple Music' || playing)
   const statusKey = isPlaying ? 'music.playing' : frameOpen ? 'music.framePaused' : 'music.paused'
   const frameHeight = embed && view === 'mini' ? miniFrameHeight(embed.provider, embed.height) : (embed?.height ?? null)
+  const frameHidden = provider === 'YouTube' && view === 'mini'
+  const showPause = provider === 'YouTube' ? isPlaying : frameOpen
+  const playLabelKey = !showPause ? 'music.play' : provider === 'YouTube' ? 'music.pause' : 'music.stop'
 
   useEffect(() => {
     onPlayingChange?.(isPlaying)
@@ -140,6 +151,7 @@ export function MusicPlayer({
       const update = parsePlayerMessage(provider, event.origin, event.data)
       if (!update) return
       if (update.playing !== undefined) setPlaying(update.playing)
+      if (update.failed) setView('full')
       if (update.title) setLiveTitle(update.title)
       if (update.currentTime !== undefined) progressRef.current.start = update.currentTime
       if (update.playlistIndex !== undefined) progressRef.current.index = update.playlistIndex
@@ -157,8 +169,15 @@ export function MusicPlayer({
 
   const toggleExpanded = () => {
     if (!expanded) setView('full')
-    else if (collapsedView(isPlaying) === 'mini') setView('mini')
+    else if (provider && collapsedView(provider, isPlaying) === 'mini') setView('mini')
     else stopToBar()
+  }
+
+  const togglePlay = () => {
+    if (!frameOpen) setView('mini')
+    else if (provider === 'YouTube') {
+      iframeRef.current?.contentWindow?.postMessage(youtubeCommand(isPlaying ? 'pauseVideo' : 'playVideo'), YOUTUBE_ORIGIN)
+    } else stopToBar()
   }
 
   const submit = (event: FormEvent) => {
@@ -294,12 +313,12 @@ export function MusicPlayer({
         {embed && !expanded && !editing && (
           <button
             type="button"
-            aria-label={t(frameOpen ? 'music.stop' : 'music.play')}
-            title={t(frameOpen ? 'music.stop' : 'music.play')}
-            onClick={() => (frameOpen ? stopToBar() : setView('mini'))}
+            aria-label={t(playLabelKey)}
+            title={t(playLabelKey)}
+            onClick={togglePlay}
             className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-xl bg-primary text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
           >
-            {frameOpen ? <Pause size={18} aria-hidden /> : <Play size={18} aria-hidden />}
+            {showPause ? <Pause size={18} aria-hidden /> : <Play size={18} aria-hidden />}
           </button>
         )}
         {embed && (
@@ -373,7 +392,9 @@ export function MusicPlayer({
       )}
 
       {embed && frameOpen && (
-        <div className="relative mt-2">
+        // Chỉ đổi class của khung bọc, không đổi cây phần tử: React giữ nguyên iframe nên nhạc không tải lại.
+        // position: fixed đưa khung ra khỏi luồng nên thanh tiêu đề không còn chừa chỗ, và không tạo thanh cuộn ngang.
+        <div inert={frameHidden} className={frameHidden ? 'fixed top-0 left-[-9999px] w-[204px]' : 'relative mt-2'}>
           <iframe
             ref={iframeRef}
             key={embed.src}

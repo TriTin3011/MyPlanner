@@ -9,6 +9,8 @@ export interface PlayerUpdate {
   title?: string
   currentTime?: number
   playlistIndex?: number
+  // Video không phát được (bị chặn nhúng, đã xoá...). Thông báo lỗi nằm trong iframe nên phải mở khung cho người dùng thấy.
+  failed?: boolean
 }
 
 export interface PlayerResume {
@@ -29,6 +31,11 @@ export function playerSrc(embed: MusicEmbed, origin: string, resume?: PlayerResu
   return url.toString()
 }
 
+// Tin nhắn điều khiển player YouTube qua postMessage, dùng khi khung đang giấu nên không bấm được nút trong iframe.
+export function youtubeCommand(func: 'playVideo' | 'pauseVideo') {
+  return JSON.stringify({ event: 'command', func, args: [] })
+}
+
 // Hàm thuần đọc tin nhắn từ iframe. Luôn kiểm tra origin trước khi tin dữ liệu;
 // định dạng này không phải API công khai nên gặp dữ liệu lạ thì trả null, không làm hỏng trình phát.
 export function parsePlayerMessage(provider: MusicProvider, origin: string, data: unknown): PlayerUpdate | null {
@@ -45,6 +52,7 @@ function parseYouTube(data: unknown): PlayerUpdate | null {
   } catch {
     return null
   }
+  if (message?.event === 'onError') return { playing: false, failed: true }
   if (message?.event === 'onStateChange' && typeof message.info === 'number') {
     return { playing: message.info === YOUTUBE_PLAYING }
   }
