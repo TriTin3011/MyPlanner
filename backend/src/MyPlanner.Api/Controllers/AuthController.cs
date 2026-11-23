@@ -33,6 +33,16 @@ public class AuthController(IAuthService auth) : ControllerBase
     public async Task<ActionResult<LoginResponse>> Register(RegisterRequest request, CancellationToken ct) =>
         StatusCode(StatusCodes.Status201Created, await auth.RegisterAsync(request, ct));
 
+    // Client gửi ID token của Google, nhận JWT của app. Dùng chung giới hạn với đăng nhập.
+    [HttpPost("google")]
+    [AllowAnonymous]
+    [EnableRateLimiting(LoginRateLimitPolicy)]
+    [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
+    public Task<LoginResponse> Google(GoogleLoginRequest request, CancellationToken ct) => auth.GoogleLoginAsync(request, ct);
+
     // Client gọi khi mở app để biết token đang giữ còn dùng được không (hết hạn → 401 → về màn đăng nhập).
     // Không cần service: tên đọc thẳng từ claim trong token mà JwtBearer đã kiểm chữ ký.
     [HttpGet("me")]

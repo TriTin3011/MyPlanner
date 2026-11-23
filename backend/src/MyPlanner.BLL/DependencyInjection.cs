@@ -42,6 +42,7 @@ public static class DependencyInjection
         // Đăng nhập: PasswordHasher và bộ ký JWT không giữ trạng thái theo request nên dùng singleton.
         services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
         services.AddSingleton<ITokenIssuer, JwtTokenIssuer>();
+        services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
         services.AddScoped<IAuthService, AuthService>();
 
         // FluentValidation: quét assembly BLL, đăng ký mọi AbstractValidator<T>. ValidationFilter (Api) gọi chúng trước mỗi action.

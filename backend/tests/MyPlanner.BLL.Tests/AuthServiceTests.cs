@@ -26,13 +26,14 @@ public class AuthServiceTests : IDisposable
 
     private readonly CultureInfo previousUiCulture = CultureInfo.CurrentUICulture;
     private readonly FakeUserRepository users = new();
+    private readonly FakeGoogleVerifier googleVerifier = new();
     private readonly AuthService service;
 
     public AuthServiceTests()
     {
         CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("vi");
         var clock = new FixedTimeProvider(Now);
-        service = new AuthService(users, new PasswordHasher<AppUser>(), new JwtTokenIssuer(Options.Create(Jwt), clock), clock);
+        service = new AuthService(users, new PasswordHasher<AppUser>(), new JwtTokenIssuer(Options.Create(Jwt), clock), googleVerifier, clock);
     }
 
     public void Dispose() => CultureInfo.CurrentUICulture = previousUiCulture;
@@ -146,7 +147,7 @@ public class AuthServiceTests : IDisposable
     public async Task LoginAsync_rehashes_and_saves_when_hash_is_outdated()
     {
         var clock = new FixedTimeProvider(Now);
-        var rehashing = new AuthService(users, new RehashNeededHasher(), new JwtTokenIssuer(Options.Create(Jwt), clock), clock);
+        var rehashing = new AuthService(users, new RehashNeededHasher(), new JwtTokenIssuer(Options.Create(Jwt), clock), googleVerifier, clock);
         await rehashing.EnsureAccountAsync("tin", Password, CancellationToken.None);
         var oldHash = users.Items[0].PasswordHash;
         users.SaveCount = 0;
@@ -217,6 +218,70 @@ public class AuthServiceTests : IDisposable
     public void RegisterRequestValidator_rejects_user_name_longer_than_column() =>
         Assert.False(new RegisterRequestValidator().Validate(new RegisterRequest(new string('a', 65), Password)).IsValid);
 
+    [Fact]
+    public async Task GoogleLoginAsync_rejects_invalid_token_without_creating_user()
+    {
+        var error = await Assert.ThrowsAsync<AppException>(
+            () => service.GoogleLoginAsync(new GoogleLoginRequest("bad"), CancellationToken.None));
+
+        Assert.Equal(401, error.StatusCode);
+        Assert.Empty(users.Items);
+    }
+
+    [Fact]
+    public async Task GoogleLoginAsync_creates_user_once_then_reuses_it()
+    {
+        googleVerifier.Identity = new GoogleIdentity("sub-1", "Tin.Nguyen+x@example.com");
+
+        var first = await service.GoogleLoginAsync(new GoogleLoginRequest("t"), CancellationToken.None);
+        var second = await service.GoogleLoginAsync(new GoogleLoginRequest("t"), CancellationToken.None);
+
+        var user = Assert.Single(users.Items);
+        Assert.Equal("tin.nguyenx", user.UserName);
+        Assert.Equal("", user.PasswordHash);
+        Assert.Equal(first.UserName, second.UserName);
+    }
+
+    [Fact]
+    public async Task GoogleLoginAsync_does_not_take_over_an_account_with_the_same_name()
+    {
+        await service.RegisterAsync(new RegisterRequest("tin", Password), CancellationToken.None);
+        googleVerifier.Identity = new GoogleIdentity("sub-2", "tin@example.com");
+
+        var result = await service.GoogleLoginAsync(new GoogleLoginRequest("t"), CancellationToken.None);
+
+        Assert.StartsWith("tin-", result.UserName);
+        Assert.Equal(2, users.Items.Count);
+        Assert.Null(users.Items.Single(u => u.UserName == "tin").GoogleSubject);
+    }
+
+    [Fact]
+    public async Task LoginAsync_rejects_password_for_google_only_account()
+    {
+        googleVerifier.Identity = new GoogleIdentity("sub-3", "tin@example.com");
+        await service.GoogleLoginAsync(new GoogleLoginRequest("t"), CancellationToken.None);
+
+        var error = await Assert.ThrowsAsync<AppException>(
+            () => service.LoginAsync(new LoginRequest("tin", ""), CancellationToken.None));
+
+        Assert.Equal(401, error.StatusCode);
+    }
+
+    [Fact]
+    public async Task GoogleTokenVerifier_returns_null_when_client_id_is_missing()
+    {
+        var verifier = new GoogleTokenVerifier(Options.Create(new GoogleOptions()));
+
+        Assert.Null(await verifier.VerifyAsync("any-token", CancellationToken.None));
+    }
+
+    private sealed class FakeGoogleVerifier : IGoogleTokenVerifier
+    {
+        public GoogleIdentity? Identity { get; set; }
+
+        public Task<GoogleIdentity?> VerifyAsync(string idToken, CancellationToken ct) => Task.FromResult(Identity);
+    }
+
     // Giả lập hash cũ: mật khẩu đúng nhưng hasher báo "cần băm lại" (như khi .NET tăng số vòng lặp PBKDF2).
     private sealed class RehashNeededHasher : PasswordHasher<AppUser>
     {
@@ -237,6 +302,9 @@ public class AuthServiceTests : IDisposable
 
         public Task<AppUser?> FindByUserNameAsync(string userName, CancellationToken ct) =>
             Task.FromResult(Items.FirstOrDefault(u => u.UserName == userName));
+
+        public Task<AppUser?> FindByGoogleSubjectAsync(string subject, CancellationToken ct) =>
+            Task.FromResult(Items.FirstOrDefault(u => u.GoogleSubject == subject));
 
         public Task<bool> AnyAsync(CancellationToken ct) => Task.FromResult(Items.Count > 0);
 
