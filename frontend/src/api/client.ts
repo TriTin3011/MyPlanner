@@ -12,8 +12,8 @@ export const api = axios.create({
   timeout: 15_000,
 })
 
-// Riêng endpoint đăng nhập: 401 ở đây là "sai mật khẩu", không phải "phiên hết hạn".
-const LOGIN_URL = '/auth/login'
+// Riêng các endpoint đăng nhập: 401 ở đây là "sai thông tin", không phải "phiên hết hạn".
+const SIGN_IN_URLS = ['/auth/login', '/auth/google']
 
 api.interceptors.request.use((config) => {
   // getState() đọc store ngoài React (interceptor không phải component nên không dùng hook được).
@@ -34,7 +34,7 @@ interface ProblemDetails {
 api.interceptors.response.use(
   (res) => res,
   (err: AxiosError<ProblemDetails>) => {
-    if (err.response?.status === 401 && err.config?.url !== LOGIN_URL) {
+    if (err.response?.status === 401 && !SIGN_IN_URLS.includes(err.config?.url ?? '')) {
       useSession.getState().signOut()
     }
     const p = err.response?.data

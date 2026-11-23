@@ -1,5 +1,5 @@
 import { useId, useState, type FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff, LoaderCircle, LogIn } from 'lucide-react'
@@ -7,6 +7,7 @@ import { api } from '../../api/client'
 import type { LoginRequest, LoginResponse } from '../../api/types'
 import { BrandMark } from '../../components/BrandMark'
 import { LanguageSwitcher } from '../../components/LanguageSwitcher'
+import { GoogleSignInButton } from './GoogleSignInButton'
 import { isSessionActive, useSession } from './session'
 
 // Trang /login (SPEC §15 bước 11.2). Nằm ngoài AppShell: chưa đăng nhập thì không có menu để bấm.
@@ -133,6 +134,15 @@ export function LoginPage() {
           )}
           {login.isPending ? t('auth.submitting') : t('auth.submit')}
         </button>
+
+        <GoogleSignInButton from={from} />
+
+        <p className="text-center text-sm text-ink-muted">
+          {t('auth.noAccount')}{' '}
+          <Link to="/register" state={{ from }} className="font-bold text-primary-ink underline underline-offset-2">
+            {t('auth.goToRegister')}
+          </Link>
+        </p>
       </form>
 
       <div className="mt-5">
