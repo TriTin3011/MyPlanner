@@ -26,6 +26,10 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 // Api chỉ gọi BLL. BLL đăng ký service + validator rồi tự gọi DAL (DbContext, repository).
 builder.Services.AddBusinessLogic(connectionString);
 
+// "Ai đang gọi" lấy từ JWT của request; DAL dùng để lọc dữ liệu theo tài khoản (SPEC §12.0).
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<MyPlanner.Core.Auth.ICurrentUser, HttpContextCurrentUser>();
+
 builder.Services.AddLocalization();
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {

@@ -20,7 +20,7 @@ public class HabitLogConfiguration : IEntityTypeConfiguration<HabitLog>
         b.ToTable("HabitLogs");
         // Khoá chính ghép: mỗi habit tick tối đa một lần mỗi ngày, DB tự chặn trùng.
         b.HasKey(l => new { l.HabitId, l.Date });
-        b.HasIndex(l => l.Date);
+        b.HasIndex(l => new { l.UserId, l.Date });
         // Xoá habit thì xoá luôn lịch sử tick.
         b.HasOne<Habit>().WithMany().HasForeignKey(l => l.HabitId).OnDelete(DeleteBehavior.Cascade);
     }

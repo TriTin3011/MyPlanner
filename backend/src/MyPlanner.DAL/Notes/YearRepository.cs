@@ -10,7 +10,7 @@ public class YearRepository(AppDbContext db) : IYearRepository
         db.YearMeta.AsNoTracking().Where(y => y.Year == year)
             .Select(y => new YearMetaDto(y.Year, y.Keyword, y.Vision)).FirstOrDefaultAsync(ct);
 
-    public Task<YearMeta?> FindMetaAsync(int year, CancellationToken ct) => db.YearMeta.FindAsync([year], ct).AsTask();
+    public Task<YearMeta?> FindMetaAsync(int year, CancellationToken ct) => db.YearMeta.FirstOrDefaultAsync(y => y.Year == year, ct);
 
     public Task<List<YearPlanItemDto>> ItemsAsync(int year, CancellationToken ct) =>
         db.YearPlanItems.AsNoTracking().Where(i => i.Year == year)

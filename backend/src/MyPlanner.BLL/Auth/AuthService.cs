@@ -7,8 +7,9 @@ using MyPlanner.DAL.Auth;
 
 namespace MyPlanner.BLL.Auth;
 
-// Đăng nhập một tài khoản. Chỉ dùng PasswordHasher của Identity (PBKDF2, salt ngẫu nhiên, nhiều vòng lặp),
-// không kéo cả ASP.NET Core Identity (UserManager, 7 bảng AspNet*) vì app chỉ có một người dùng.
+// Đăng nhập. Chỉ dùng PasswordHasher của Identity (PBKDF2, salt ngẫu nhiên, nhiều vòng lặp), không kéo cả
+// ASP.NET Core Identity (UserManager, 7 bảng AspNet*): app chỉ cần tên + mật khẩu (+ Google ở bước 11.7),
+// không cần role, khoá tài khoản, xác thực email.
 public class AuthService(
     IUserRepository users,
     IPasswordHasher<AppUser> hasher,
