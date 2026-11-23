@@ -11,6 +11,7 @@ import {
 import { AppShell } from './AppShell'
 import { TodayPage } from '../features/today/TodayPage'
 import { LoginPage } from '../features/auth/LoginPage'
+import { RegisterPage } from '../features/auth/RegisterPage'
 import { RequireAuth } from '../features/auth/RequireAuth'
 
 import type { vi } from '../i18n/vi'
@@ -33,13 +34,14 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/stats', key: 'stats', icon: ChartColumn },
 ]
 
-// /login đứng riêng, ngoài AppShell. Mọi trang còn lại nằm trong RequireAuth:
+// /login và /register đứng riêng, ngoài AppShell. Mọi trang còn lại nằm trong RequireAuth:
 // chưa đăng nhập hoặc token hết hạn thì guard chuyển về /login.
 // AppShell là layout route: các trang con hiện vào <Outlet /> bên trong main panel.
 // Hôm nay và Đăng nhập nạp sẵn (trang mở đầu tiên). Năm trang còn lại tách chunk riêng qua `lazy`:
 // router tải file JS của trang khi người dùng vào route đó, nên lần tải đầu nhẹ hơn.
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  { path: '/register', element: <RegisterPage /> },
   {
     path: '/',
     element: (

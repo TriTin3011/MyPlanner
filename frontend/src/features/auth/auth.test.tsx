@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import '../../i18n'
 import { useSettings } from '../../store/settings'
 import { LoginPage } from './LoginPage'
+import { RegisterPage } from './RegisterPage'
 import { RequireAuth } from './RequireAuth'
 import { isSessionActive, msUntilExpiry, useSession } from './session'
 
@@ -20,6 +21,7 @@ function renderAt(path: string, state?: unknown) {
   const router = createMemoryRouter(
     [
       { path: '/login', element: <LoginPage /> },
+      { path: '/register', element: <RegisterPage /> },
       {
         path: '/*',
         element: (
@@ -67,6 +69,8 @@ describe('RequireAuth & LoginPage', () => {
   afterEach(() => {
     cleanup()
     post.mockReset()
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
     vi.useRealTimers()
   })
 
@@ -132,5 +136,86 @@ describe('RequireAuth & LoginPage', () => {
     expect(submit.disabled).toBe(true)
     fireEvent.change(screen.getByLabelText('Mật khẩu'), { target: { value: 'x' } })
     expect(submit.disabled).toBe(false)
+  })
+
+  it('registers, stores the token and goes straight into the app', async () => {
+    post.mockResolvedValueOnce({ data: { accessToken: 'reg-jwt', expiresAt: IN_ONE_HOUR, userName: 'tin.moi' } })
+    const router = renderAt('/register', { from: '/week' })
+
+    fireEvent.change(screen.getByLabelText('Tên đăng nhập'), { target: { value: ' Tin.Moi ' } })
+    fireEvent.change(screen.getByLabelText('Mật khẩu'), { target: { value: 'mat-khau-test' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo tài khoản' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/week'))
+    expect(post).toHaveBeenCalledWith('/auth/register', { userName: 'Tin.Moi', password: 'mat-khau-test' })
+    expect(useSession.getState()).toMatchObject({ token: 'reg-jwt', userName: 'tin.moi' })
+  })
+
+  it('blocks submit until the name and password follow the rules', () => {
+    renderAt('/register')
+    const submit = screen.getByRole('button', { name: 'Tạo tài khoản' }) as HTMLButtonElement
+    const name = screen.getByLabelText('Tên đăng nhập')
+    fireEvent.change(name, { target: { value: 'có dấu' } })
+    fireEvent.change(screen.getByLabelText('Mật khẩu'), { target: { value: '12345678' } })
+    expect(name.getAttribute('aria-invalid')).toBe('true')
+    expect(submit.disabled).toBe(true)
+    fireEvent.change(name, { target: { value: 'tin' } })
+    expect(submit.disabled).toBe(false)
+    fireEvent.change(screen.getByLabelText('Mật khẩu'), { target: { value: '1234567' } })
+    expect(submit.disabled).toBe(true)
+  })
+
+  it('keeps what the user typed when the name is taken', async () => {
+    post.mockRejectedValueOnce(new Error('Tên đăng nhập này đã có người dùng.'))
+    renderAt('/register')
+    const name = screen.getByLabelText('Tên đăng nhập') as HTMLInputElement
+    const password = screen.getByLabelText('Mật khẩu') as HTMLInputElement
+    fireEvent.change(name, { target: { value: 'tin' } })
+    fireEvent.change(password, { target: { value: 'mat-khau-test' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo tài khoản' }))
+
+    expect((await screen.findByRole('alert')).textContent).toBe('Tên đăng nhập này đã có người dùng.')
+    expect(name.value).toBe('tin')
+    expect(password.value).toBe('mat-khau-test')
+  })
+
+  it('hides the Google button when no client id is configured', () => {
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', '')
+    renderAt('/login')
+    expect(screen.queryByText('hoặc')).toBeNull()
+  })
+
+  it('exchanges the Google credential for an app session', async () => {
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'client-id-test')
+    let credentialCallback: ((r: { credential: string }) => void) | undefined
+    vi.stubGlobal('google', {
+      accounts: {
+        id: {
+          initialize: (config: { callback: (r: { credential: string }) => void }) => {
+            credentialCallback = config.callback
+          },
+          renderButton: vi.fn(),
+        },
+      },
+    })
+    post.mockResolvedValueOnce({ data: { accessToken: 'g-jwt', expiresAt: IN_ONE_HOUR, userName: 'tin' } })
+    const router = renderAt('/login', { from: '/stats' })
+
+    await waitFor(() => expect(credentialCallback).toBeDefined())
+    act(() => credentialCallback?.({ credential: 'google-id-token' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/stats'))
+    expect(post).toHaveBeenCalledWith('/auth/google', { idToken: 'google-id-token' })
+    expect(useSession.getState().token).toBe('g-jwt')
+  })
+
+  it('links login and register both ways and keeps the page the user wanted', async () => {
+    const router = renderAt('/login', { from: '/habits' })
+    fireEvent.click(screen.getByRole('link', { name: 'Đăng ký' }))
+    await screen.findByRole('heading', { name: 'Tạo tài khoản' })
+    expect(router.state.location.state).toEqual({ from: '/habits' })
+    fireEvent.click(screen.getByRole('link', { name: 'Đăng nhập' }))
+    await screen.findByRole('heading', { name: 'Đăng nhập' })
+    expect(router.state.location.state).toEqual({ from: '/habits' })
   })
 })
