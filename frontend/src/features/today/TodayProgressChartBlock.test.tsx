@@ -40,8 +40,8 @@ describe('TodayProgressChartBlock', () => {
 
     renderWithClient(<TodayProgressChartBlock today="2026-11-22" />)
 
-    const select = screen.getByRole('combobox')
-    fireEvent.change(select, { target: { value: '14' } })
+    fireEvent.click(screen.getByRole('combobox'))
+    fireEvent.click(screen.getByRole('option', { name: '14 ngày' }))
 
     expect(get).toHaveBeenCalledWith('/dashboard/days', {
       params: { from: '2026-11-09', to: '2026-11-22' },

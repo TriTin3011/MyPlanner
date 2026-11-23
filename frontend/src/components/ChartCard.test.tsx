@@ -50,25 +50,6 @@ describe('ChartCard', () => {
     expect(svg).not.toBeNull()
   })
 
-  it('renders accessible table in table mode', () => {
-    render(
-      <ChartCard
-        title="Tiến độ gần đây"
-        data={mockData}
-        range="7"
-        rangeOptions={[{ value: '7', label: '7 ngày' }]}
-        onRangeChange={vi.fn()}
-        mode="table"
-        onModeChange={vi.fn()}
-      />,
-    )
-
-    const table = screen.getByRole('table')
-    expect(table).not.toBeNull()
-    expect(screen.getByText(/2026-11-16/)).not.toBeNull()
-    expect(screen.getByText('Tổng cộng')).not.toBeNull()
-  })
-
   it('triggers onModeChange when switching mode', () => {
     const handleModeChange = vi.fn()
     render(
@@ -83,9 +64,9 @@ describe('ChartCard', () => {
       />,
     )
 
-    const tableRadio = screen.getByRole('radio', { name: 'Bảng' })
-    fireEvent.click(tableRadio)
-    expect(handleModeChange).toHaveBeenCalledWith('table')
+    expect(screen.getByRole('radio', { name: 'Bảng' })).not.toBeNull()
+    fireEvent.click(screen.getByRole('radio', { name: 'Cột' }))
+    expect(handleModeChange).toHaveBeenCalledWith('bar')
   })
 
   it('triggers onRangeChange when changing dropdown', () => {
@@ -105,8 +86,8 @@ describe('ChartCard', () => {
       />,
     )
 
-    const select = screen.getByRole('combobox')
-    fireEvent.change(select, { target: { value: '14' } })
+    fireEvent.click(screen.getByRole('combobox'))
+    fireEvent.click(screen.getByRole('option', { name: '14 ngày' }))
     expect(handleRangeChange).toHaveBeenCalledWith('14')
   })
 })

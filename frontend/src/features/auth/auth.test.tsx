@@ -209,6 +209,30 @@ describe('RequireAuth & LoginPage', () => {
     expect(useSession.getState().token).toBe('g-jwt')
   })
 
+  it('asks the desktop host for Google sign-in and uses the returned credential', async () => {
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'client-id-test')
+    let onMessage: ((event: MessageEvent) => void) | undefined
+    const postMessage = vi.fn()
+    vi.stubGlobal('chrome', {
+      webview: {
+        postMessage,
+        addEventListener: (_: string, listener: (event: MessageEvent) => void) => {
+          onMessage = listener
+        },
+        removeEventListener: vi.fn(),
+      },
+    })
+    post.mockResolvedValueOnce({ data: { accessToken: 'g-jwt', expiresAt: IN_ONE_HOUR, userName: 'tin' } })
+    const router = renderAt('/login', { from: '/stats' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập bằng Google' }))
+    expect(postMessage).toHaveBeenCalledWith({ type: 'google-signin', clientId: 'client-id-test' })
+    act(() => onMessage?.({ data: { type: 'google-credential', credential: 'desktop-id-token' } } as MessageEvent))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/stats'))
+    expect(post).toHaveBeenCalledWith('/auth/google', { idToken: 'desktop-id-token' })
+  })
+
   it('links login and register both ways and keeps the page the user wanted', async () => {
     const router = renderAt('/login', { from: '/habits' })
     fireEvent.click(screen.getByRole('link', { name: 'Đăng ký' }))

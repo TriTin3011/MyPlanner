@@ -85,7 +85,7 @@ export function BackupControls({ compact = false }: { compact?: boolean }) {
         type="button"
         onClick={handleExport}
         disabled={exporting}
-        className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-full px-3 text-left text-sm font-semibold text-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
+        className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 text-left text-sm font-semibold text-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
       >
         {exporting ? (
           <LoaderCircle size={16} className="shrink-0 animate-spin motion-reduce:animate-none" aria-hidden="true" />
@@ -99,7 +99,7 @@ export function BackupControls({ compact = false }: { compact?: boolean }) {
         type="button"
         onClick={() => fileInputRef.current?.click()}
         disabled={importing}
-        className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-full px-3 text-left text-sm font-semibold text-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
+        className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 text-left text-sm font-semibold text-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
       >
         <Upload size={16} className="shrink-0 text-primary" aria-hidden="true" />
         <span className="truncate">{t('backup.importJson')}</span>
@@ -130,7 +130,7 @@ export function BackupControls({ compact = false }: { compact?: boolean }) {
               <button
                 type="button"
                 onClick={closeModal}
-                className="min-h-11 cursor-pointer rounded-full bg-primary px-5 text-sm font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+                className="min-h-11 cursor-pointer rounded-xl bg-primary px-5 text-sm font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
               >
                 {t('backup.closeModal')}
               </button>
@@ -141,7 +141,7 @@ export function BackupControls({ compact = false }: { compact?: boolean }) {
                 type="button"
                 onClick={closeModal}
                 disabled={importing}
-                className="min-h-11 cursor-pointer rounded-full px-4 text-sm font-bold text-ink-muted hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                className="min-h-11 cursor-pointer rounded-xl px-4 text-sm font-bold text-ink-muted hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               >
                 {t('backup.confirmCancel')}
               </button>
@@ -149,7 +149,7 @@ export function BackupControls({ compact = false }: { compact?: boolean }) {
                 type="button"
                 onClick={handleConfirmImport}
                 disabled={importing}
-                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-danger px-4 text-sm font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
+                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-danger px-4 text-sm font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
               >
                 {importing && (
                   <LoaderCircle size={15} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />

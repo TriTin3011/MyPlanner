@@ -71,7 +71,7 @@ export function TodayHeader({
         </div>
       </div>
 
-      <p className="border-l-4 border-primary pl-4 text-sm leading-6 font-bold text-primary-ink lg:max-w-xl">
+      <p className="min-w-0 border-l-4 border-primary pl-3 text-sm leading-6 font-bold text-primary-ink lg:max-w-xl">
         {t(dailyMotivationKey(dashboard.date))}
       </p>
 
@@ -80,7 +80,7 @@ export function TodayHeader({
         onClick={onArrangeBlocks}
         disabled={!onArrangeBlocks}
         aria-haspopup="dialog"
-        className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full px-3 text-sm font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 text-sm font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
       >
         <SlidersHorizontal size={17} aria-hidden="true" />
         {t('today.arrangeBlocks')}

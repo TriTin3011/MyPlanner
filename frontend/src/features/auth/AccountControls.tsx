@@ -1,35 +1,102 @@
+import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LogOut, UserRound } from 'lucide-react'
-import { useSession } from './session'
+import { ProfileModal } from './ProfileModal'
+import { useDisplayName, useSession } from './session'
+import { useCurrentUser } from './useProfile'
+import { UserAvatar } from './UserAvatar'
 
-// Tên người đang đăng nhập + nút Đăng xuất. Sidebar thu gọn (tablet) chỉ còn icon; menu ⋯ trên điện thoại
-// dùng compact để hiện đủ chữ. Đăng xuất chỉ cần xoá token ở client (JWT không có phiên phía server để huỷ);
-// store đổi thì RequireAuth tự chuyển về /login.
+const ITEM_CLASS =
+  'flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-xl px-3 text-sm font-bold text-ink-muted hover:bg-accent-tint hover:text-ink'
+
+// Avatar ở đáy sidebar, bấm để mở menu Hồ sơ và Đăng xuất. Trong menu ⋯ trên điện thoại (`compact`) đã có sẵn
+// một bảng nên hiện thẳng các mục. Đăng xuất chỉ cần xoá token ở client; store đổi thì RequireAuth tự về /login.
+// Dùng mẫu disclosure (nút + aria-expanded) thay vì role="menu", vì role đó buộc phải tự làm điều hướng phím mũi tên.
 export function AccountControls({ compact = false }: { compact?: boolean }) {
   const { t } = useTranslation()
-  const userName = useSession((s) => s.userName)
+  const userName = useDisplayName()
   const signOut = useSession((s) => s.signOut)
-  const label = t('auth.signedInAs', { name: userName ?? '' })
+  const avatarUrl = useCurrentUser().data?.avatarUrl
+  const [open, setOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const panelId = useId()
 
-  return (
-    <div className={`flex items-center gap-2 ${compact ? '' : 'max-lg:flex-col'}`}>
-      <span
-        title={label}
-        className={`flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold text-ink-muted ${compact ? '' : 'max-lg:hidden'}`}
-      >
-        <UserRound size={16} aria-hidden className="shrink-0" />
-        <span className="sr-only">{t('auth.account')}: </span>
-        <span className="truncate">{userName}</span>
-      </span>
+  // Chỉ nghe sự kiện toàn trang khi menu đang mở, và gỡ ngay khi đóng.
+  useEffect(() => {
+    if (!open) return
+    const onPointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setOpen(false)
+      triggerRef.current?.focus()
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  const items = (
+    <>
       <button
         type="button"
-        onClick={signOut}
-        title={t('auth.logout')}
-        className="flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-bold text-ink-muted hover:bg-accent-tint hover:text-ink max-lg:justify-center"
+        className={ITEM_CLASS}
+        onClick={() => {
+          setOpen(false)
+          setProfileOpen(true)
+        }}
       >
-        <LogOut size={18} aria-hidden />
-        <span className={compact ? '' : 'max-lg:sr-only'}>{t('auth.logout')}</span>
+        <UserRound size={17} aria-hidden />
+        {t('auth.profile')}
       </button>
+      <button type="button" className={ITEM_CLASS} onClick={signOut}>
+        <LogOut size={17} aria-hidden />
+        {t('auth.logout')}
+      </button>
+    </>
+  )
+
+  if (compact) {
+    return (
+      <div className="flex flex-col gap-1">
+        <div className="flex min-w-0 items-center gap-2 px-1 pb-1">
+          <UserAvatar name={userName} imageUrl={avatarUrl} />
+          <span className="truncate text-sm font-bold">{userName}</span>
+        </div>
+        {items}
+        <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
+      </div>
+    )
+  }
+
+  return (
+    <div ref={rootRef} className="relative min-w-0 flex-1">
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        aria-label={t('auth.accountMenu', { name: userName ?? '' })}
+        title={userName ?? undefined}
+        onClick={() => setOpen((value) => !value)}
+        className="flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-xl p-1 text-left hover:bg-accent-tint max-lg:justify-center"
+      >
+        <UserAvatar name={userName} imageUrl={avatarUrl} />
+        <span className="truncate text-sm font-bold max-lg:hidden">{userName}</span>
+      </button>
+      {open && (
+        <div id={panelId} className="sketch absolute bottom-full left-0 z-20 mb-2 flex w-56 flex-col gap-1 p-2">
+          <p className="truncate px-3 py-1 text-xs font-bold text-ink-muted">{userName}</p>
+          {items}
+        </div>
+      )}
+      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
     </div>
   )
 }

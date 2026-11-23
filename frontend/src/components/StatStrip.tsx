@@ -16,14 +16,15 @@ export function StatStrip({ items }: { items: StatItem[] }) {
   return (
     <dl className="sketch grid grid-cols-3 divide-x-2 divide-dashed divide-[var(--grid-line)] px-1 py-2">
       {items.map((item) => (
-        <div key={item.label} className="min-w-0 px-3">
-          <dt className="flex items-center gap-1 text-[11px] font-extrabold tracking-wide text-ink-muted uppercase">
-            <span className="text-primary">{item.icon}</span>
-            {item.label}
+        <div key={item.label} className="min-w-0 px-2 sm:px-3">
+          <dt className="flex items-start gap-1 text-[11px] font-extrabold tracking-wide [overflow-wrap:anywhere] text-ink-muted uppercase">
+            <span className="mt-px shrink-0 text-primary">{item.icon}</span>
+            <span className="min-w-0">{item.label}</span>
           </dt>
-          <dd className="mt-0.5 font-display text-xl leading-tight font-extrabold whitespace-nowrap text-primary-ink">
-            {item.value}
-            {item.suffix && <span className="ml-1 text-sm text-ink-muted">{item.suffix}</span>}
+          {/* flex-wrap: cột hẹp thì phần phụ tự xuống dòng thay vì tràn sang cột bên cạnh. */}
+          <dd className="mt-0.5 flex flex-wrap items-baseline gap-x-1 font-display text-xl leading-tight font-extrabold [overflow-wrap:anywhere] text-primary-ink">
+            <span className="min-w-0">{item.value}</span>
+            {item.suffix && <span className="min-w-0 text-sm text-ink-muted">{item.suffix}</span>}
           </dd>
         </div>
       ))}

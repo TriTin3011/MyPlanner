@@ -9,6 +9,7 @@ import { queryClient } from '../../app/queryClient'
 interface SessionState {
   token: string | null
   userName: string | null
+  displayName: string | null // tên người dùng tự đặt; null thì hiện userName
   expiresAt: string | null // ISO 8601 do backend trả, để client tự biết lúc nào token hết hạn
   signIn: (res: LoginResponse) => void
   signOut: () => void
@@ -19,10 +20,17 @@ export const useSession = create<SessionState>()(
     (set) => ({
       token: null,
       userName: null,
+      displayName: null,
       expiresAt: null,
-      signIn: (res) => set({ token: res.accessToken, userName: res.userName, expiresAt: res.expiresAt }),
+      signIn: (res) =>
+        set({
+          token: res.accessToken,
+          userName: res.userName,
+          displayName: res.displayName ?? null,
+          expiresAt: res.expiresAt,
+        }),
       signOut: () => {
-        set({ token: null, userName: null, expiresAt: null })
+        set({ token: null, userName: null, displayName: null, expiresAt: null })
         // Xoá cache: người đăng nhập sau (hoặc chính mình) không thấy dữ liệu cũ của phiên trước.
         queryClient.clear()
       },
@@ -30,10 +38,13 @@ export const useSession = create<SessionState>()(
     // Chỉ lưu dữ liệu, không lưu hàm.
     {
       name: 'myplanner-session',
-      partialize: (s) => ({ token: s.token, userName: s.userName, expiresAt: s.expiresAt }),
+      partialize: (s) => ({ token: s.token, userName: s.userName, displayName: s.displayName, expiresAt: s.expiresAt }),
     },
   ),
 )
+
+// Tên để hiển thị khắp app. Lưu cùng phiên nên mở lại trang hiện đúng ngay, không nháy tên đăng nhập trong lúc chờ /me.
+export const useDisplayName = () => useSession((s) => s.displayName ?? s.userName)
 
 // Còn dùng được không: có token và chưa tới giờ hết hạn. Hàm thuần, nhận `now` để test không phụ thuộc đồng hồ.
 export function isSessionActive(s: Pick<SessionState, 'token' | 'expiresAt'>, now = Date.now()): boolean {

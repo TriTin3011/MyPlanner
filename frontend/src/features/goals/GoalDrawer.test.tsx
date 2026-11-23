@@ -69,7 +69,8 @@ describe('GoalDrawer', () => {
     const props = renderDrawer()
 
     fireEvent.change(screen.getByLabelText('Tên mục tiêu'), { target: { value: '  Học React  ' } })
-    fireEvent.change(screen.getByLabelText('Lĩnh vực'), { target: { value: 'learning' } })
+    fireEvent.click(screen.getByLabelText('Lĩnh vực'))
+    fireEvent.click(screen.getByRole('option', { name: 'Học tập' }))
     fireEvent.submit(screen.getByLabelText('Tên mục tiêu').closest('form')!)
 
     expect(props.onSave).toHaveBeenCalledWith({

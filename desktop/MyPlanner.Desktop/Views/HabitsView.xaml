@@ -1,0 +1,148 @@
+<UserControl x:Class="MyPlanner.Desktop.Views.HabitsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MyPlanner.Desktop.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:HabitsViewModel}">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <!-- Ô tick: ô vuông 22px, xong thì tô màu chính; ô khoá thì mờ. -->
+        <Style x:Key="HabitCell" TargetType="CheckBox">
+            <Setter Property="Width" Value="22" />
+            <Setter Property="Height" Value="22" />
+            <Setter Property="Margin" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="Box" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}"
+                                BorderThickness="1.5" CornerRadius="4">
+                            <TextBlock x:Name="Mark" Text="✓" Foreground="White" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Box" Property="Background" Value="{StaticResource Primary}" />
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource PrimaryInk}" />
+                                <Setter TargetName="Mark" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Ink}" />
+                                <Setter TargetName="Box" Property="BorderThickness" Value="2.5" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Box" Property="Opacity" Value="0.35" />
+                                <Setter Property="Cursor" Value="Arrow" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header: tháng + % + hai điểm nổi bật -->
+        <Border Style="{StaticResource SketchCard}" Margin="0,0,0,16">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="‹" Command="{Binding PreviousMonthCommand}" Style="{StaticResource SketchButton}" ToolTip="Tháng trước" />
+                    <Button Content="›" Command="{Binding NextMonthCommand}" Style="{StaticResource SketchButton}" ToolTip="Tháng sau" />
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Left" Text="{Binding Percent, StringFormat={}{0}%}" FontSize="28" FontWeight="Bold"
+                           Foreground="{StaticResource PrimaryInk}" VerticalAlignment="Center" Margin="0,0,16,0" />
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{Binding MonthLabel}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource PrimaryInk}" />
+                    <TextBlock Foreground="{StaticResource InkMuted}" TextWrapping="Wrap">
+                        <Run Text="Chuỗi dài nhất: " /><Run Text="{Binding LongestStreak, Mode=OneWay}" />
+                        <Run Text="  ·  Đều nhất: " /><Run Text="{Binding MostConsistent, Mode=OneWay}" />
+                    </TextBlock>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <StackPanel Grid.Row="1">
+            <TextBlock Text="{Binding Error}" Foreground="#B3261E" Margin="0,0,0,8" TextWrapping="Wrap" />
+            <TextBlock Text="Đang tải…" Foreground="{StaticResource InkMuted}" Margin="0,0,0,8"
+                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
+        </StackPanel>
+
+        <!-- Lưới: cột tên dính bên trái (nằm ngoài ScrollViewer ngang), cột ngày cuộn ngang. -->
+        <Border Grid.Row="2" Style="{StaticResource SketchCard}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Cột tên + % + chuỗi hiện tại -->
+                    <StackPanel>
+                        <TextBlock Text="Thói quen" FontWeight="Bold" Height="24" />
+                        <ItemsControl ItemsSource="{Binding Rows}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:HabitRowViewModel}">
+                                    <DockPanel Height="24">
+                                        <TextBlock DockPanel.Dock="Right" Foreground="{StaticResource InkMuted}" Margin="4,0,8,0"
+                                                   VerticalAlignment="Center" FontSize="12">
+                                            <Run Text="{Binding Percent, Mode=OneWay}" /><Run Text="% · 🔥" /><Run Text="{Binding CurrentStreak, Mode=OneWay}" />
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Cột ngày -->
+                    <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                        <StackPanel>
+                            <ItemsControl ItemsSource="{Binding DayHeaders}" Height="24">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" Width="24" TextAlignment="Center" FontSize="11"
+                                                   Foreground="{StaticResource InkMuted}" VerticalAlignment="Center" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <ItemsControl ItemsSource="{Binding Rows}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:HabitRowViewModel}">
+                                        <ItemsControl ItemsSource="{Binding Cells}" Height="24">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type vm:HabitCellViewModel}">
+                                                    <CheckBox Style="{StaticResource HabitCell}" IsChecked="{Binding Done}"
+                                                              IsEnabled="{Binding IsEnabled}" ToolTip="{Binding Label}"
+                                                              AutomationProperties.Name="{Binding Label}" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

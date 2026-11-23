@@ -54,7 +54,7 @@ export function AreaRadar({ areas }: AreaRadarProps) {
             aria-expanded={showHelp}
             aria-controls="area-radar-help"
             onClick={() => setShowHelp((v) => !v)}
-            className="grid min-h-11 min-w-11 cursor-pointer place-items-center rounded-full text-ink-muted hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:min-h-8 sm:min-w-8"
+            className="grid min-h-11 min-w-11 cursor-pointer place-items-center rounded-xl text-ink-muted hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:min-h-8 sm:min-w-8"
           >
             <Info size={16} aria-hidden="true" />
           </button>
@@ -64,7 +64,7 @@ export function AreaRadar({ areas }: AreaRadarProps) {
           type="button"
           aria-label={mode === 'chart' ? t('goals.radar.viewTableAria') : t('goals.radar.viewChartAria')}
           onClick={() => setMode((m) => (m === 'chart' ? 'table' : 'chart'))}
-          className="min-h-11 cursor-pointer rounded-full px-3 text-xs font-bold text-ink-muted hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:min-h-8"
+          className="min-h-11 sm:min-h-9 cursor-pointer rounded-lg px-3 text-xs font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none text-ink-muted hover:bg-accent-tint hover:text-ink"
         >
           {mode === 'chart' ? t('goals.radar.tableBtn') : t('goals.radar.chartBtn')}
         </button>

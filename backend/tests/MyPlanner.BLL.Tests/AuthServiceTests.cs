@@ -306,6 +306,9 @@ public class AuthServiceTests : IDisposable
         public Task<AppUser?> FindByGoogleSubjectAsync(string subject, CancellationToken ct) =>
             Task.FromResult(Items.FirstOrDefault(u => u.GoogleSubject == subject));
 
+        public Task<AppUser?> FindByIdAsync(Guid id, CancellationToken ct) =>
+            Task.FromResult(Items.FirstOrDefault(u => u.Id == id));
+
         public Task<bool> AnyAsync(CancellationToken ct) => Task.FromResult(Items.Count > 0);
 
         public void Add(AppUser user) => Items.Add(user);

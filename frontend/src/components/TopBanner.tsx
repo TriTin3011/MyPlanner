@@ -50,7 +50,7 @@ export function TopBanner() {
           type="button"
           onClick={handleExport}
           disabled={exporting}
-          className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-white/80 bg-white/15 px-3 py-1 text-xs font-bold text-white hover:bg-white/25 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
+          className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-xl border border-white/80 bg-white/15 px-3 py-1 text-xs font-bold text-white hover:bg-white/25 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
         >
           {exporting ? (
             <LoaderCircle size={14} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
@@ -64,7 +64,7 @@ export function TopBanner() {
           type="button"
           onClick={() => setDismissed(true)}
           aria-label={t('backup.dismissBanner')}
-          className="grid size-9 cursor-pointer place-items-center rounded-full text-white hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+          className="grid size-9 cursor-pointer place-items-center rounded-xl text-white hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
         >
           <X size={16} aria-hidden="true" />
         </button>

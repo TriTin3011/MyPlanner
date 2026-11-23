@@ -9,12 +9,15 @@ interface ModalProps {
   children: ReactNode
   // Nội dung chân modal (nút Đóng, Đặt lại…), nằm cố định dưới phần cuộn.
   footer?: ReactNode
+  // Phần nhỏ cạnh tiêu đề, ví dụ nút thông tin.
+  titleAddon?: ReactNode
+  size?: 'md' | 'sm'
 }
 
 // Modal dùng thẻ <dialog> gốc của trình duyệt với showModal(): trình duyệt tự lo bẫy focus (focus trap),
 // phím Esc, nền mờ (::backdrop), đưa modal lên lớp trên cùng (top layer) và làm phần còn lại "inert".
 // Tự viết các việc đó bằng div rất dễ sót; thư viện (Radix, Headless UI) cũng làm được nhưng thêm phụ thuộc.
-export function Modal({ open, title, onClose, children, footer }: ModalProps) {
+export function Modal({ open, title, onClose, children, footer, titleAddon, size = 'md' }: ModalProps) {
   const { t } = useTranslation()
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
@@ -46,14 +49,17 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}
-      className="m-auto w-[min(36rem,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)] overflow-hidden rounded-2xl border-2 border-[var(--ink)] bg-surface p-0 text-ink shadow-[4px_4px_0_0_var(--ink)] backdrop:bg-black/40"
+      className={`m-auto ${size === 'sm' ? 'w-[min(28rem,calc(100vw-2rem))]' : 'w-[min(36rem,calc(100vw-2rem))]'} max-h-[calc(100dvh-2rem)] overflow-hidden rounded-2xl border-2 border-[var(--ink)] bg-surface p-0 text-ink shadow-[4px_4px_0_0_var(--ink)] backdrop:bg-black/40`}
     >
       {open && (
         <div className="flex max-h-[calc(100dvh-2rem)] flex-col">
           <header className="flex items-center justify-between gap-3 border-b border-[var(--line)] px-4 py-3 sm:px-5">
-            <h2 id={titleId} className="font-display text-xl font-extrabold text-primary-ink">
-              {title}
-            </h2>
+            <div className="flex min-w-0 items-center gap-2">
+              <h2 id={titleId} className="min-w-0 font-display text-xl font-extrabold text-primary-ink">
+                {title}
+              </h2>
+              {titleAddon}
+            </div>
             <button
               type="button"
               onClick={onClose}

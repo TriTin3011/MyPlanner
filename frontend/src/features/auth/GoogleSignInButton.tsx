@@ -15,9 +15,17 @@ interface GoogleAccountsId {
   ): void
 }
 
+// Cầu nối WebView2: chỉ có khi trang chạy trong app desktop.
+interface DesktopBridge {
+  postMessage(message: unknown): void
+  addEventListener(type: 'message', listener: (event: MessageEvent) => void): void
+  removeEventListener(type: 'message', listener: (event: MessageEvent) => void): void
+}
+
 declare global {
   interface Window {
     google?: { accounts: { id: GoogleAccountsId } }
+    chrome?: { webview?: DesktopBridge }
   }
 }
 
@@ -52,6 +60,8 @@ export function GoogleSignInButton({ from }: { from: string }) {
   const signIn = useSession((s) => s.signIn)
   const containerRef = useRef<HTMLDivElement>(null)
   const [scriptFailed, setScriptFailed] = useState(false)
+  const desktop = window.chrome?.webview
+  const [desktopState, setDesktopState] = useState<'idle' | 'waiting' | 'failed'>('idle')
 
   const { mutate, isPending, isError, error } = useMutation({
     mutationFn: (body: GoogleLoginRequest) => api.post<LoginResponse>('/auth/google', body).then((r) => r.data),
@@ -61,8 +71,24 @@ export function GoogleSignInButton({ from }: { from: string }) {
     },
   })
 
+  // Trong app desktop, Google chặn trình duyệt nhúng: host mở trình duyệt thật rồi gửi ID token về đây.
   useEffect(() => {
-    if (!clientId) return
+    if (!desktop) return
+    const onMessage = (event: MessageEvent) => {
+      const data = event.data as { type?: string; credential?: string }
+      if (data.type === 'google-credential' && data.credential) {
+        setDesktopState('idle')
+        mutate({ idToken: data.credential })
+      } else if (data.type === 'google-error') {
+        setDesktopState('failed')
+      }
+    }
+    desktop.addEventListener('message', onMessage)
+    return () => desktop.removeEventListener('message', onMessage)
+  }, [desktop, mutate])
+
+  useEffect(() => {
+    if (!clientId || desktop) return
     let cancelled = false
     loadGoogleScript()
       .then(() => {
@@ -81,7 +107,7 @@ export function GoogleSignInButton({ from }: { from: string }) {
     return () => {
       cancelled = true
     }
-  }, [clientId, i18n.language, mutate])
+  }, [clientId, desktop, i18n.language, mutate])
 
   // Chưa cấu hình Client ID thì ẩn hẳn, trang vẫn dùng được bằng tên và mật khẩu.
   if (!clientId) return null
@@ -93,7 +119,30 @@ export function GoogleSignInButton({ from }: { from: string }) {
         {t('auth.or')}
         <span className="h-px flex-1 bg-[var(--line)]" aria-hidden />
       </div>
-      <div ref={containerRef} className="flex min-h-11 w-full justify-center" />
+      {desktop ? (
+        <button
+          type="button"
+          className="sketch min-h-11 w-full bg-surface px-4 py-2 text-sm font-bold"
+          onClick={() => {
+            setDesktopState('waiting')
+            desktop.postMessage({ type: 'google-signin', clientId })
+          }}
+        >
+          {t('auth.googleContinue')}
+        </button>
+      ) : (
+        <div ref={containerRef} className="flex min-h-11 w-full justify-center" />
+      )}
+      {desktopState === 'waiting' && !isPending && (
+        <p role="status" className="text-center text-sm text-ink-muted">
+          {t('auth.googleWaitingBrowser')}
+        </p>
+      )}
+      {desktopState === 'failed' && (
+        <p role="alert" className="rounded-lg bg-danger-bg px-3 py-2 text-sm font-semibold text-danger">
+          {t('auth.googleBrowserFailed')}
+        </p>
+      )}
       {isPending && (
         <p role="status" className="text-center text-sm text-ink-muted">
           {t('auth.googleSigningIn')}

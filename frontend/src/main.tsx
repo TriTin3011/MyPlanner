@@ -11,10 +11,10 @@ import './styles/index.css'
 // Khởi tạo i18next và áp ngôn ngữ đã lưu (cả <html lang>) trước khi React vẽ lần đầu.
 import './i18n'
 import { App } from './app/App.tsx'
-import { applyTheme, useSettings } from './store/settings'
+import { startSessionTheme } from './features/auth/sessionTheme'
 
-// Áp theme đã lưu trước khi vẽ lần đầu để không bị chớp màu mặc định.
-applyTheme(useSettings.getState().theme)
+// Áp màu theo phiên đăng nhập trước khi vẽ lần đầu để không bị chớp sai màu.
+startSessionTheme()
 
 // Điểm vào của SPA: gắn cây React vào <div id="root"> trong index.html.
 createRoot(document.getElementById('root')!).render(

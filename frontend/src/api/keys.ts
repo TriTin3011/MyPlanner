@@ -1,7 +1,7 @@
 // Query key tập trung một chỗ (key factory). Key là "địa chỉ" của một mục trong cache TanStack Query:
 // cùng key thì dùng chung cache; invalidate một key cha (vd ['tasks']) làm mới mọi key con.
 export const keys = {
-  health: ['health'] as const,
+  me: ['me'] as const,
   tasks: {
     all: ['tasks'] as const,
     range: (from: string, to: string) => ['tasks', 'range', from, to] as const,

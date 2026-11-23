@@ -7,6 +7,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <RootNamespace>MyPlanner.Desktop</RootNamespace>
+    <AssemblyName>Mam</AssemblyName>
+    <ApplicationIcon>Assets\mam.ico</ApplicationIcon>
   </PropertyGroup>
 
   <!-- Dùng chung DTO với backend: không viết lại model (SPEC §2.3). -->
@@ -16,7 +18,14 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.15" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4370.26" />
+  </ItemGroup>
+
+  <!-- Phông Baloo 2 và Be Vietnam Pro nhúng trong app, nên máy nào cũng hiển thị giống nhau. -->
+  <ItemGroup>
+    <Resource Include="Assets\Fonts\*.ttf" />
   </ItemGroup>
 
 </Project>

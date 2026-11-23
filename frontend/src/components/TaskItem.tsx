@@ -120,7 +120,7 @@ export function TaskItem({
       className="flex min-w-0 items-start gap-1 border-b border-dashed border-[var(--line)] py-0.5 last:border-b-0 sm:gap-1.5"
     >
       {dragHandle}
-      <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint md:size-9 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
+      <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-xl hover:bg-accent-tint md:size-9 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
         <span className="sr-only">
           {t(task.done ? 'common.taskItem.markUndone' : 'common.taskItem.markDone', { title: task.title })}
         </span>
@@ -252,7 +252,7 @@ export function TaskItem({
                 const isSubtaskPending = pendingSubtaskId === subtask.id
                 return (
                   <li key={subtask.id} className="flex min-w-0 items-center gap-2 py-1">
-                    <label className="grid min-h-11 min-w-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
+                    <label className="grid min-h-11 min-w-11 shrink-0 cursor-pointer place-items-center rounded-xl hover:bg-accent-tint focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
                       <span className="sr-only">
                         {t(
                           subtask.done ? 'common.taskItem.markSubtaskUndone' : 'common.taskItem.markSubtaskDone',

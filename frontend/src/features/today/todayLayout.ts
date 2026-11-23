@@ -18,6 +18,15 @@ export function normalizeTodayLayout(layout: TodayLayout | undefined): TodayLayo
   return result
 }
 
+// Đưa một khối tới vị trí mới. Vị trí ngoài danh sách thì giữ nguyên (ví dụ bấm ↑ ở dòng đầu).
+export function moveTodayBlock(layout: TodayLayout, from: number, to: number): TodayLayout {
+  if (from < 0 || from >= layout.length || to < 0 || to >= layout.length || from === to) return layout
+  const next = [...layout]
+  const [block] = next.splice(from, 1)
+  next.splice(to, 0, block)
+  return next
+}
+
 // Nhóm các khối đang hiện theo thứ tự bố cục. "Việc hôm nay" và "Thói quen" đứng cạnh nhau thì ghép
 // thành một hàng hai cột trên màn rộng (như ảnh 01); các khối khác chiếm trọn hàng.
 export function groupTodayBlocks(layout: TodayLayout): TodayBlockId[][] {

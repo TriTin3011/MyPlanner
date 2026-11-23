@@ -29,15 +29,15 @@ export function StatsCard({
     <section aria-label={title} className={`sketch bg-[var(--surface)] p-3.5 lg:p-5 ${className}`}>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="font-display text-lg font-extrabold text-ink">{title}</h2>
+          <h2 className="font-display text-xl font-extrabold text-ink">{title}</h2>
           {extra}
         </div>
         <button
           type="button"
           aria-pressed={showTable}
           onClick={() => setChartMode(id, showTable ? 'line' : 'table')}
-          className={`min-h-9 cursor-pointer rounded-lg border-2 border-ink px-3 text-xs font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
-            showTable ? 'bg-primary text-white' : 'bg-[var(--surface)] text-ink hover:bg-accent-tint'
+          className={`min-h-9 cursor-pointer rounded-lg px-3 text-xs font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
+            showTable ? 'bg-accent-soft text-primary-ink' : 'text-ink-muted hover:bg-accent-tint hover:text-ink'
           }`}
         >
           {t('stats.tableBtn')}

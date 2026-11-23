@@ -4,7 +4,7 @@ import {
   ChartColumn,
   CircleCheck,
   Mountain,
-  Sparkles,
+  Sun,
   Target,
   type LucideIcon,
 } from 'lucide-react'
@@ -26,7 +26,7 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { path: '/', key: 'today', icon: Sparkles },
+  { path: '/', key: 'today', icon: Sun },
   { path: '/goals', key: 'goals', icon: Target },
   { path: '/habits', key: 'habits', icon: CircleCheck },
   { path: '/week', key: 'week', icon: CalendarDays },

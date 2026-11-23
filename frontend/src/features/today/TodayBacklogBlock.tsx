@@ -2,6 +2,7 @@ import { ChevronDown, LoaderCircle } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { TaskDto } from '../../api/types'
+import { EmptyState } from '../../components/EmptyState'
 import { TaskMenu } from '../../components/TaskMenu'
 import { getTaskTags } from '../../components/taskTags'
 import { INTL_LOCALE } from '../../i18n/languages'
@@ -94,9 +95,7 @@ export function TodayBacklogBlock({
       {isOpen && (
         <div id={contentId} className="mt-3 border-t border-[var(--line)] pt-2">
           {backlog.length === 0 ? (
-            <p className="py-4 text-center text-sm font-medium text-ink-muted">
-              {t('today.backlog.empty')}
-            </p>
+            <EmptyState text={t('today.backlog.empty')} />
           ) : (
             <div className="divide-y divide-[var(--line)]">
               {backlog.map((task) => {
@@ -111,7 +110,7 @@ export function TodayBacklogBlock({
                     className="flex min-w-0 items-center justify-between gap-3 py-2.5"
                   >
                     <div className="flex min-w-0 flex-1 items-center gap-2">
-                      <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint md:size-9 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
+                      <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-xl hover:bg-accent-tint md:size-9 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
                         <span className="sr-only">
                           {t('today.backlog.markDone', { title: task.title })}
                         </span>

@@ -24,7 +24,7 @@ afterEach(cleanup)
 
 describe('TodayHeader', () => {
   it('shows the daily summary with accessible progress', () => {
-    render(<TodayHeader dashboard={dashboard} />)
+    const { container } = render(<TodayHeader dashboard={dashboard} />)
 
     expect(screen.getByRole('heading', { name: 'Hôm nay', level: 1 })).not.toBeNull()
     expect(screen.getByText('Chủ nhật, 22/11/2026')).not.toBeNull()
@@ -36,6 +36,7 @@ describe('TodayHeader', () => {
     expect(progress.getAttribute('aria-valuenow')).toBe('38')
     expect(progress.getAttribute('aria-valuemin')).toBe('0')
     expect(progress.getAttribute('aria-valuemax')).toBe('100')
+    expect(container.querySelector('.mascot')).toBeNull()
   })
 
   it('renders English labels and en-US date after i18n.changeLanguage("en")', async () => {

@@ -1,7 +1,8 @@
-import { Calendar, ChevronDown, LoaderCircle, RotateCcw } from 'lucide-react'
-import { useId, useState } from 'react'
+import { Calendar, LoaderCircle, RotateCcw } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChartCard } from '../../components/ChartCard'
+import { Select } from '../../components/Select'
 import { toLocalDateKey } from '../../lib/dates'
 import { type StatsRange, useSettings } from '../../store/settings'
 import { GoalsStats } from './GoalsStats'
@@ -21,7 +22,6 @@ export function StatsPage() {
   const setRange = useSettings((s) => s.setStatsRange)
   const trendMode = useSettings((s) => s.chartModes['stats-trend'] ?? 'line')
   const setChartMode = useSettings((s) => s.setChartMode)
-  const selectId = useId()
   const stats = useStats(range, today)
 
   const header = (
@@ -39,25 +39,14 @@ export function StatsPage() {
           </p>
         )}
       </div>
-      <div className="flex items-center gap-1.5 rounded-lg border-2 border-ink bg-[var(--surface)] px-3 py-1.5 shadow-[2px_2px_0_0_var(--ink)]">
-        <Calendar size={15} className="text-primary" aria-hidden="true" />
-        <label htmlFor={selectId} className="sr-only">
-          {t('stats.rangeAria')}
-        </label>
-        <select
-          id={selectId}
-          value={range}
-          onChange={(e) => setRange(e.target.value as StatsRange)}
-          className="min-h-8 cursor-pointer appearance-none bg-transparent pr-5 text-sm font-bold text-ink focus:outline-none"
-        >
-          {STATS_RANGES.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown size={14} className="pointer-events-none -ml-5 text-ink-muted" aria-hidden="true" />
-      </div>
+      <Select<StatsRange>
+        ariaLabel={t('stats.rangeAria')}
+        value={range}
+        options={STATS_RANGES}
+        onChange={setRange}
+        icon={<Calendar size={15} className="shrink-0 text-primary" aria-hidden="true" />}
+        className="min-h-11 min-w-36 rounded-lg border-2 border-ink bg-surface px-3 text-sm shadow-[2px_2px_0_0_var(--ink)] hover:bg-accent-tint"
+      />
     </header>
   )
 
@@ -84,7 +73,7 @@ export function StatsPage() {
           <button
             type="button"
             onClick={() => stats.refetch()}
-            className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+            className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             <RotateCcw size={17} aria-hidden="true" />
             {t('common.retry')}
