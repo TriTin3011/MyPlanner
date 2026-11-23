@@ -7,7 +7,7 @@ using MyPlanner.DAL.Auth;
 
 namespace MyPlanner.BLL.Auth;
 
-// Đăng nhập. Chỉ dùng PasswordHasher của Identity (PBKDF2, salt ngẫu nhiên, nhiều vòng lặp), không kéo cả
+// Đăng ký và đăng nhập. Chỉ dùng PasswordHasher của Identity (PBKDF2, salt ngẫu nhiên, nhiều vòng lặp), không kéo cả
 // ASP.NET Core Identity (UserManager, 7 bảng AspNet*): app chỉ cần tên + mật khẩu (+ Google ở bước 11.7),
 // không cần role, khoá tài khoản, xác thực email.
 public class AuthService(
@@ -47,6 +47,20 @@ public class AuthService(
         return new LoginResponse(token.Token, token.ExpiresAt, user.UserName);
     }
 
+    public async Task<LoginResponse> RegisterAsync(RegisterRequest request, CancellationToken ct)
+    {
+        var user = new AppUser { Id = Guid.NewGuid(), UserName = Normalize(request.UserName), CreatedAt = clock.GetUtcNow() };
+        user.PasswordHash = hasher.HashPassword(user, request.Password);
+
+        // Không "kiểm tra có chưa rồi mới thêm": hai request cùng tên đến cùng lúc đều qua bước kiểm tra.
+        // Để index unique của DB quyết định, repository báo false khi bị trùng.
+        if (!await users.TryAddAsync(user, ct))
+            throw AppException.Conflict(Messages.UserNameTaken);
+
+        var token = tokens.Issue(user);
+        return new LoginResponse(token.Token, token.ExpiresAt, user.UserName);
+    }
+
     public async Task<bool> EnsureAccountAsync(string? userName, string? password, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrEmpty(password)) return false;
@@ -66,5 +80,5 @@ public class AuthService(
     }
 
     // Tên đăng nhập không phân biệt hoa thường: "Tin" và "tin" là một.
-    private static string Normalize(string userName) => userName.Trim().ToLowerInvariant();
+    internal static string Normalize(string userName) => userName.Trim().ToLowerInvariant();
 }

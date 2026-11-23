@@ -174,6 +174,49 @@ public class AuthServiceTests : IDisposable
     public void LoginRequestValidator_caps_password_length_to_protect_cpu() =>
         Assert.False(new LoginRequestValidator().Validate(new LoginRequest("tin", new string('x', 257))).IsValid);
 
+    [Fact]
+    public async Task RegisterAsync_creates_normalized_user_and_returns_token_for_it()
+    {
+        var result = await service.RegisterAsync(new RegisterRequest("  An.Nguyen ", Password), CancellationToken.None);
+
+        var user = Assert.Single(users.Items);
+        Assert.Equal("an.nguyen", user.UserName);
+        Assert.NotEqual(Password, user.PasswordHash);
+        Assert.Equal("an.nguyen", result.UserName);
+        Assert.False(string.IsNullOrEmpty(result.AccessToken));
+
+        // Đăng ký xong đăng nhập lại bằng chính mật khẩu đó được.
+        var login = await service.LoginAsync(new LoginRequest("AN.NGUYEN", Password), CancellationToken.None);
+        Assert.Equal("an.nguyen", login.UserName);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_rejects_taken_user_name_case_insensitively_with_409()
+    {
+        await service.RegisterAsync(new RegisterRequest("tin", Password), CancellationToken.None);
+
+        var error = await Assert.ThrowsAsync<AppException>(
+            () => service.RegisterAsync(new RegisterRequest("TIN", "mat-khau-khac-456"), CancellationToken.None));
+
+        Assert.Equal(409, error.StatusCode);
+        Assert.Single(users.Items);
+    }
+
+    [Theory]
+    [InlineData("tin", Password, true)]
+    [InlineData(" Tin_2026 ", Password, true)]       // được trim + hạ chữ thường trước khi kiểm
+    [InlineData("ab", Password, false)]              // quá ngắn
+    [InlineData("tin nguyen", Password, false)]      // có khoảng trắng
+    [InlineData("tín", Password, false)]             // có dấu
+    [InlineData("tin", "1234567", false)]            // mật khẩu 7 ký tự
+    [InlineData("tin", "12345678", true)]
+    public void RegisterRequestValidator_checks_user_name_format_and_password_length(string userName, string password, bool valid) =>
+        Assert.Equal(valid, new RegisterRequestValidator().Validate(new RegisterRequest(userName, password)).IsValid);
+
+    [Fact]
+    public void RegisterRequestValidator_rejects_user_name_longer_than_column() =>
+        Assert.False(new RegisterRequestValidator().Validate(new RegisterRequest(new string('a', 65), Password)).IsValid);
+
     // Giả lập hash cũ: mật khẩu đúng nhưng hasher báo "cần băm lại" (như khi .NET tăng số vòng lặp PBKDF2).
     private sealed class RehashNeededHasher : PasswordHasher<AppUser>
     {
@@ -198,6 +241,14 @@ public class AuthServiceTests : IDisposable
         public Task<bool> AnyAsync(CancellationToken ct) => Task.FromResult(Items.Count > 0);
 
         public void Add(AppUser user) => Items.Add(user);
+
+        // Giống index unique của DB: trùng tên thì không thêm.
+        public Task<bool> TryAddAsync(AppUser user, CancellationToken ct)
+        {
+            if (Items.Any(u => u.UserName == user.UserName)) return Task.FromResult(false);
+            Items.Add(user);
+            return Task.FromResult(true);
+        }
 
         public int SaveCount { get; set; }
 

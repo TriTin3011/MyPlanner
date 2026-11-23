@@ -8,5 +8,8 @@ public interface IUserRepository
     Task<AppUser?> FindByUserNameAsync(string userName, CancellationToken ct);
     Task<bool> AnyAsync(CancellationToken ct);
     void Add(AppUser user);
+
+    // Thêm và lưu ngay. Trả false khi UserName đã tồn tại (vi phạm index unique), kể cả khi hai request tranh nhau.
+    Task<bool> TryAddAsync(AppUser user, CancellationToken ct);
     Task SaveChangesAsync(CancellationToken ct);
 }

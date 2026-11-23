@@ -93,7 +93,7 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
         };
     });
 
-// Fallback policy: endpoint nào không ghi gì thì mặc định phải đăng nhập. Mở ra bằng [AllowAnonymous] (login, health).
+// Fallback policy: endpoint nào không ghi gì thì mặc định phải đăng nhập. Mở ra bằng [AllowAnonymous] (login, register, health).
 // An toàn hơn cách ngược lại (gắn [Authorize] từng controller), vì quên gắn chỉ làm endpoint bị khoá chứ không bị lộ.
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
@@ -112,12 +112,20 @@ builder.Services.AddRateLimiter(options =>
         await http.RequestServices.GetRequiredService<IProblemDetailsService>().WriteAsync(new ProblemDetailsContext
         {
             HttpContext = http,
-            ProblemDetails = { Status = StatusCodes.Status429TooManyRequests, Detail = Messages.TooManyLoginAttempts },
+            ProblemDetails =
+            {
+                Status = StatusCodes.Status429TooManyRequests,
+                Detail = http.Request.Path.StartsWithSegments("/api/auth/register") ? Messages.TooManyRegistrations : Messages.TooManyLoginAttempts,
+            },
         });
     };
     options.AddPolicy(AuthController.LoginRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
         http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+    // Đăng ký: mỗi IP tối đa 5 tài khoản mỗi giờ. Người thật hiếm khi cần hơn; bot tạo hàng loạt thì bị chặn.
+    options.AddPolicy(AuthController.RegisterRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+        http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromHours(1), QueueLimit = 0 }));
 });
 
 var app = builder.Build();
