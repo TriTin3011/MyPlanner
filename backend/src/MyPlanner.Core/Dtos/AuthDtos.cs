@@ -6,4 +6,7 @@ public record LoginRequest(string UserName, string Password);
 // expiresAt để client biết lúc nào phải đăng nhập lại mà không cần tự giải mã token.
 public record LoginResponse(string AccessToken, DateTimeOffset ExpiresAt, string UserName);
 
+// Đăng ký thành công trả luôn LoginResponse (đăng nhập ngay), client không phải gọi /login lần nữa.
+public record RegisterRequest(string UserName, string Password);
+
 public record CurrentUserDto(string UserName);

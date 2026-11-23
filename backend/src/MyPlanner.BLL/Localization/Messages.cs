@@ -38,6 +38,13 @@ public static class Messages
     public static string TooManyLoginAttempts => Text("Đăng nhập sai quá nhiều lần, thử lại sau một phút.", "Too many login attempts. Try again in a minute.");
     public static string UserNameRequired => Text("Tên đăng nhập không được trống.", "Username is required.");
     public static string PasswordRequired => Text("Mật khẩu không được trống.", "Password is required.");
+    public static string ConflictTitle => Text("Bị trùng", "Conflict");
+    public static string UserNameTaken => Text("Tên đăng nhập này đã có người dùng.", "This username is already taken.");
+    public static string UserNameFormat => Text(
+        "Tên đăng nhập dài 3–64 ký tự, chỉ gồm chữ không dấu, số, dấu chấm, gạch ngang hoặc gạch dưới.",
+        "Username must be 3–64 characters: letters a–z, digits, dot, hyphen or underscore.");
+    public static string PasswordTooShort => Text("Mật khẩu phải dài ít nhất 8 ký tự.", "Password must be at least 8 characters.");
+    public static string TooManyRegistrations => Text("Tạo tài khoản quá nhiều lần, thử lại sau.", "Too many sign-ups. Try again later.");
     public static string NotFoundDetail(string item) => Format("{0} không tồn tại.", "{0} was not found.", item);
 
     public static string Task => Text("Việc", "Task");
