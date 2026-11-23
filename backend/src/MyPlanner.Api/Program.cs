@@ -73,6 +73,10 @@ builder.Services.AddOptions<JwtOptions>()
 // Đăng nhập Google là tuỳ chọn: thiếu Google:ClientId thì app vẫn chạy, POST /auth/google luôn trả 401.
 builder.Services.Configure<GoogleOptions>(builder.Configuration.GetSection(GoogleOptions.Section));
 
+// Lưu ảnh cũng là tuỳ chọn: thiếu Storage thì app vẫn chạy và avatar hiện chữ cái đầu.
+builder.Services.Configure<MyPlanner.Core.Storage.StorageOptions>(
+    builder.Configuration.GetSection(MyPlanner.Core.Storage.StorageOptions.Section));
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 // Cấu hình JwtBearer từ JwtOptions đã bind ở trên (không đọc IConfiguration lần hai).
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
@@ -118,7 +122,9 @@ builder.Services.AddRateLimiter(options =>
             ProblemDetails =
             {
                 Status = StatusCodes.Status429TooManyRequests,
-                Detail = http.Request.Path.StartsWithSegments("/api/auth/register") ? Messages.TooManyRegistrations : Messages.TooManyLoginAttempts,
+                Detail = http.Request.Path.StartsWithSegments("/api/profile") ? Messages.TooManyUploads
+                    : http.Request.Path.StartsWithSegments("/api/auth/register") ? Messages.TooManyRegistrations
+                    : Messages.TooManyLoginAttempts,
             },
         });
     };
@@ -129,6 +135,10 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy(AuthController.RegisterRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
         http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromHours(1), QueueLimit = 0 }));
+    // Xử lý ảnh tốn CPU nên giới hạn theo tài khoản: 20 lần mỗi giờ.
+    options.AddPolicy(ProfileController.AvatarRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+        http.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromHours(1), QueueLimit = 0 }));
 });
 
 var app = builder.Build();

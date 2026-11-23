@@ -1,12 +1,13 @@
-import { Calendar, ChevronDown, Info } from 'lucide-react'
-import { type ReactNode, useId, useMemo, useState } from 'react'
+import { Calendar, Info } from 'lucide-react'
+import { type ReactNode, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { INTL_LOCALE } from '../i18n/languages'
 import { buildAreaPath, buildSmoothCurvePath, type ChartPoint } from '../lib/chartSvg'
 import { useElementWidth } from '../lib/useElementWidth'
-import { useSettings } from '../store/settings'
+import { useSettings, type ChartMode } from '../store/settings'
+import { Select } from './Select'
 
-export type ChartDisplayMode = 'line' | 'bar' | 'table'
+export type ChartDisplayMode = ChartMode
 
 export interface RangeOption {
   value: string
@@ -56,7 +57,6 @@ export function ChartCard({
   const resolvedTotalLabel = totalLabel ?? t('common.chart.defaultTotalLabel')
   const [showInfo, setShowInfo] = useState(false)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const selectId = useId()
 
   // viewBox rộng đúng bằng bề rộng thật của vùng vẽ và cao cố định 150px (như bản tham chiếu),
   // nên chữ trục luôn đúng 11px, biểu đồ không phình to khi thẻ rộng ra.
@@ -105,7 +105,6 @@ export function ChartCard({
   const doneCurvePath = useMemo(() => buildSmoothCurvePath(donePoints), [donePoints])
   const areaPath = useMemo(() => buildAreaPath(donePoints, baseY), [donePoints, baseY])
 
-  // Tổng hợp dữ liệu cho bảng Table View
   const totals = useMemo(() => {
     const totalDone = data.reduce((sum, d) => sum + d.done, 0)
     const totalAll = data.reduce((sum, d) => sum + d.total, 0)
@@ -150,27 +149,14 @@ export function ChartCard({
 
           {/* Dropdown chọn khoảng thời gian */}
           {rangeOptions.length > 0 && (
-          <div className="relative inline-flex items-center">
-            <label htmlFor={selectId} className="sr-only">
-              {t('common.chart.rangeLabel')}
-            </label>
-            <div className="flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1 text-xs font-bold text-ink shadow-xs">
-              <Calendar size={13} className="text-primary" aria-hidden="true" />
-              <select
-                id={selectId}
-                value={range}
-                onChange={(e) => onRangeChange?.(e.target.value)}
-                className="cursor-pointer bg-transparent pr-4 font-bold text-ink focus:outline-none"
-              >
-                {rangeOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown size={13} className="-ml-3 pointer-events-none text-ink-muted" aria-hidden="true" />
-            </div>
-          </div>
+            <Select
+              ariaLabel={t('common.chart.rangeLabel')}
+              value={range}
+              options={rangeOptions}
+              onChange={(next) => onRangeChange?.(next)}
+              icon={<Calendar size={14} className="shrink-0 text-primary" aria-hidden="true" />}
+              className="min-h-9 min-w-28 rounded-lg border-2 border-ink bg-surface px-2.5 text-xs hover:bg-accent-tint"
+            />
           )}
         </div>
 
@@ -190,15 +176,10 @@ export function ChartCard({
           <div
             role="radiogroup"
             aria-label={t('common.chart.displayModeAria')}
-            className="flex rounded-lg border-2 border-[var(--ink)] bg-[var(--surface)] p-0.5 shadow-[2px_2px_0_0_var(--ink)]"
+            className="flex items-center gap-0.5"
           >
             {(['line', 'bar', 'table'] as const).map((m) => {
-              const label =
-                m === 'line'
-                  ? t('common.chart.modeLine')
-                  : m === 'bar'
-                    ? t('common.chart.modeBar')
-                    : t('common.chart.modeTable')
+              const label = t(m === 'line' ? 'common.chart.modeLine' : m === 'bar' ? 'common.chart.modeBar' : 'common.chart.modeTable')
               const isSelected = mode === m
               return (
                 <button
@@ -207,8 +188,8 @@ export function ChartCard({
                   role="radio"
                   aria-checked={isSelected}
                   onClick={() => onModeChange(m)}
-                  className={`rounded-md px-2.5 py-0.5 text-xs font-bold transition-colors ${
-                    isSelected ? 'bg-primary text-white' : 'text-ink-muted hover:text-ink'
+                  className={`min-h-9 cursor-pointer rounded-lg px-3 text-xs font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none transition-colors ${
+                    isSelected ? 'bg-accent-soft text-primary-ink' : 'text-ink-muted hover:bg-accent-tint hover:text-ink'
                   }`}
                 >
                   {label}
@@ -231,7 +212,7 @@ export function ChartCard({
               <button
                 type="button"
                 onClick={onRetry}
-                className="min-h-11 rounded-full bg-primary px-4 text-sm font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="min-h-11 rounded-xl bg-primary px-4 text-sm font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 {t('common.retry')}
               </button>
@@ -502,7 +483,7 @@ export function ChartCard({
           </div>
         )}
 
-        {/* Chế độ Bảng (Table View) theo SPEC §5 */}
+        {/* Chế độ Bảng */}
         {mode === 'table' && (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">

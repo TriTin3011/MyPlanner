@@ -9,12 +9,105 @@
   .sketch {
     background: var(--surface);
     border: 2px solid var(--ink);
-    border-radius: 14px 18px 12px 20px / 18px 12px 20px 14px;
+    border-radius: 14px;
     box-shadow: 2px 3px 0 0 var(--ink);
   }
 
   .sketch--active {
     background: var(--accent-soft);
+  }
+
+  /* Khung tab đang chọn là một phần tử riêng, trượt tới tab mới. Đường cong vượt quá 1 tạo độ nảy nhẹ. */
+  .nav-pill {
+    transition: transform 500ms cubic-bezier(0.34, 1.4, 0.5, 1);
+  }
+
+  .nav-tab__icon {
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Chỉ thiết bị có chuột mới có hover, tránh icon bị "kẹt" nghiêng sau khi chạm trên điện thoại. */
+  @media (hover: hover) {
+    .nav-tab:hover .nav-tab__icon {
+      transform: translateY(-2px) rotate(-6deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-pill,
+    .nav-tab__icon {
+      transition: none;
+    }
+
+    .nav-tab:hover .nav-tab__icon {
+      transform: none;
+    }
+  }
+
+  /* Hộp nhạc: đĩa luôn gắn animation nhưng tạm dừng, nên khi dừng nhạc đĩa đứng đúng góc đang quay. */
+  .music-box__disc {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: music-box-spin 2.4s linear infinite paused;
+  }
+
+  .music-box--playing .music-box__disc {
+    animation-play-state: running;
+  }
+
+  .music-box__arm {
+    transform-box: view-box;
+    transform-origin: 25.5px 11px;
+    transform: rotate(-18deg);
+    transition: transform 300ms ease-out;
+  }
+
+  .music-box--playing .music-box__arm {
+    transform: rotate(0deg);
+  }
+
+  .music-box__note {
+    opacity: 0;
+  }
+
+  .music-box--playing .music-box__note {
+    animation: music-box-note 1.8s ease-out infinite;
+  }
+
+  .music-box--playing .music-box__note--late {
+    animation-delay: 0.9s;
+  }
+
+  @keyframes music-box-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes music-box-note {
+    0% {
+      opacity: 0;
+      transform: translateY(3px);
+    }
+    30% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .music-box__disc,
+    .music-box--playing .music-box__disc,
+    .music-box--playing .music-box__note {
+      animation: none;
+    }
+
+    .music-box__arm {
+      transition: none;
+    }
   }
 
   /* Nền giấy kẻ ô vuông 18px */
@@ -32,5 +125,22 @@
   .sketch {
     border-width: 1.5px;
     box-shadow: 1px 2px 0 0 var(--ink);
+  }
+}
+
+/*
+  Nét vẽ tay do components/SketchBorders sinh theo đúng kích thước thẻ.
+  Dùng border-image vì nó không trôi khi thẻ cuộn và không bị overflow của chính thẻ cắt.
+  Số 9 và 3px phải khớp SKETCH_SLICE, SKETCH_OUTSET trong lib/sketchStroke.ts.
+*/
+.sketch[data-sketched] {
+  border-image: var(--sketch-stroke) 9 / 9px / 3px stretch;
+  box-shadow: none;
+}
+
+/* Điện thoại: khung chính tràn sát mép màn hình nên không vẽ nét quanh nó. */
+@media (max-width: 767px) {
+  main.sketch[data-sketched] {
+    border-image: none;
   }
 }

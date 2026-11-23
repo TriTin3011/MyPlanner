@@ -5,6 +5,7 @@ import type { TaskDto } from '../../api/types'
 import { useHotkey } from '../../lib/useHotkey'
 import { SortableTaskList } from './SortableTaskList'
 import { AddTaskInput } from '../../components/AddTaskInput'
+import { EmptyState } from '../../components/EmptyState'
 import { NoteCollapsible } from '../../components/NoteCollapsible'
 import { TaskItem, type TaskItemMenuActions } from '../../components/TaskItem'
 
@@ -87,7 +88,7 @@ export function TodayTasksBlock({
             type="button"
             onClick={onOpenRecurring}
             aria-haspopup="dialog"
-            className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full px-3 text-sm font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+            className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             <Repeat2 size={16} aria-hidden="true" />
             {t('today.tasks.recurringButton')}
@@ -105,9 +106,7 @@ export function TodayTasksBlock({
       )}
 
       {tasks.length === 0 ? (
-        <p className="py-8 text-center text-sm font-medium text-ink-muted">
-          {t('today.tasks.empty')}
-        </p>
+        <EmptyState text={t('today.tasks.empty')} />
       ) : (
         <div>
           {onReorder ? (

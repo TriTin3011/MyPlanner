@@ -13,6 +13,9 @@ public class UserRepository(AppDbContext db) : IUserRepository
     public Task<AppUser?> FindByGoogleSubjectAsync(string subject, CancellationToken ct) =>
         db.Users.FirstOrDefaultAsync(u => u.GoogleSubject == subject, ct);
 
+    public Task<AppUser?> FindByIdAsync(Guid id, CancellationToken ct) =>
+        db.Users.FirstOrDefaultAsync(u => u.Id == id, ct);
+
     public Task<bool> AnyAsync(CancellationToken ct) => db.Users.AnyAsync(ct);
 
     public void Add(AppUser user) => db.Users.Add(user);

@@ -15,10 +15,10 @@ const LEVEL_BG = [
   'var(--primary)',
 ]
 
-const CELL = 14
+const CELL = 34
 const GAP = 3
 const LEFT = 26
-const TOP = 16
+const TOP = 20
 // Chỉ ghi nhãn T2, T4, T6, CN để đỡ rối (SPEC §11).
 const ROW_INDICES = [0, 2, 4, 6] as const
 
@@ -38,12 +38,12 @@ export function StatsHeatmap({ days, today }: { days: StatsHeatmapDayDto[]; toda
         <div className="overflow-x-auto">
           <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-label={t('stats.heatmap.svgAria')} className="max-w-none">
             {grid.monthLabels.map((m) => (
-              <text key={`${m.col}-${m.label}`} x={LEFT + m.col * (CELL + GAP)} y={10} className="fill-ink-muted text-[10px] font-bold">
+              <text key={`${m.col}-${m.label}`} x={LEFT + m.col * (CELL + GAP)} y={12} className="fill-ink-muted text-[11px]">
                 {m.label}
               </text>
             ))}
             {ROW_INDICES.map((row) => (
-              <text key={row} x={0} y={TOP + row * (CELL + GAP) + CELL - 3} className="fill-ink-muted text-[10px] font-bold">
+              <text key={row} x={0} y={TOP + row * (CELL + GAP) + CELL / 2 + 4} className="fill-ink-muted text-[11px]">
                 {weekdayLabel(row + 1, true, locale)}
               </text>
             ))}
@@ -54,7 +54,7 @@ export function StatsHeatmap({ days, today }: { days: StatsHeatmapDayDto[]; toda
                 y={TOP + c.row * (CELL + GAP)}
                 width={CELL}
                 height={CELL}
-                rx={3}
+                rx={5}
                 fill={LEVEL_BG[Math.max(0, Math.min(4, c.level))]}
                 stroke={c.date === today ? 'var(--ink)' : 'none'}
                 strokeWidth={c.date === today ? 2 : 0}
@@ -63,10 +63,10 @@ export function StatsHeatmap({ days, today }: { days: StatsHeatmapDayDto[]; toda
               </rect>
             ))}
           </svg>
-          <div className="mt-2 flex items-center justify-end gap-1 text-[11px] font-semibold text-ink-muted" aria-hidden="true">
+          <div className="mt-3 flex items-center justify-end gap-1 text-xs text-ink-muted" aria-hidden="true">
             {t('stats.heatmap.less')}
             {LEVEL_BG.map((bg) => (
-              <span key={bg} className="inline-block size-3 rounded-[3px]" style={{ background: bg }} />
+              <span key={bg} className="inline-block size-3.5 rounded-[3px]" style={{ background: bg }} />
             ))}
             {t('stats.heatmap.more')}
           </div>

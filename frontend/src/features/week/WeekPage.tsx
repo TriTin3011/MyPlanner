@@ -68,7 +68,7 @@ export function WeekPage() {
         <button
           type="button"
           onClick={() => week.refetch()}
-          className="flex min-h-11 items-center gap-2 rounded-full bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <RotateCcw size={17} aria-hidden="true" />
           {t('common.retry')}
@@ -189,7 +189,7 @@ function WeekTasksSection({ monday, today }: { monday: string; today: string }) 
           type="button"
           onClick={() => setRecurringOpen(true)}
           aria-haspopup="dialog"
-          className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full px-3 text-sm font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+          className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
         >
           <Repeat2 size={16} aria-hidden="true" />
           {t('week.tasksSection.recurringButton')}
@@ -218,7 +218,7 @@ function WeekTasksSection({ monday, today }: { monday: string; today: string }) 
           <button
             type="button"
             onClick={() => tasks.refetch()}
-            className="flex min-h-11 items-center gap-2 rounded-full bg-primary px-4 font-bold text-white hover:opacity-90"
+            className="flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 font-bold text-white hover:opacity-90"
           >
             <RotateCcw size={17} aria-hidden="true" />
             {t('common.retry')}

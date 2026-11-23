@@ -78,7 +78,7 @@ export function WeekHeader({ week, isCurrentWeek, onPrev, onNext, onCurrent }: W
               onClick={() => setExpanded((v) => !v)}
               aria-expanded={expanded}
               aria-controls={insightsId}
-              className="-ml-2 flex min-h-11 cursor-pointer items-center gap-1 rounded-full px-2 text-sm font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:min-h-8"
+              className="-ml-2 flex min-h-11 cursor-pointer items-center gap-1 rounded-xl px-2 text-sm font-bold text-primary-ink hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:min-h-8"
             >
               {expanded ? t('week.showLess') : t('week.showMore')}
               <ChevronDown

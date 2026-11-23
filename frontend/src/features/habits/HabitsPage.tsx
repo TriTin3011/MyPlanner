@@ -58,7 +58,7 @@ export function HabitsPage() {
         <button
           type="button"
           onClick={() => habitMonth.refetch()}
-          className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+          className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
         >
           <RotateCcw size={17} aria-hidden="true" />
           {t('common.retry')}

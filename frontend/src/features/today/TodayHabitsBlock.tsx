@@ -2,6 +2,7 @@ import { GripVertical, LoaderCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import type { TodayHabitDto } from '../../api/types'
+import { EmptyState } from '../../components/EmptyState'
 
 interface TodayHabitsBlockProps {
   habits: TodayHabitDto[]
@@ -39,9 +40,7 @@ export function TodayHabitsBlock({
       )}
 
       {habits.length === 0 ? (
-        <p className="py-8 text-center text-sm font-medium text-ink-muted">
-          {t('today.habits.empty')}
-        </p>
+        <EmptyState text={t('today.habits.empty')} />
       ) : (
         <div>
           {habits.map((habit) => {
@@ -51,7 +50,7 @@ export function TodayHabitsBlock({
                 key={habit.id}
                 className="flex min-w-0 items-center gap-1.5 border-b border-dashed border-[var(--line)] py-0.5 last:border-b-0"
               >
-                <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full hover:bg-accent-tint md:size-9 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
+                <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-xl hover:bg-accent-tint md:size-9 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
                   <span className="sr-only">
                     {t(habit.done ? 'today.habits.markUndone' : 'today.habits.markDone', { title: habit.title })}
                   </span>

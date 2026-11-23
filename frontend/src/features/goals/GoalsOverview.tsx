@@ -40,7 +40,7 @@ export function GoalsOverview({ board, selectedArea, onSelectArea }: GoalsOvervi
               type="button"
               aria-pressed={isSelected}
               onClick={() => onSelectArea(isSelected ? null : item.area)}
-              className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none sm:min-h-9 ${
+              className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none sm:min-h-9 ${
                 isSelected
                   ? 'border-2 border-primary-ink bg-accent-soft font-extrabold text-primary-ink shadow-[1px_2px_0_0_var(--ink)]'
                   : 'border border-transparent bg-accent-tint/70 font-bold text-ink hover:bg-accent-soft/70'

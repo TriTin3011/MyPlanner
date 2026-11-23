@@ -4,70 +4,77 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:MyPlanner.Desktop.ViewModels"
+        xmlns:views="clr-namespace:MyPlanner.Desktop.Views"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d"
-        d:DataContext="{d:DesignInstance Type=vm:TodayViewModel}"
-        Title="Mầm" Width="900" Height="680"
+        d:DataContext="{d:DesignInstance Type=vm:ShellViewModel}"
+        Title="Mầm" Width="1280" Height="800" MinWidth="420" MinHeight="560"
         Background="{StaticResource PaperBrush}"
         Foreground="{StaticResource Ink}"
         FontFamily="Segoe UI" FontSize="14">
     <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <!-- "Bảng route": kiểu ViewModel nào thì vẽ bằng View nào (ViewModel-first navigation). -->
+        <DataTemplate DataType="{x:Type vm:LoginViewModel}">
+            <views:LoginView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TodayViewModel}">
+            <views:TodayView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:WeekViewModel}">
+            <views:WeekView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:HabitsViewModel}">
+            <views:HabitsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:GoalsViewModel}">
+            <views:GoalsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:YearViewModel}">
+            <views:YearView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:StatsViewModel}">
+            <views:StatsView />
+        </DataTemplate>
     </Window.Resources>
 
-    <Grid Margin="24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <Grid x:Name="Root">
+    <!-- Giao diện chính của bản cài: frontend React chạy trong WebView2 (Hosting/WebUiHost). -->
+    <wv2:WebView2 x:Name="Web" Visibility="Collapsed" DefaultBackgroundColor="#F3F7EE" />
 
-        <!-- Header: ngày + vòng % (số % lấy từ API) -->
-        <Border Style="{StaticResource SketchCard}" Margin="0,0,0,16">
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="‹" Command="{Binding PreviousDayCommand}" Style="{StaticResource SketchButton}" ToolTip="Ngày trước" />
-                    <Button Content="Hôm nay" Command="{Binding TodayCommand}" Style="{StaticResource SketchButton}" />
-                    <Button Content="›" Command="{Binding NextDayCommand}" Style="{StaticResource SketchButton}" ToolTip="Ngày sau" />
-                </StackPanel>
-                <Grid Width="64" Height="64" Margin="0,0,16,0">
-                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Maximum="100" Height="8"
-                                 VerticalAlignment="Bottom" Foreground="{StaticResource Primary}"
-                                 Background="{StaticResource AccentSoft}" BorderThickness="0" />
-                    <TextBlock Text="{Binding Percent, StringFormat={}{0}%}" FontSize="22" FontWeight="Bold"
-                               Foreground="{StaticResource PrimaryInk}" HorizontalAlignment="Center" VerticalAlignment="Top" />
-                </Grid>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{Binding DateLabel}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource PrimaryInk}" />
-                    <TextBlock Text="{Binding Summary}" Foreground="{StaticResource InkMuted}" />
-                </StackPanel>
-            </DockPanel>
-        </Border>
+    <DockPanel x:Name="NativeShell" Margin="24">
+        <!-- Thanh trên: chỉ hiện khi đã đăng nhập (UserName khác null). -->
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+            <DockPanel.Style>
+                <Style TargetType="DockPanel">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding UserName}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DockPanel.Style>
+            <Button DockPanel.Dock="Right" Content="Đăng xuất" Command="{Binding LogoutCommand}"
+                    Style="{StaticResource SketchButton}" Margin="0" />
+            <!-- Thanh điều hướng: mỗi nút gửi khoá trang cho NavigateCommand. -->
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                <Button Content="Hôm _nay" Command="{Binding NavigateCommand}" CommandParameter="today" Style="{StaticResource SketchButton}" />
+                <Button Content="_Mục tiêu" Command="{Binding NavigateCommand}" CommandParameter="goals" Style="{StaticResource SketchButton}" />
+                <Button Content="Thói _quen" Command="{Binding NavigateCommand}" CommandParameter="habits" Style="{StaticResource SketchButton}" />
+                <Button Content="_Tuần" Command="{Binding NavigateCommand}" CommandParameter="week" Style="{StaticResource SketchButton}" />
+                <Button Content="_Năm" Command="{Binding NavigateCommand}" CommandParameter="year" Style="{StaticResource SketchButton}" />
+                <Button Content="Thống _kê" Command="{Binding NavigateCommand}" CommandParameter="stats" Style="{StaticResource SketchButton}" />
+            </StackPanel>
+            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,8,0" Foreground="{StaticResource InkMuted}">
+                <Run Text="Xin chào, " /><Run Text="{Binding UserName, Mode=OneWay}" FontWeight="Bold" />
+            </TextBlock>
+        </DockPanel>
 
-        <TextBlock Grid.Row="1" Text="{Binding Error}" Foreground="#B3261E" Margin="0,0,0,8" TextWrapping="Wrap" />
+        <Grid>
+            <ContentControl Content="{Binding CurrentPage}" Focusable="False" />
+        </Grid>
+    </DockPanel>
 
-        <!-- Việc hôm nay -->
-        <Border Grid.Row="2" Style="{StaticResource SketchCard}">
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Text="Việc hôm nay" FontSize="18" FontWeight="Bold" Margin="0,0,0,8" />
-                <TextBlock DockPanel.Dock="Top" Text="Đang tải…" Foreground="{StaticResource InkMuted}"
-                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
-                <ListBox ItemsSource="{Binding Tasks}" BorderThickness="0" Background="Transparent"
-                         HorizontalContentAlignment="Stretch">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate DataType="{x:Type vm:TaskRowViewModel}">
-                            <Border BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="4,8">
-                                <DockPanel>
-                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Tags}" Foreground="{StaticResource InkMuted}" />
-                                    <CheckBox IsChecked="{Binding Done}" VerticalContentAlignment="Center"
-                                              AutomationProperties.Name="{Binding Title}">
-                                        <TextBlock Text="{Binding Title}" Margin="6,0,0,0" />
-                                    </CheckBox>
-                                </DockPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </DockPanel>
-        </Border>
+    <!-- Màn khởi động phủ toàn cửa sổ cho tới khi giao diện thật sẵn sàng. -->
+    <views:SplashView x:Name="Splash" />
     </Grid>
 </Window>

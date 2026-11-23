@@ -2,6 +2,7 @@ import { LoaderCircle, Pencil, Plus, Trash2 } from 'lucide-react'
 import { type FormEvent, useId, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { RecurringTaskDto, SaveRecurringRequest, TaskTag } from '../../api/types'
+import { EmptyState } from '../../components/EmptyState'
 import { Modal } from '../../components/Modal'
 import { getTaskTags, TAG_ORDER } from '../../components/taskTags'
 import { INTL_LOCALE } from '../../i18n/languages'
@@ -73,7 +74,7 @@ export function RecurringModal({ open, today, onClose }: RecurringModalProps) {
           </p>
         )}
         {rules.data && rules.data.length === 0 && (
-          <p className="py-3 text-center text-sm font-medium text-ink-muted">{t('recurring.empty')}</p>
+          <EmptyState text={t('recurring.empty')} />
         )}
         {listError && (
           <p role="alert" className="mb-2 rounded-lg bg-[var(--danger-bg)] px-3 py-2 text-sm font-bold text-danger">
@@ -265,7 +266,7 @@ function RecurringForm({ initial, today, pending, onSave, onCancelEdit }: Recurr
                 aria-pressed={checked}
                 aria-label={day.long}
                 onClick={() => setWeekdays((prev) => toggle(prev, day.value))}
-                className={`grid size-11 cursor-pointer place-items-center rounded-full border-2 text-sm font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
+                className={`grid size-11 cursor-pointer place-items-center rounded-xl border-2 text-sm font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
                   checked
                     ? 'border-primary bg-primary text-white'
                     : 'border-[var(--line)] bg-surface text-ink hover:bg-accent-tint'
@@ -289,7 +290,7 @@ function RecurringForm({ initial, today, pending, onSave, onCancelEdit }: Recurr
                 type="button"
                 aria-pressed={checked}
                 onClick={() => setTags((prev) => toggle(prev, tag))}
-                className={`min-h-11 cursor-pointer rounded-full border-2 px-3 text-sm font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
+                className={`min-h-11 cursor-pointer rounded-xl border-2 px-3 text-sm font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
                   checked ? `border-[var(--ink)] ${taskTags[tag].className}` : 'border-[var(--line)] bg-surface text-ink-muted'
                 }`}
               >

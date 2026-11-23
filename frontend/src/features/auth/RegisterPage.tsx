@@ -65,9 +65,12 @@ export function RegisterPage() {
       <form
         onSubmit={submit}
         aria-labelledby="register-title"
-        className="sketch flex w-full max-w-sm flex-col gap-4 p-5 lg:p-7"
+        className="sketch relative flex w-full max-w-sm flex-col gap-4 p-5 lg:p-7"
         noValidate
       >
+        <div className="absolute top-1 right-1">
+          <LanguageSwitcher mini />
+        </div>
         <div className="flex flex-col items-center gap-2 text-center">
           <BrandMark size={56} />
           <span className="font-display text-3xl leading-none font-extrabold text-primary-ink">Mầm</span>
@@ -162,10 +165,6 @@ export function RegisterPage() {
           </Link>
         </p>
       </form>
-
-      <div className="mt-5">
-        <LanguageSwitcher compact />
-      </div>
     </div>
   )
 }

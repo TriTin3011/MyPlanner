@@ -10,8 +10,11 @@ namespace MyPlanner.Desktop.ViewModels;
 // ViewModel của màn "Hôm nay" (SPEC §6). Giữ trạng thái màn hình, không biết gì về XAML.
 // View → (binding/command) → ViewModel → PlannerApiClient → HTTP → API.
 // Mọi con số (Percent, TasksDone…) lấy nguyên từ backend, desktop không tự tính.
-public partial class TodayViewModel(PlannerApiClient api) : ObservableObject
+public partial class TodayViewModel(PlannerApiClient api) : ObservableObject, IPageViewModel
 {
+    public string PageTitle => "Hôm nay";
+    public Task ActivateAsync() => LoadCommand.ExecuteAsync(null);
+
     private static readonly CultureInfo Vi = new("vi-VN");
 
     public ObservableCollection<TaskRowViewModel> Tasks { get; } = [];
@@ -44,8 +47,7 @@ public partial class TodayViewModel(PlannerApiClient api) : ObservableObject
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
         {
-            // API đã bật JWT: cần màn đăng nhập (bước 12.2) để gắn Authorization: Bearer.
-            Error = "API yêu cầu đăng nhập (401). Màn đăng nhập sẽ có ở bước 12.2.";
+            // BearerTokenHandler đã xoá token và đưa app về màn đăng nhập; không cần báo thêm.
         }
         catch (HttpRequestException ex)
         {

@@ -43,7 +43,7 @@ export function AddTaskInput({
       <form
         onSubmit={handleSubmit}
         aria-busy={pending}
-        className="flex min-h-11 items-center overflow-hidden rounded-xl border-2 border-ink bg-surface focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
+        className="flex min-h-11 items-center rounded-xl border-2 border-ink bg-surface focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
       >
         <label htmlFor={inputId} className="sr-only">
           {t('common.addTask.label')}
@@ -74,13 +74,16 @@ export function AddTaskInput({
           type="submit"
           disabled={pending || !trimmedTitle}
           aria-label={pending ? t('common.addTask.adding') : t('common.addTask.submit')}
-          className="grid size-11 shrink-0 cursor-pointer place-items-center bg-primary text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-45"
+          className="group grid size-11 shrink-0 cursor-pointer place-items-center focus-visible:outline-none disabled:cursor-not-allowed"
         >
-          {pending ? (
-            <LoaderCircle size={19} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-          ) : (
-            <Plus size={20} aria-hidden="true" />
-          )}
+          {/* Vùng bấm 44px cho cảm ứng, phần nhìn thấy là ô vuông bo 32px nằm gọn trong ô nhập. */}
+          <span className="grid size-8 place-items-center rounded-lg bg-accent-soft text-primary-ink transition-colors group-hover:bg-primary group-hover:text-white group-focus-visible:ring-2 group-focus-visible:ring-primary group-disabled:opacity-60 group-disabled:group-hover:bg-accent-soft group-disabled:group-hover:text-primary-ink">
+            {pending ? (
+              <LoaderCircle size={17} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+            ) : (
+              <Plus size={18} aria-hidden="true" />
+            )}
+          </span>
         </button>
       </form>
 

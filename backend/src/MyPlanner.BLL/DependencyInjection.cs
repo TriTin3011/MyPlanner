@@ -44,6 +44,7 @@ public static class DependencyInjection
         services.AddSingleton<ITokenIssuer, JwtTokenIssuer>();
         services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<Profile.IProfileService, Profile.ProfileService>();
 
         // FluentValidation: quét assembly BLL, đăng ký mọi AbstractValidator<T>. ValidationFilter (Api) gọi chúng trước mỗi action.
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);

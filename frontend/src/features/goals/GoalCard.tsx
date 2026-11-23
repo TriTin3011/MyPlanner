@@ -33,7 +33,7 @@ export function GoalCard({ goal, onOpen, onToggleDone, disabled = false }: GoalC
         {/* Hàng 1: Checkbox hoàn thành + Tiêu đề + Badge trạng thái */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-1">
-            <label className="relative z-10 -ml-2 grid min-h-11 min-w-11 shrink-0 md:-ml-1.5 md:min-h-8 md:min-w-8 cursor-pointer place-items-center rounded-full hover:bg-accent-tint/70">
+            <label className="relative z-10 -ml-2 grid min-h-11 min-w-11 shrink-0 md:-ml-1.5 md:min-h-8 md:min-w-8 cursor-pointer place-items-center rounded-xl hover:bg-accent-tint/70">
               <input
                 type="checkbox"
                 checked={isDone}

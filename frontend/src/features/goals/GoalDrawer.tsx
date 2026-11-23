@@ -26,6 +26,7 @@ import {
   useEffect,
 } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Select } from '../../components/Select'
 import type {
   GoalDto,
   GoalStatus,
@@ -238,18 +239,13 @@ function GoalForm({
           <label htmlFor={areaId} className="mb-1 block text-sm font-bold">
             {t('goals.drawer.areaLabel')}
           </label>
-          <select
+          <Select<LifeArea>
             id={areaId}
             value={form.area}
-            onChange={(event) => setForm((current) => ({ ...current, area: event.target.value as LifeArea }))}
-            className={inputClass}
-          >
-            {LIFE_AREAS.map((area) => (
-              <option key={area.key} value={area.key}>
-                {area.label}
-              </option>
-            ))}
-          </select>
+            options={LIFE_AREAS.map((area) => ({ value: area.key, label: area.label }))}
+            onChange={(area) => setForm((current) => ({ ...current, area }))}
+            className={`${inputClass} !font-normal`}
+          />
         </div>
 
         {mode === 'edit' && (
@@ -257,18 +253,13 @@ function GoalForm({
             <label htmlFor={statusId} className="mb-1 block text-sm font-bold">
               {t('goals.drawer.statusLabel')}
             </label>
-            <select
+            <Select<GoalStatus>
               id={statusId}
               value={form.status}
-              onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as GoalStatus }))}
-              className={inputClass}
-            >
-              {STATUS_ORDER.map((status) => (
-                <option key={status} value={status}>
-                  {GOAL_STATUS_LABEL[status]}
-                </option>
-              ))}
-            </select>
+              options={STATUS_ORDER.map((status) => ({ value: status, label: GOAL_STATUS_LABEL[status] }))}
+              onChange={(status) => setForm((current) => ({ ...current, status }))}
+              className={`${inputClass} !font-normal`}
+            />
           </div>
         )}
       </div>

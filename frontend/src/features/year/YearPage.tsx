@@ -54,7 +54,7 @@ export function YearPage() {
         <button
           type="button"
           onClick={() => board.refetch()}
-          className="flex min-h-11 items-center gap-2 rounded-full bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 font-bold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <RotateCcw size={17} aria-hidden="true" />
           {t('common.retry')}

@@ -48,7 +48,7 @@ public class AuthService(
         }
 
         var token = tokens.Issue(user);
-        return new LoginResponse(token.Token, token.ExpiresAt, user.UserName);
+        return new LoginResponse(token.Token, token.ExpiresAt, user.UserName, user.DisplayName);
     }
 
     public async Task<LoginResponse> RegisterAsync(RegisterRequest request, CancellationToken ct)
@@ -62,7 +62,7 @@ public class AuthService(
             throw AppException.Conflict(Messages.UserNameTaken);
 
         var token = tokens.Issue(user);
-        return new LoginResponse(token.Token, token.ExpiresAt, user.UserName);
+        return new LoginResponse(token.Token, token.ExpiresAt, user.UserName, user.DisplayName);
     }
 
     public async Task<LoginResponse> GoogleLoginAsync(GoogleLoginRequest request, CancellationToken ct)
@@ -74,7 +74,7 @@ public class AuthService(
             ?? await CreateGoogleUserAsync(identity, ct);
 
         var token = tokens.Issue(user);
-        return new LoginResponse(token.Token, token.ExpiresAt, user.UserName);
+        return new LoginResponse(token.Token, token.ExpiresAt, user.UserName, user.DisplayName);
     }
 
     // Không tự gộp vào tài khoản cũ theo email: tài khoản mật khẩu của app không có email đã xác thực,

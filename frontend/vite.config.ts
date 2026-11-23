@@ -32,7 +32,7 @@ export default defineConfig({
       workbox: {
         // Chỉ precache tài nguyên tĩnh của giao diện (app shell: JS, CSS, HTML, font, SVG).
         // Không cache các request /api/* để dữ liệu nghiệp vụ luôn lấy từ Backend.
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,ico,woff,woff2}'],
         navigateFallbackDenylist: [/^\/api\//],
       },
     }),

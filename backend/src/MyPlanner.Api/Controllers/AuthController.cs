@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using MyPlanner.BLL.Auth;
+using MyPlanner.BLL.Profile;
 using MyPlanner.Core.Dtos;
 
 namespace MyPlanner.Api.Controllers;
@@ -44,9 +45,10 @@ public class AuthController(IAuthService auth) : ControllerBase
     public Task<LoginResponse> Google(GoogleLoginRequest request, CancellationToken ct) => auth.GoogleLoginAsync(request, ct);
 
     // Client gọi khi mở app để biết token đang giữ còn dùng được không (hết hạn → 401 → về màn đăng nhập).
-    // Không cần service: tên đọc thẳng từ claim trong token mà JwtBearer đã kiểm chữ ký.
+    // Đọc từ DB vì tên hiển thị đổi được sau khi token đã cấp; link ảnh có hạn nên phải tạo mới mỗi lần.
     [HttpGet("me")]
     [ProducesResponseType<CurrentUserDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public CurrentUserDto Me() => new(User.Identity?.Name ?? "");
+    public Task<CurrentUserDto> Me([FromServices] IProfileService profile, CancellationToken ct) =>
+        profile.GetCurrentAsync(ct);
 }
