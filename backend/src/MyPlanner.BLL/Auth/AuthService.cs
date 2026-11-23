@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using MyPlanner.BLL.Common;
 using MyPlanner.BLL.Localization;
@@ -14,10 +15,12 @@ public class AuthService(
     IUserRepository users,
     IPasswordHasher<AppUser> hasher,
     ITokenIssuer tokens,
+    IGoogleTokenVerifier google,
     TimeProvider clock) : IAuthService
 {
     public const int MinPasswordLength = 8;
     public const int MaxUserNameLength = 64; // khớp HasMaxLength(64) của cột UserName
+    private const int MaxGoogleNameAttempts = 5;
 
     // Dùng để băm "giả" khi tên đăng nhập không tồn tại, để thời gian trả lời giống trường hợp sai mật khẩu.
     private static readonly AppUser DummyUser = new() { UserName = "dummy" };
@@ -25,7 +28,8 @@ public class AuthService(
     public async Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken ct)
     {
         var user = await users.FindByUserNameAsync(Normalize(request.UserName), ct);
-        if (user is null)
+        // Tài khoản chỉ dùng Google không có mật khẩu: xử lý y như tên không tồn tại.
+        if (user is null || user.PasswordHash.Length == 0)
         {
             // Không có user mà trả lời ngay thì kẻ dò đo thời gian là biết tên nào có thật (timing attack).
             hasher.HashPassword(DummyUser, request.Password);
@@ -59,6 +63,45 @@ public class AuthService(
 
         var token = tokens.Issue(user);
         return new LoginResponse(token.Token, token.ExpiresAt, user.UserName);
+    }
+
+    public async Task<LoginResponse> GoogleLoginAsync(GoogleLoginRequest request, CancellationToken ct)
+    {
+        var identity = await google.VerifyAsync(request.IdToken, ct)
+            ?? throw AppException.Unauthorized(Messages.InvalidGoogleToken);
+
+        var user = await users.FindByGoogleSubjectAsync(identity.Subject, ct)
+            ?? await CreateGoogleUserAsync(identity, ct);
+
+        var token = tokens.Issue(user);
+        return new LoginResponse(token.Token, token.ExpiresAt, user.UserName);
+    }
+
+    // Không tự gộp vào tài khoản cũ theo email: tài khoản mật khẩu của app không có email đã xác thực,
+    // nên không có căn cứ nào để nói hai bên là cùng một người.
+    private async Task<AppUser> CreateGoogleUserAsync(GoogleIdentity identity, CancellationToken ct)
+    {
+        var baseName = GoogleUserNameBase(identity.Email);
+        for (var attempt = 0; attempt < MaxGoogleNameAttempts; attempt++)
+        {
+            var name = attempt == 0 ? baseName : $"{baseName}-{RandomNumberGenerator.GetHexString(6, lowercase: true)}";
+            var user = new AppUser { Id = Guid.NewGuid(), UserName = name, GoogleSubject = identity.Subject, CreatedAt = clock.GetUtcNow() };
+            if (await users.TryAddAsync(user, ct)) return user;
+
+            // Bị trùng có thể do hai request đăng nhập lần đầu chạy song song: request kia đã tạo xong.
+            var existing = await users.FindByGoogleSubjectAsync(identity.Subject, ct);
+            if (existing is not null) return existing;
+        }
+        throw AppException.Conflict(Messages.UserNameTaken);
+    }
+
+    // Lấy phần trước @ của email, chỉ giữ ký tự hợp lệ. Chừa chỗ cho hậu tố "-xxxxxx" trong giới hạn 64 ký tự.
+    private static string GoogleUserNameBase(string? email)
+    {
+        var local = Normalize((email ?? "").Split('@')[0]);
+        var clean = new string(local.Where(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '_' or '-').ToArray());
+        if (clean.Length < 3) clean = "user";
+        return clean.Length > MaxUserNameLength - 7 ? clean[..(MaxUserNameLength - 7)] : clean;
     }
 
     public async Task<bool> EnsureAccountAsync(string? userName, string? password, CancellationToken ct)

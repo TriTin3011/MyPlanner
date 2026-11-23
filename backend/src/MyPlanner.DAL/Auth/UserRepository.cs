@@ -10,6 +10,9 @@ public class UserRepository(AppDbContext db) : IUserRepository
     public Task<AppUser?> FindByUserNameAsync(string userName, CancellationToken ct) =>
         db.Users.FirstOrDefaultAsync(u => u.UserName == userName, ct);
 
+    public Task<AppUser?> FindByGoogleSubjectAsync(string subject, CancellationToken ct) =>
+        db.Users.FirstOrDefaultAsync(u => u.GoogleSubject == subject, ct);
+
     public Task<bool> AnyAsync(CancellationToken ct) => db.Users.AnyAsync(ct);
 
     public void Add(AppUser user) => db.Users.Add(user);

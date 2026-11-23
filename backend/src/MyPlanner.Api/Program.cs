@@ -70,6 +70,9 @@ builder.Services.AddOptions<JwtOptions>()
     .Validate(o => o.ExpiresMinutes > 0, "Jwt:ExpiresMinutes phải lớn hơn 0.")
     .ValidateOnStart();
 
+// Đăng nhập Google là tuỳ chọn: thiếu Google:ClientId thì app vẫn chạy, POST /auth/google luôn trả 401.
+builder.Services.Configure<GoogleOptions>(builder.Configuration.GetSection(GoogleOptions.Section));
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 // Cấu hình JwtBearer từ JwtOptions đã bind ở trên (không đọc IConfiguration lần hai).
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)

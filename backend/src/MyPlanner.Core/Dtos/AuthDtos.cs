@@ -9,4 +9,7 @@ public record LoginResponse(string AccessToken, DateTimeOffset ExpiresAt, string
 // Đăng ký thành công trả luôn LoginResponse (đăng nhập ngay), client không phải gọi /login lần nữa.
 public record RegisterRequest(string UserName, string Password);
 
+// idToken là JWT do Google cấp cho trình duyệt. Backend tự kiểm rồi đổi lấy JWT của app.
+public record GoogleLoginRequest(string IdToken);
+
 public record CurrentUserDto(string UserName);

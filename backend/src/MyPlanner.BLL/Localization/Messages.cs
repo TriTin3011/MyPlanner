@@ -44,6 +44,7 @@ public static class Messages
         "Tên đăng nhập dài 3–64 ký tự, chỉ gồm chữ không dấu, số, dấu chấm, gạch ngang hoặc gạch dưới.",
         "Username must be 3–64 characters: letters a–z, digits, dot, hyphen or underscore.");
     public static string PasswordTooShort => Text("Mật khẩu phải dài ít nhất 8 ký tự.", "Password must be at least 8 characters.");
+    public static string InvalidGoogleToken => Text("Không xác thực được tài khoản Google.", "Could not verify your Google account.");
     public static string TooManyRegistrations => Text("Tạo tài khoản quá nhiều lần, thử lại sau.", "Too many sign-ups. Try again later.");
     public static string NotFoundDetail(string item) => Format("{0} không tồn tại.", "{0} was not found.", item);
 
