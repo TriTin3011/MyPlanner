@@ -1,8 +1,9 @@
 namespace MyPlanner.Core.Entities;
 
 // Thói quen (SPEC §12.3).
-public class Habit
+public class Habit : IUserOwned
 {
+    public Guid UserId { get; set; }
     public Guid Id { get; set; }
     public string Title { get; set; } = "";
     public int Order { get; set; }
@@ -13,8 +14,9 @@ public class Habit
 }
 
 // Một lần tick: tồn tại dòng = đã làm. Khoá chính ghép (HabitId, Date).
-public class HabitLog
+public class HabitLog : IUserOwned
 {
+    public Guid UserId { get; set; }
     public Guid HabitId { get; set; }
     public DateOnly Date { get; set; }
 }

@@ -37,39 +37,57 @@ public class DataRepository(AppDbContext db) : IDataRepository
         await db.YearPlanItems.ExecuteDeleteAsync(ct);
         await db.YearMeta.ExecuteDeleteAsync(ct);
 
+        // Id trong file sao lưu được cấp MỚI hết. Khoá chính là Id toàn cục (không kèm UserId), nên nếu hai tài khoản
+        // cùng nhập một file, giữ Id cũ sẽ trùng khoá với dòng của người kia (dòng đó bị filter giấu, nhưng DB vẫn thấy).
+        // Bảng tra cũ → mới giữ nguyên các liên kết: task → việc lặp lại, log → thói quen.
+        var recurringIds = d.Recurring.ToDictionary(r => r.Id, _ => Guid.NewGuid());
+        var habitIds = d.Habits.ToDictionary(h => h.Id, _ => Guid.NewGuid());
+        Guid? NewRecurringId(Guid? old) => old is { } id && recurringIds.TryGetValue(id, out var n) ? n : null;
+
         // Map DTO → entity viết tay (chiều ngược của Projections).
-        db.Tasks.AddRange(d.Tasks.Select(t => new TaskItem
+        db.Tasks.AddRange(d.Tasks.Select(t =>
         {
-            Id = t.Id, Title = t.Title, Date = t.Date, OriginalDate = t.OriginalDate, Done = t.Done, DoneAt = t.DoneAt,
-            Tags = [.. t.Tags], RecurringId = t.RecurringId, Order = t.Order, CreatedAt = t.CreatedAt, UpdatedAt = t.UpdatedAt,
-            Subtasks = t.Subtasks.Select((s, i) => new Subtask { Id = s.Id, TaskId = t.Id, Title = s.Title, Done = s.Done, Order = i }).ToList(),
+            var taskId = Guid.NewGuid();
+            return new TaskItem
+            {
+                Id = taskId, Title = t.Title, Date = t.Date, OriginalDate = t.OriginalDate, Done = t.Done, DoneAt = t.DoneAt,
+                Tags = [.. t.Tags], RecurringId = NewRecurringId(t.RecurringId), Order = t.Order, CreatedAt = t.CreatedAt, UpdatedAt = t.UpdatedAt,
+                Subtasks = t.Subtasks.Select((s, i) => new Subtask { Id = Guid.NewGuid(), TaskId = taskId, Title = s.Title, Done = s.Done, Order = i }).ToList(),
+            };
         }));
         db.RecurringTasks.AddRange(d.Recurring.Select(r => new RecurringTask
         {
-            Id = r.Id, Title = r.Title, Weekdays = [.. r.Weekdays], Tags = [.. r.Tags], Active = r.Active,
+            Id = recurringIds[r.Id], Title = r.Title, Weekdays = [.. r.Weekdays], Tags = [.. r.Tags], Active = r.Active,
             StartDate = r.StartDate, SkippedDates = [.. r.SkippedDates], CreatedAt = r.CreatedAt,
         }));
         db.Habits.AddRange(d.Habits.Select(h => new Habit
         {
-            Id = h.Id, Title = h.Title, Order = h.Order, Active = h.Active, StartDate = h.StartDate,
+            Id = habitIds[h.Id], Title = h.Title, Order = h.Order, Active = h.Active, StartDate = h.StartDate,
             CreatedAt = h.CreatedAt, ArchivedAt = h.ArchivedAt,
         }));
-        db.HabitLogs.AddRange(d.HabitLogs.Select(l => new HabitLog { HabitId = l.HabitId, Date = l.Date }));
-        db.Goals.AddRange(d.Goals.Select(g => new Goal
+        // Log trỏ tới thói quen không có trong file thì bỏ (trước đây FK cũng sẽ từ chối).
+        db.HabitLogs.AddRange(d.HabitLogs
+            .Where(l => habitIds.ContainsKey(l.HabitId))
+            .Select(l => new HabitLog { HabitId = habitIds[l.HabitId], Date = l.Date }));
+        db.Goals.AddRange(d.Goals.Select(g =>
         {
-            Id = g.Id, Title = g.Title, Area = g.Area, Status = g.Status, StartDate = g.StartDate, Deadline = g.Deadline,
-            Reward = g.Reward, Why = g.Why, CreatedAt = g.CreatedAt, CompletedAt = g.CompletedAt,
-            Steps = g.Steps.Select(s => new GoalStep
+            var goalId = Guid.NewGuid();
+            return new Goal
             {
-                Id = s.Id, GoalId = g.Id, Title = s.Title, Deadline = s.Deadline, Done = s.Done, DoneAt = s.DoneAt, Order = s.Order,
-            }).ToList(),
+                Id = goalId, Title = g.Title, Area = g.Area, Status = g.Status, StartDate = g.StartDate, Deadline = g.Deadline,
+                Reward = g.Reward, Why = g.Why, CreatedAt = g.CreatedAt, CompletedAt = g.CompletedAt,
+                Steps = g.Steps.Select(s => new GoalStep
+                {
+                    Id = Guid.NewGuid(), GoalId = goalId, Title = s.Title, Deadline = s.Deadline, Done = s.Done, DoneAt = s.DoneAt, Order = s.Order,
+                }).ToList(),
+            };
         }));
         db.DayNotes.AddRange(d.DayNotes.Select(n => new DayNote { Date = n.Date, Content = n.Content, UpdatedAt = n.UpdatedAt ?? DateTimeOffset.UtcNow }));
         db.WeekNotes.AddRange(d.WeekNotes.Select(n => new WeekNote { WeekKey = n.WeekKey, Content = n.Content, UpdatedAt = n.UpdatedAt ?? DateTimeOffset.UtcNow }));
         db.YearMeta.AddRange(d.Years.Select(y => new YearMeta { Year = y.Year, Keyword = y.Keyword, Vision = y.Vision }));
         db.YearPlanItems.AddRange(d.YearItems.Select(i => new YearPlanItem
         {
-            Id = i.Id, Year = i.Year, Month = i.Month, Title = i.Title, Done = i.Done, Order = i.Order,
+            Id = Guid.NewGuid(), Year = i.Year, Month = i.Month, Title = i.Title, Done = i.Done, Order = i.Order,
         }));
 
         await db.SaveChangesAsync(ct);

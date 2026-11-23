@@ -1,8 +1,9 @@
 namespace MyPlanner.Core.Entities;
 
 // Mục tiêu (SPEC §12.4). Goal là aggregate root, GoalStep chỉ được sửa thông qua Goal.
-public class Goal
+public class Goal : IUserOwned
 {
+    public Guid UserId { get; set; }
     public Guid Id { get; set; }
     public string Title { get; set; } = "";
     public LifeArea Area { get; set; }
@@ -16,8 +17,9 @@ public class Goal
     public DateTimeOffset? CompletedAt { get; set; }
 }
 
-public class GoalStep
+public class GoalStep : IUserOwned
 {
+    public Guid UserId { get; set; }
     public Guid Id { get; set; }
     public Guid GoalId { get; set; }
     public string Title { get; set; } = "";

@@ -51,6 +51,9 @@ namespace MyPlanner.DAL.Migrations
 
             modelBuilder.Entity("MyPlanner.Core.Entities.DayNote", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
@@ -61,7 +64,7 @@ namespace MyPlanner.DAL.Migrations
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Date");
+                    b.HasKey("UserId", "Date");
 
                     b.ToTable("DayNotes", (string)null);
                 });
@@ -101,12 +104,15 @@ namespace MyPlanner.DAL.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Why")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Deadline");
+                    b.HasIndex("UserId", "Deadline");
 
                     b.ToTable("Goals", (string)null);
                 });
@@ -136,11 +142,14 @@ namespace MyPlanner.DAL.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Deadline");
-
                     b.HasIndex("GoalId");
+
+                    b.HasIndex("UserId", "Deadline");
 
                     b.ToTable("GoalSteps", (string)null);
                 });
@@ -170,7 +179,12 @@ namespace MyPlanner.DAL.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Habits", (string)null);
                 });
@@ -183,9 +197,12 @@ namespace MyPlanner.DAL.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("HabitId", "Date");
 
-                    b.HasIndex("Date");
+                    b.HasIndex("UserId", "Date");
 
                     b.ToTable("HabitLogs", (string)null);
                 });
@@ -217,11 +234,16 @@ namespace MyPlanner.DAL.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.PrimitiveCollection<List<int>>("Weekdays")
                         .IsRequired()
                         .HasColumnType("integer[]");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("RecurringTasks", (string)null);
                 });
@@ -245,9 +267,14 @@ namespace MyPlanner.DAL.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("TaskId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Subtasks", (string)null);
                 });
@@ -290,19 +317,25 @@ namespace MyPlanner.DAL.Migrations
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
-                    b.HasIndex("Date");
+                    b.HasKey("Id");
 
                     b.HasIndex("RecurringId");
 
-                    b.HasIndex("Date", "Done");
+                    b.HasIndex("UserId", "Date");
+
+                    b.HasIndex("UserId", "Date", "Done");
 
                     b.ToTable("Tasks", (string)null);
                 });
 
             modelBuilder.Entity("MyPlanner.Core.Entities.WeekNote", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("WeekKey")
                         .HasMaxLength(8)
                         .HasColumnType("character varying(8)");
@@ -314,13 +347,16 @@ namespace MyPlanner.DAL.Migrations
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("WeekKey");
+                    b.HasKey("UserId", "WeekKey");
 
                     b.ToTable("WeekNotes", (string)null);
                 });
 
             modelBuilder.Entity("MyPlanner.Core.Entities.YearMeta", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Year")
                         .HasColumnType("integer");
 
@@ -333,7 +369,7 @@ namespace MyPlanner.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Year");
+                    b.HasKey("UserId", "Year");
 
                     b.ToTable("YearMeta", (string)null);
                 });
@@ -357,14 +393,35 @@ namespace MyPlanner.DAL.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Year")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Year", "Month");
+                    b.HasIndex("UserId", "Year", "Month");
 
                     b.ToTable("YearPlanItems", (string)null);
+                });
+
+            modelBuilder.Entity("MyPlanner.Core.Entities.DayNote", b =>
+                {
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MyPlanner.Core.Entities.Goal", b =>
+                {
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MyPlanner.Core.Entities.GoalStep", b =>
@@ -372,6 +429,21 @@ namespace MyPlanner.DAL.Migrations
                     b.HasOne("MyPlanner.Core.Entities.Goal", null)
                         .WithMany("Steps")
                         .HasForeignKey("GoalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MyPlanner.Core.Entities.Habit", b =>
+                {
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -383,6 +455,21 @@ namespace MyPlanner.DAL.Migrations
                         .HasForeignKey("HabitId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MyPlanner.Core.Entities.RecurringTask", b =>
+                {
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MyPlanner.Core.Entities.Subtask", b =>
@@ -390,6 +477,48 @@ namespace MyPlanner.DAL.Migrations
                     b.HasOne("MyPlanner.Core.Entities.TaskItem", null)
                         .WithMany("Subtasks")
                         .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MyPlanner.Core.Entities.TaskItem", b =>
+                {
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MyPlanner.Core.Entities.WeekNote", b =>
+                {
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MyPlanner.Core.Entities.YearMeta", b =>
+                {
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MyPlanner.Core.Entities.YearPlanItem", b =>
+                {
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

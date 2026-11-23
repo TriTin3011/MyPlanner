@@ -1,7 +1,7 @@
 namespace MyPlanner.Core.Entities;
 
-// Tài khoản đăng nhập. App chỉ có một người dùng, nhưng vẫn lưu thành bảng để mật khẩu nằm trong DB dạng băm
-// (không nằm trong biến môi trường lâu dài) và để sau này thêm người dùng không phải đổi cấu trúc.
+// Tài khoản đăng nhập. Mỗi tài khoản sở hữu dữ liệu riêng: các bảng IUserOwned có UserId trỏ về đây (SPEC §12.0).
+// Mật khẩu nằm trong DB dạng băm, không nằm trong biến môi trường lâu dài.
 public class AppUser
 {
     public Guid Id { get; set; }
