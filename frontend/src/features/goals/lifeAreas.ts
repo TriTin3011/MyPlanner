@@ -1,4 +1,4 @@
-import { Briefcase, BookOpen, HeartPulse, Home, Palette, Sprout, Users, Wallet, type LucideIcon } from 'lucide-react'
+import { Briefcase, BookOpen, HeartPulse, Home, Palette, Sprout, Target, Users, Wallet, type LucideIcon } from 'lucide-react'
 import type { GoalStatus, LifeArea } from '../../api/types'
 import i18n from '../../i18n'
 
@@ -34,6 +34,30 @@ export const LIFE_AREAS: readonly LifeAreaInfo[] = AREA_ICONS.map(({ key, Icon }
 
 export function lifeArea(key: LifeArea): LifeAreaInfo {
   return LIFE_AREAS.find((a) => a.key === key) ?? LIFE_AREAS[0]
+}
+
+// Phần chung của GoalAreaDto / AreaSummaryDto / StatsGoalAreaDto đủ để hiển thị.
+export interface AreaRef {
+  id: string
+  key: LifeArea | null
+  name: string | null
+}
+
+export interface AreaDisplay {
+  label: string
+  chip: string
+  Icon: LucideIcon
+  custom: boolean
+}
+
+// Hiển thị một lĩnh vực từ BE: có key → nhãn dịch + icon riêng; lĩnh vực tự tạo (key null) → tên người dùng đặt + icon Target.
+export function areaDisplay(area: { key: LifeArea | null; name: string | null } | undefined): AreaDisplay {
+  if (area?.key) {
+    const info = lifeArea(area.key)
+    return { label: info.label, chip: info.chip, Icon: info.Icon, custom: false }
+  }
+  const name = area?.name ?? ''
+  return { label: name, chip: name, Icon: Target, custom: true }
 }
 
 export const GOAL_STATUS_LABEL: Record<GoalStatus, string> = {

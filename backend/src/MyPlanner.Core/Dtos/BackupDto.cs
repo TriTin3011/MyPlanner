@@ -14,10 +14,13 @@ public record BackupDto(
     IReadOnlyList<WeekNoteDto> WeekNotes,
     IReadOnlyList<YearMetaDto> Years,
     IReadOnlyList<YearPlanItemDto> YearItems,
+    // Thêm ở version 2 cùng với lĩnh vực tự tạo. File version 1 không có trường này:
+    // khi nhập, mục tiêu trỏ tới lĩnh vực không có trong file được đưa về lĩnh vực "Phát triển".
+    IReadOnlyList<GoalAreaDto>? Areas = null,
     // Thêm sau (tab Tập trung). Có giá trị mặc định nên file sao lưu cũ không có trường này vẫn đọc được (null = không có phiên).
     IReadOnlyList<FocusSessionDto>? FocusSessions = null)
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 }
 
 public record ImportResultDto(int Tasks, int Habits, int HabitLogs, int Goals);

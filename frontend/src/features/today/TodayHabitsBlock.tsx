@@ -20,7 +20,7 @@ export function TodayHabitsBlock({
   const { t } = useTranslation()
 
   return (
-    <section aria-labelledby="today-habits-title" className="sketch p-3.5 lg:p-5">
+    <section data-tour="today-habits" aria-labelledby="today-habits-title" className="sketch p-3.5 lg:p-5">
       <div className="mb-2 flex items-baseline justify-between gap-3">
         <h2 id="today-habits-title" className="font-display text-xl font-extrabold text-primary-ink">
           {t('today.habits.title')}

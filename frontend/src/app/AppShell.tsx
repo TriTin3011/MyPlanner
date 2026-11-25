@@ -19,6 +19,7 @@ import { PomodoroModal } from '../features/pomodoro/PomodoroModal'
 import { usePomodoro, usePomodoroTicker } from '../features/pomodoro/store'
 import { usePomodoroFloat } from '../features/pomodoro/usePomodoroFloat'
 import { TomatoIcon } from '../features/pomodoro/TomatoIcon'
+import { TourHost } from '../features/tour/TourHost'
 
 // Khung chung của mọi trang (SPEC §3):
 // - Desktop (≥1024px): sidebar 230px + main panel.
@@ -53,6 +54,7 @@ export function AppShell() {
           <Logo />
           {/* Cửa sổ thấp thì chỉ danh sách tab cuộn, cụm điều khiển ở đáy luôn thấy được. */}
           <nav
+            data-tour="nav"
             aria-label={t('shell.mainNav')}
             className="relative -mx-1 mt-6 flex min-h-0 flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto overscroll-none px-1 py-1"
           >
@@ -69,6 +71,7 @@ export function AppShell() {
                 key={item.path}
                 to={item.path}
                 end={item.path === '/'}
+                data-tour={`tab:${item.path}`}
                 title={t(`nav.${item.key}.label`)}
                 className={({ isActive }) =>
                   `nav-tab relative z-10 flex h-11 shrink-0 items-center gap-3 rounded-xl px-3 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none max-lg:justify-center ${
@@ -142,6 +145,7 @@ export function AppShell() {
           />,
           pomodoroFloat.pipWindow.document.body,
         )}
+      <TourHost />
       {menuOpen && (
         <MobileMenu
           onClose={() => setMenuOpen(false)}
@@ -184,6 +188,7 @@ function BottomNav({ pathname }: { pathname: string }) {
     <>
       {moreOpen && <div className="fixed inset-0 z-30 md:hidden" onClick={() => setMoreOpen(false)} />}
       <nav
+        data-tour="nav"
         aria-label={t('shell.mainNav')}
         className="fixed inset-x-0 bottom-0 z-30 flex border-t-2 border-ink bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
       >
@@ -192,6 +197,7 @@ function BottomNav({ pathname }: { pathname: string }) {
             key={item.path}
             to={item.path}
             end={item.path === '/'}
+            data-tour={`tab:${item.path}`}
             className={({ isActive }) => `${BOTTOM_TAB} ${isActive ? 'text-primary-ink' : 'text-ink-muted'}`}
           >
             {({ isActive }) => (
@@ -318,6 +324,7 @@ function MobileTopBar({ onMenu }: { onMenu: () => void }) {
       <span className="font-display text-lg font-extrabold text-primary-ink">Mầm</span>
       <button
         type="button"
+        data-tour="help"
         aria-label={t('shell.openMenu')}
         onClick={onMenu}
         className="ml-auto grid size-11 place-items-center rounded-xl hover:bg-accent-tint"
@@ -392,7 +399,7 @@ function MobileMenu({
         <p className="mb-2 text-xs font-bold tracking-wider text-ink-muted uppercase">{t('backup.label')}</p>
         <BackupControls compact />
         <p className="mt-4 mb-2 text-xs font-bold tracking-wider text-ink-muted uppercase">{t('auth.account')}</p>
-        <AccountControls compact />
+        <AccountControls compact onBeforeTour={onClose} />
       </div>
     </div>
   )

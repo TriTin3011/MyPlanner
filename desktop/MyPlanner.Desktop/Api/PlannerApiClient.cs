@@ -84,7 +84,7 @@ public sealed class PlannerApiClient(HttpClient http)
         var nextStatus = done
             ? GoalStatus.Done
             : goal.Steps.Any(s => s.Done) ? GoalStatus.InProgress : GoalStatus.NotStarted;
-        var req = new SaveGoalRequest(goal.Title, goal.Area, nextStatus, goal.StartDate, goal.Deadline, goal.Reward, goal.Why);
+        var req = new SaveGoalRequest(goal.Title, goal.AreaId, nextStatus, goal.StartDate, goal.Deadline, goal.Reward, goal.Why);
         using var res = await http.PutAsJsonAsync($"api/goals/{goalId}", req, Json, ct);
         res.EnsureSuccessStatusCode();
     }

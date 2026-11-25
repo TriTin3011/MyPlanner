@@ -5,10 +5,15 @@ namespace MyPlanner.Core.Dtos;
 
 public record GoalStepDto(Guid Id, string Title, DateOnly? Deadline, bool Done, DateTimeOffset? DoneAt, int Order);
 
+// Lĩnh vực: có sẵn thì Key khác null (client tự dịch tên), tự thêm thì Key null và Name là tên người dùng gõ.
+public record GoalAreaDto(Guid Id, LifeArea? Key, string? Name);
+
+public record CreateGoalAreaRequest(string Name);
+
 public record GoalDto(
     Guid Id,
     string Title,
-    LifeArea Area,
+    Guid AreaId,
     GoalStatus Status,
     DateOnly StartDate,
     DateOnly Deadline,
@@ -16,11 +21,17 @@ public record GoalDto(
     string? Why,
     IReadOnlyList<GoalStepDto> Steps,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? CompletedAt);
+    DateTimeOffset? CompletedAt)
+{
+    // Chỉ để đọc file sao lưu version 1 (khi đó mục tiêu lưu "area": "health" thay vì areaId). API không trả trường này.
+    [JsonPropertyName("area")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public LifeArea? LegacyArea { get; init; }
+}
 
 public record SaveGoalRequest(
     string Title,
-    LifeArea Area,
+    Guid AreaId,
     GoalStatus Status,
     DateOnly StartDate,
     DateOnly Deadline,

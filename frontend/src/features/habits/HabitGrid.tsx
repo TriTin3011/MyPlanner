@@ -80,7 +80,7 @@ export function HabitGrid(props: HabitGridProps) {
   }
 
   return (
-    <section className="sketch min-w-0 max-w-full bg-surface p-3.5 lg:p-5" aria-labelledby="habit-grid-title">
+    <section data-tour="habits-grid" className="sketch min-w-0 max-w-full bg-surface p-3.5 lg:p-5" aria-labelledby="habit-grid-title">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 id="habit-grid-title" className="text-xl font-bold text-ink sm:text-2xl">
           {t('habits.grid.title')}

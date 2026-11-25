@@ -3,10 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Camera, Trash2 } from 'lucide-react'
 import { Modal } from '../../components/Modal'
 import { AvatarCropper } from './AvatarCropper'
-import { INTL_LOCALE } from '../../i18n/languages'
-import { useSettings } from '../../store/settings'
 import { DisplayNameEditor } from './DisplayNameEditor'
-import { useDisplayName, useSession } from './session'
+import { useDisplayName } from './session'
 import { UserAvatar } from './UserAvatar'
 import { useCurrentUser, useDeleteAvatar, useUploadAvatar } from './useProfile'
 
@@ -19,8 +17,6 @@ const BUTTON_CLASS =
 export function ProfileModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation()
   const userName = useDisplayName()
-  const expiresAt = useSession((s) => s.expiresAt)
-  const language = useSettings((s) => s.language)
   const { data: me } = useCurrentUser()
   const upload = useUploadAvatar()
   const remove = useDeleteAvatar()
@@ -29,9 +25,6 @@ export function ProfileModal({ open, onClose }: { open: boolean; onClose: () => 
   const [cropFile, setCropFile] = useState<File | null>(null)
   const busy = upload.isPending || remove.isPending
   const avatarUrl = me?.avatarUrl ?? null
-  const expires = expiresAt
-    ? new Date(expiresAt).toLocaleString(INTL_LOCALE[language], { dateStyle: 'medium', timeStyle: 'short' })
-    : '—'
 
   const onPick = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -104,13 +97,11 @@ export function ProfileModal({ open, onClose }: { open: boolean; onClose: () => 
             </button>
           )}
         </div>
-        <p className="text-xs text-ink-muted">{t('auth.photoHint')}</p>
         {error && (
           <p role="alert" className="text-sm font-bold text-danger">
             {error}
           </p>
         )}
-        <p className="text-sm text-ink-muted">{t('auth.sessionUntil', { time: expires })}</p>
       </div>
       )}
     </Modal>

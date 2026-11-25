@@ -23,8 +23,7 @@ export function RegisterPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from ?? '/'
-  const token = useSession((s) => s.token)
-  const expiresAt = useSession((s) => s.expiresAt)
+  const active = useSession((s) => isSessionActive(s))
   const signIn = useSession((s) => s.signIn)
 
   const userId = useId()
@@ -45,7 +44,7 @@ export function RegisterPage() {
     },
   })
 
-  if (isSessionActive({ token, expiresAt })) return <Navigate to={from} replace />
+  if (active) return <Navigate to={from} replace />
 
   const normalizedName = userName.trim().toLowerCase()
   const userNameValid = USER_NAME_RULE.test(normalizedName)

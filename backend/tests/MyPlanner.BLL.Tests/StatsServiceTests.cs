@@ -13,7 +13,7 @@ public class StatsServiceTests
     public async Task GetAsync_reads_each_table_once_and_builds_requested_range()
     {
         var repository = new FakeStatsRepository();
-        var service = new StatsService(repository);
+        var service = new StatsService(repository, new FakeGoalAreaRepository());
 
         var result = await service.GetAsync("8w", Today, CancellationToken.None);
 

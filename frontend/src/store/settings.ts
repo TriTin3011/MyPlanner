@@ -38,6 +38,9 @@ interface SettingsState {
   setMusicUrl: (url: string) => void
   musicFrame?: { x: number; y: number; width: number }
   setMusicFrame: (frame: { x: number; y: number; width: number }) => void
+  // Tài khoản nào đã xem hoặc bỏ qua tour trên trình duyệt này (khoá là userName).
+  tourSeen: Record<string, true>
+  markTourSeen: (userName: string) => void
   setTheme: (theme: ThemeId) => void
   setLanguage: (language: Language) => void
   setTodayLayout: (layout: { id: TodayBlockId; hidden: boolean }[]) => void
@@ -58,6 +61,8 @@ export const useSettings = create<SettingsState>()(
       statsRange: '8w',
       setMusicUrl: (musicUrl) => set({ musicUrl }),
       setMusicFrame: (musicFrame) => set({ musicFrame }),
+      tourSeen: {},
+      markTourSeen: (userName) => set((s) => ({ tourSeen: { ...s.tourSeen, [userName]: true } })),
       setTheme: (theme) => set({ theme }),
       setLanguage: (language) => set({ language }),
       setTodayLayout: (todayLayout) => set({ todayLayout }),

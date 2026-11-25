@@ -6,7 +6,7 @@ namespace MyPlanner.Core.Domain;
 // Dựng GoalBoardDto từ danh sách GoalDto và "hôm nay" của client. Hàm thuần: không DB, không đồng hồ, nên test bằng xUnit.
 public static class GoalBoard
 {
-    public static GoalBoardDto Build(IReadOnlyList<GoalDto> goals, DateOnly today)
+    public static GoalBoardDto Build(IReadOnlyList<GoalDto> goals, IReadOnlyList<GoalAreaDto> areaList, DateOnly today)
     {
         var cards = goals
             .Select(g => Card(g, today))
@@ -16,12 +16,12 @@ public static class GoalBoard
             .ToList();
 
         // Radar dùng stepProgress dạng double rồi mới làm tròn, tránh sai số khi trung bình các số đã làm tròn.
-        var areas = Enum.GetValues<LifeArea>()
+        var areas = areaList
             .Select(area =>
             {
-                var inArea = goals.Where(g => g.Area == area).ToList();
+                var inArea = goals.Where(g => g.AreaId == area.Id).ToList();
                 var avg = inArea.Count == 0 ? 0 : inArea.Average(Progress);
-                return new AreaSummaryDto(area, inArea.Count, Metrics.Percent(avg));
+                return new AreaSummaryDto(area.Id, area.Key, area.Name, inArea.Count, Metrics.Percent(avg));
             })
             .ToList();
 
@@ -37,7 +37,7 @@ public static class GoalBoard
         var overdueSteps = g.Steps.Count(s => !s.Done && s.Deadline is { } d && d < today);
 
         return new GoalCardDto(
-            g.Id, g.Title, g.Area, g.Status, g.StartDate, g.Deadline, g.Reward,
+            g.Id, g.Title, g.AreaId, g.Status, g.StartDate, g.Deadline, g.Reward,
             Metrics.DaysLeft(g.Deadline, today),
             stepsDone, g.Steps.Count, overdueSteps,
             Metrics.Percent(step), Metrics.Percent(time),

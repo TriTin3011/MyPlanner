@@ -230,12 +230,12 @@ public partial class StatsViewModel(PlannerApiClient api) : ObservableObject, IP
         InProgressLabel = $"Đang thực hiện {goals.ByStatus.InProgress}";
         DoneLabel = $"Đã hoàn thành {goals.ByStatus.Done}";
         GoalAreas = goals.ByArea.Select(a => new GoalAreaRow(
-            GoalsViewModel.AreaFullLabel(a.Area),
+            GoalsViewModel.AreaFullLabel(a.Key, a.Name),
             a.Total > 0 ? (double)a.Done / a.Total * 100 : 0,
             $"{a.Done}/{a.Total} xong")).ToList();
         GoalTable = new StatsTable(
             ["Lĩnh vực", "Xong", "Tổng"],
-            goals.ByArea.Select(a => (IReadOnlyList<string>)[GoalsViewModel.AreaFullLabel(a.Area), $"{a.Done}", $"{a.Total}"]).ToList());
+            goals.ByArea.Select(a => (IReadOnlyList<string>)[GoalsViewModel.AreaFullLabel(a.Key, a.Name), $"{a.Done}", $"{a.Total}"]).ToList());
     }
 
     private void BuildTrendChart()

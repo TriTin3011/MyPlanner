@@ -8,7 +8,7 @@ using MyPlanner.DAL.Goals;
 namespace MyPlanner.BLL.Goals;
 
 // Mọi thao tác trên bước đều đi qua Goal (aggregate root), rồi trả lại cả Goal để FE cập nhật thẻ một lần.
-public class GoalService(IGoalRepository goals, TimeProvider clock) : IGoalService
+public class GoalService(IGoalRepository goals, IGoalAreaRepository areas, TimeProvider clock) : IGoalService
 {
     public Task<List<GoalDto>> ListAsync(CancellationToken ct) => goals.ListAsync(ct);
 
@@ -17,6 +17,7 @@ public class GoalService(IGoalRepository goals, TimeProvider clock) : IGoalServi
 
     public async Task<GoalDto> CreateAsync(SaveGoalRequest req, CancellationToken ct)
     {
+        await EnsureAreaAsync(req.AreaId, ct);
         var now = clock.GetUtcNow();
         var goal = new Goal { Id = Guid.NewGuid(), CreatedAt = now };
         Apply(goal, req, now);
@@ -28,6 +29,7 @@ public class GoalService(IGoalRepository goals, TimeProvider clock) : IGoalServi
     public async Task<GoalDto> UpdateAsync(Guid id, SaveGoalRequest req, CancellationToken ct)
     {
         var goal = await goals.FindAsync(id, ct) ?? throw AppException.NotFound(Messages.Goal);
+        if (goal.AreaId != req.AreaId) await EnsureAreaAsync(req.AreaId, ct);
         Apply(goal, req, clock.GetUtcNow());
         await goals.SaveChangesAsync(ct);
         return await GetAsync(id, ct);
@@ -90,7 +92,13 @@ public class GoalService(IGoalRepository goals, TimeProvider clock) : IGoalServi
     }
 
     public async Task<GoalBoardDto> GetBoardAsync(DateOnly today, CancellationToken ct) =>
-        GoalBoard.Build(await goals.ListAsync(ct), today);
+        GoalBoard.Build(await goals.ListAsync(ct), await areas.ListAsync(ct), today);
+
+    // Lĩnh vực phải thuộc tài khoản này (query filter lọc UserId): id của người khác cũng ra "không tìm thấy".
+    private async Task EnsureAreaAsync(Guid areaId, CancellationToken ct)
+    {
+        if (!await areas.ExistsAsync(areaId, ct)) throw AppException.BadRequest(Messages.GoalAreaNotFound);
+    }
 
     // Ghép hạn bước và hạn mục tiêu thành một danh sách, sắp theo ngày rồi đặt hạn mục tiêu sau hạn bước.
     public async Task<List<DeadlineDto>> GetDeadlinesAsync(DateOnly from, DateOnly to, DateOnly today, CancellationToken ct)
@@ -103,7 +111,7 @@ public class GoalService(IGoalRepository goals, TimeProvider clock) : IGoalServi
     private static void Apply(Goal goal, SaveGoalRequest req, DateTimeOffset now)
     {
         goal.Title = req.Title.Trim();
-        goal.Area = req.Area;
+        goal.AreaId = req.AreaId;
         goal.StartDate = req.StartDate;
         goal.Deadline = req.Deadline;
         goal.Reward = string.IsNullOrWhiteSpace(req.Reward) ? null : req.Reward.Trim();

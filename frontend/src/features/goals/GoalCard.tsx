@@ -1,10 +1,12 @@
 import { Clock, Gift } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { GoalCardDto, GoalStatus } from '../../api/types'
-import { formatDmy, GOAL_STATUS_LABEL, lifeArea } from './lifeAreas'
+import { areaDisplay, formatDmy, GOAL_STATUS_LABEL, type AreaRef } from './lifeAreas'
 
 export interface GoalCardProps {
   goal: GoalCardDto
+  // Lĩnh vực của thẻ (tra theo goal.areaId); chưa có thì ẩn dòng lĩnh vực.
+  area?: AreaRef
   onOpen(id: string): void
   onToggleDone(id: string, done: boolean): void
   disabled?: boolean
@@ -17,10 +19,10 @@ const STATUS_BADGE_CLASS: Record<GoalStatus, string> = {
 }
 
 // Thẻ mục tiêu trong lưới 3 cột (SPEC §7.4). Toàn bộ số %, ngày còn lại và cờ `behind` lấy từ BE.
-export function GoalCard({ goal, onOpen, onToggleDone, disabled = false }: GoalCardProps) {
+export function GoalCard({ goal, area, onOpen, onToggleDone, disabled = false }: GoalCardProps) {
   const { t } = useTranslation()
   const isDone = goal.status === 'done'
-  const areaInfo = lifeArea(goal.area)
+  const areaInfo = areaDisplay(area)
   const AreaIcon = areaInfo.Icon
   const isOverdue = !isDone && goal.daysLeft < 0
 

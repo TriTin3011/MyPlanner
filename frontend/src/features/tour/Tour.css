@@ -1,0 +1,112 @@
+@layer components {
+  /* <dialog> phủ toàn màn hình, trong suốt: lớp tối do vùng sáng vẽ bằng box-shadow. */
+  .tour {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    background: transparent;
+  }
+
+  .tour::backdrop {
+    background: transparent;
+  }
+
+  .tour__dim {
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / 0.45);
+  }
+
+  /* Bóng rất lớn tô tối mọi thứ ngoài ô này, nên phần tử thật vẫn hiện rõ mà không phải sao chép. */
+  .tour__spot {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 2px solid #fff;
+    border-radius: 14px;
+    box-shadow:
+      0 0 0 2px var(--primary),
+      0 0 0 200vmax rgb(0 0 0 / 0.45);
+    pointer-events: none;
+  }
+
+  /* Vùng bấm trong suốt nằm đúng trên tab thật, có vòng sáng nhịp để mắt biết phải bấm vào đâu. */
+  .tour__hit {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .tour__hit:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+  }
+
+  .tour__hit::after {
+    position: absolute;
+    inset: -2px;
+    border: 3px solid var(--primary);
+    border-radius: 16px;
+    content: '';
+    animation: tour-hit-pulse 1.2s ease-out 4 both;
+    pointer-events: none;
+  }
+
+  @keyframes tour-hit-pulse {
+    from {
+      opacity: 0.9;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(1.18);
+    }
+  }
+
+  .tour__card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: min(23rem, calc(100vw - 1.5rem));
+    transition: transform 280ms cubic-bezier(0.22, 0.8, 0.3, 1);
+    will-change: transform;
+  }
+
+  .tour__text {
+    animation: tour-text-in 220ms ease-out both;
+  }
+
+  @keyframes tour-text-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tour__card {
+      transition: none;
+    }
+
+    .tour__text,
+    .tour__hit::after {
+      animation: none;
+    }
+  }
+}

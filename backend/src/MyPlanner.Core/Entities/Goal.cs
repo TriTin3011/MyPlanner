@@ -6,7 +6,7 @@ public class Goal : IUserOwned
     public Guid UserId { get; set; }
     public Guid Id { get; set; }
     public string Title { get; set; } = "";
-    public LifeArea Area { get; set; }
+    public Guid AreaId { get; set; }          // FK tới GoalArea của cùng tài khoản
     public GoalStatus Status { get; set; }
     public DateOnly StartDate { get; set; }   // mốc tính % thời gian
     public DateOnly Deadline { get; set; }

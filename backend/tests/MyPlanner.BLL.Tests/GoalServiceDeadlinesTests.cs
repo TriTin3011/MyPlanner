@@ -17,11 +17,11 @@ public class GoalServiceDeadlinesTests
     {
         var repo = new FakeGoalRepository(
             steps: [
-                (GoalA, "Hoàn thành khóa Excel", LifeArea.Career, "Đăng ký khóa học", new DateOnly(2026, 11, 19), false),
-                (GoalA, "Hoàn thành khóa Excel", LifeArea.Career, "Học bài 1", new DateOnly(2026, 11, 17), true),
+                (GoalA, "Hoàn thành khóa Excel", "Đăng ký khóa học", new DateOnly(2026, 11, 19), false),
+                (GoalA, "Hoàn thành khóa Excel", "Học bài 1", new DateOnly(2026, 11, 17), true),
             ],
             goals: [(GoalB, "Trả hết khoản vay", new DateOnly(2026, 11, 19), false)]);
-        var service = new GoalService(repo, TimeProvider.System);
+        var service = new GoalService(repo, new FakeGoalAreaRepository(), TimeProvider.System);
 
         var result = await service.GetDeadlinesAsync(new(2026, 11, 16), new(2026, 11, 22), Today, CancellationToken.None);
 
@@ -40,8 +40,8 @@ public class GoalServiceDeadlinesTests
     public async Task Overdue_only_when_not_done_and_before_today(int y, int m, int d, bool done, bool expected)
     {
         var date = new DateOnly(y, m, d);
-        var repo = new FakeGoalRepository(steps: [(GoalA, "Mục tiêu", LifeArea.Career, "Bước", date, done)], goals: []);
-        var service = new GoalService(repo, TimeProvider.System);
+        var repo = new FakeGoalRepository(steps: [(GoalA, "Mục tiêu", "Bước", date, done)], goals: []);
+        var service = new GoalService(repo, new FakeGoalAreaRepository(), TimeProvider.System);
 
         var result = await service.GetDeadlinesAsync(new(2026, 11, 16), new(2026, 11, 29), Today, CancellationToken.None);
 
@@ -49,10 +49,10 @@ public class GoalServiceDeadlinesTests
     }
 
     private sealed class FakeGoalRepository(
-        List<(Guid GoalId, string GoalTitle, LifeArea Area, string Title, DateOnly Deadline, bool Done)> steps,
+        List<(Guid GoalId, string GoalTitle, string Title, DateOnly Deadline, bool Done)> steps,
         List<(Guid GoalId, string Title, DateOnly Deadline, bool Done)> goals) : IGoalRepository
     {
-        public Task<List<(Guid GoalId, string GoalTitle, LifeArea Area, string Title, DateOnly Deadline, bool Done)>> StepDeadlinesAsync(
+        public Task<List<(Guid GoalId, string GoalTitle, string Title, DateOnly Deadline, bool Done)>> StepDeadlinesAsync(
             DateOnly from, DateOnly to, CancellationToken ct) =>
             System.Threading.Tasks.Task.FromResult(steps.Where(s => s.Deadline >= from && s.Deadline <= to).ToList());
         public Task<List<(Guid GoalId, string Title, DateOnly Deadline, bool Done)>> GoalDeadlinesAsync(

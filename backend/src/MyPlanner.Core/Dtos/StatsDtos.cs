@@ -75,4 +75,4 @@ public record StatsGoalsDto(
 
 public record StatsGoalStatusDto(int NotStarted, int InProgress, int Done);
 
-public record StatsGoalAreaDto(LifeArea Area, int Done, int Total);
+public record StatsGoalAreaDto(Guid Id, LifeArea? Key, string? Name, int Done, int Total);

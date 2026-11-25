@@ -16,16 +16,16 @@ public class GoalRepository(AppDbContext db) : IGoalRepository
         db.Goals.Include(g => g.Steps).FirstOrDefaultAsync(g => g.Id == id, ct);
 
     // Hạn của các bước trong khoảng: dùng cho lịch Hôm nay, Tuần và ⚑ của Năm.
-    public async Task<List<(Guid GoalId, string GoalTitle, LifeArea Area, string Title, DateOnly Deadline, bool Done)>>
+    public async Task<List<(Guid GoalId, string GoalTitle, string Title, DateOnly Deadline, bool Done)>>
         StepDeadlinesAsync(DateOnly from, DateOnly to, CancellationToken ct)
     {
         var rows = await db.GoalSteps.AsNoTracking()
             .Where(s => s.Deadline.HasValue && s.Deadline.Value >= from && s.Deadline.Value <= to)
             .Join(db.Goals.AsNoTracking(), s => s.GoalId, g => g.Id,
-                (s, g) => new { g.Id, GoalTitle = g.Title, g.Area, s.Title, Deadline = s.Deadline!.Value, s.Done })
+                (s, g) => new { g.Id, GoalTitle = g.Title, s.Title, Deadline = s.Deadline!.Value, s.Done })
             .OrderBy(r => r.Deadline)
             .ToListAsync(ct);
-        return rows.Select(r => (r.Id, r.GoalTitle, r.Area, r.Title, r.Deadline, r.Done)).ToList();
+        return rows.Select(r => (r.Id, r.GoalTitle, r.Title, r.Deadline, r.Done)).ToList();
     }
 
     // Hạn của chính mục tiêu trong khoảng (Done = mục tiêu đã hoàn thành).

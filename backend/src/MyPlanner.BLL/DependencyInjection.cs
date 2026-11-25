@@ -33,6 +33,7 @@ public static class DependencyInjection
         services.AddScoped<IRecurringService, RecurringService>();
         services.AddScoped<IHabitService, HabitService>();
         services.AddScoped<IGoalService, GoalService>();
+        services.AddScoped<IGoalAreaService, GoalAreaService>();
         services.AddScoped<INoteService, NoteService>();
         services.AddScoped<IYearService, YearService>();
         services.AddScoped<IDataService, DataService>();
@@ -44,6 +45,7 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
         services.AddSingleton<ITokenIssuer, JwtTokenIssuer>();
         services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
+        services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<Profile.IProfileService, Profile.ProfileService>();
 
