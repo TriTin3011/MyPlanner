@@ -38,6 +38,9 @@ interface SettingsState {
   setMusicUrl: (url: string) => void
   musicFrame?: { x: number; y: number; width: number }
   setMusicFrame: (frame: { x: number; y: number; width: number }) => void
+  // Chỗ người dùng kéo thanh Pomodoro thu nhỏ tới; chưa kéo lần nào thì dùng vị trí mặc định trong CSS.
+  pomodoroPosition?: { x: number; y: number }
+  setPomodoroPosition: (position: { x: number; y: number }) => void
   // Tài khoản nào đã xem hoặc bỏ qua tour trên trình duyệt này (khoá là userName).
   tourSeen: Record<string, true>
   markTourSeen: (userName: string) => void
@@ -61,6 +64,7 @@ export const useSettings = create<SettingsState>()(
       statsRange: '8w',
       setMusicUrl: (musicUrl) => set({ musicUrl }),
       setMusicFrame: (musicFrame) => set({ musicFrame }),
+      setPomodoroPosition: (pomodoroPosition) => set({ pomodoroPosition }),
       tourSeen: {},
       markTourSeen: (userName) => set((s) => ({ tourSeen: { ...s.tourSeen, [userName]: true } })),
       setTheme: (theme) => set({ theme }),

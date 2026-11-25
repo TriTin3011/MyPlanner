@@ -17,6 +17,15 @@ export interface FrameViewport {
   bottomInset: number
 }
 
+// Dùng chung cho mọi khung nổi kéo được (hộp nhạc, Pomodoro thu nhỏ). Điện thoại chừa thanh điều hướng đáy.
+export function readViewport(): FrameViewport {
+  return {
+    width: window.innerWidth,
+    height: window.innerHeight,
+    bottomInset: window.innerWidth < 768 ? 68 : 8,
+  }
+}
+
 export const MIN_FRAME_WIDTH = 300
 export const MAX_FRAME_WIDTH = 960
 export const COLLAPSED_WIDTH = 340
