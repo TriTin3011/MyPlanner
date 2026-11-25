@@ -49,7 +49,7 @@ export function Modal({ open, title, onClose, children, footer, titleAddon, size
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}
-      className={`m-auto ${size === 'sm' ? 'w-[min(28rem,calc(100vw-2rem))]' : 'w-[min(36rem,calc(100vw-2rem))]'} max-h-[calc(100dvh-2rem)] overflow-hidden rounded-2xl border-2 border-[var(--ink)] bg-surface p-0 text-ink shadow-[4px_4px_0_0_var(--ink)] backdrop:bg-black/40`}
+      className={`m-auto ${size === 'sm' ? 'w-[min(28rem,calc(100vw-2rem))]' : 'w-[min(36rem,calc(100vw-2rem))]'} max-h-[calc(100dvh-2rem)] overflow-hidden rounded-2xl border-2 border-ink bg-surface p-0 text-ink shadow-[4px_4px_0_0_var(--sketch-ink)] backdrop:bg-black/40`}
     >
       {open && (
         <div className="flex max-h-[calc(100dvh-2rem)] flex-col">

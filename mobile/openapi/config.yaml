@@ -1,0 +1,19 @@
+# Cấu hình sinh client Dart từ OpenAPI của backend.
+# Chạy lại khi API đổi: tools/gen_api.ps1 (backend phải đang chạy ở cổng 5274).
+generatorName: dart-dio
+inputSpec: openapi/v1.json
+outputDir: packages/planner_api
+additionalProperties:
+  pubName: planner_api
+  pubLibrary: planner_api
+  pubDescription: "Client Dart sinh từ OpenAPI của MyPlanner. Không sửa tay."
+  serializationLibrary: json_serializable
+  dateLibrary: core
+  equalityCheckMethod: equatable
+  enumUnknownDefaultCase: "true"
+# Ngày không có giờ (format: date, ví dụ "2026-11-24") giữ nguyên là String.
+# Nếu để DateTime, toJson() gửi "2026-11-24T00:00:00.000" và DateOnly của .NET từ chối;
+# tầng data/mappers đổi String <-> CalendarDate.
+typeMappings:
+  date: String
+

@@ -10,6 +10,7 @@
     "test": "vitest run",
     "preview": "vite preview",
     "gen:icons": "pwa-assets-generator",
+    "gen:desktop-icons": "node scripts/gen-desktop-icons.mjs",
     "gen:api": "npx -y -p openapi-typescript@7 -p typescript@5 openapi-typescript http://localhost:5274/openapi/v1.json -o src/api/schema.ts"
   },
   "dependencies": {

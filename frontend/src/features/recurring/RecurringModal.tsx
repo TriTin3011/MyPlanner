@@ -291,7 +291,7 @@ function RecurringForm({ initial, today, pending, onSave, onCancelEdit }: Recurr
                 aria-pressed={checked}
                 onClick={() => setTags((prev) => toggle(prev, tag))}
                 className={`min-h-11 cursor-pointer rounded-xl border-2 px-3 text-sm font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
-                  checked ? `border-[var(--ink)] ${taskTags[tag].className}` : 'border-[var(--line)] bg-surface text-ink-muted'
+                  checked ? `border-ink ${taskTags[tag].className}` : 'border-[var(--line)] bg-surface text-ink-muted'
                 }`}
               >
                 {taskTags[tag].label}

@@ -630,6 +630,123 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/focus/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FocusSessionDto"][];
+                        "application/json": components["schemas"]["FocusSessionDto"][];
+                        "text/json": components["schemas"]["FocusSessionDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["FocusSessionDto"];
+                    "text/json": components["schemas"]["FocusSessionDto"];
+                    "application/*+json": components["schemas"]["FocusSessionDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FocusSessionDto"];
+                        "application/json": components["schemas"]["FocusSessionDto"];
+                        "text/json": components["schemas"]["FocusSessionDto"];
+                    };
+                };
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FocusSessionDto"];
+                        "application/json": components["schemas"]["FocusSessionDto"];
+                        "text/json": components["schemas"]["FocusSessionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/focus": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    today?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FocusBoardDto"];
+                        "application/json": components["schemas"]["FocusBoardDto"];
+                        "text/json": components["schemas"]["FocusBoardDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/goals": {
         parameters: {
             query?: never;
@@ -2438,6 +2555,7 @@ export interface components {
             weekNotes: components["schemas"]["WeekNoteDto"][];
             years: components["schemas"]["YearMetaDto"][];
             yearItems: components["schemas"]["YearPlanItemDto"][];
+            focusSessions?: null | components["schemas"]["FocusSessionDto"][];
         };
         CountDto: {
             /** Format: int32 */
@@ -2484,6 +2602,76 @@ export interface components {
         };
         /** @enum {unknown} */
         DeadlineKind: "step" | "goal";
+        FocusBoardDto: {
+            /** Format: int32 */
+            minutesToday: number;
+            /** Format: int32 */
+            minutesThisWeek: number;
+            /** Format: int32 */
+            minutesTotal: number;
+            /** Format: int32 */
+            potCount: number;
+            /** Format: int32 */
+            streak: number;
+            /** Format: double */
+            completedHours: number;
+            shelves: components["schemas"]["FocusShelfDto"][];
+            unlocks: components["schemas"]["FocusUnlockDto"][];
+        };
+        /** @enum {unknown} */
+        FocusOutcome: "completed" | "abandoned";
+        FocusPotDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            slot: number;
+            plantKind: components["schemas"]["PlantKind"];
+            potColor: components["schemas"]["PotColor"];
+            /** Format: int32 */
+            minutes: number;
+            /** Format: date */
+            date: string;
+            /** Format: date-time */
+            endedAt: string;
+            linkTitle: null | string;
+        };
+        FocusSessionDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            endedAt: string;
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            plannedMinutes: number;
+            /** Format: int32 */
+            actualMinutes: number;
+            outcome: components["schemas"]["FocusOutcome"];
+            plantKind: components["schemas"]["PlantKind"];
+            potColor: components["schemas"]["PotColor"];
+            /** Format: uuid */
+            taskId: null | string;
+            /** Format: uuid */
+            habitId: null | string;
+            /** Format: uuid */
+            goalId: null | string;
+        };
+        FocusShelfDto: {
+            /** Format: int32 */
+            index: number;
+            pots: components["schemas"]["FocusPotDto"][];
+        };
+        FocusUnlockDto: {
+            kind: string;
+            key: string;
+            /** Format: double */
+            thresholdHours: number;
+            unlocked: boolean;
+            /** Format: double */
+            hoursRemaining: number;
+        };
         GoalBoardDto: {
             /** Format: int32 */
             done: number;
@@ -2661,6 +2849,10 @@ export interface components {
             /** Format: date */
             today: string;
         };
+        /** @enum {unknown} */
+        PlantKind: "basil" | "sunflower" | "cactus";
+        /** @enum {unknown} */
+        PotColor: "terra" | "cream" | "sage" | "blue";
         ProblemDetails: {
             type?: null | string;
             title?: null | string;
@@ -2769,6 +2961,23 @@ export interface components {
             weekdayProductivity: components["schemas"]["StatsWeekdayDto"][];
             habitConsistency: components["schemas"]["StatsHabitDto"][];
             goals: components["schemas"]["StatsGoalsDto"];
+            focus: components["schemas"]["StatsFocusDto"];
+        };
+        StatsFocusDto: {
+            /** Format: int32 */
+            minutes: number;
+            /** Format: int32 */
+            minutesPercentChange: null | number;
+            /** Format: int32 */
+            pots: number;
+            weeks: components["schemas"]["StatsFocusWeekDto"][];
+        };
+        StatsFocusWeekDto: {
+            weekKey: string;
+            /** Format: date */
+            monday: string;
+            /** Format: int32 */
+            minutes: number;
         };
         StatsGoalAreaDto: {
             area: components["schemas"]["LifeArea"];

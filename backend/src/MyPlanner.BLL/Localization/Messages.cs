@@ -30,6 +30,18 @@ public static class Messages
     public static string StatsTodayRequired => Text("today là bắt buộc.", "today is required.");
     public static string StatsTodayTooEarly => Text("today quá sớm để tính kỳ so sánh.", "today is too early to calculate the comparison period.");
 
+    public static string FocusPlannedRange => Text("Thời lượng phải từ 5 đến 180 phút.", "Duration must be between 5 and 180 minutes.");
+    public static string FocusActualRange => Text("Số phút thực tế phải từ 0 tới số phút đã đặt.", "Actual minutes must be between 0 and the planned minutes.");
+    public static string FocusTimeOrder => Text("Giờ kết thúc phải sau giờ bắt đầu.", "The end time must be after the start time.");
+    public static string FocusOneLink => Text("Chỉ gắn được một việc, một thói quen hoặc một mục tiêu.", "A session can link to only one task, habit or goal.");
+    public static string FocusIdRequired => Text("Thiếu id phiên.", "Session id is required.");
+    public static string FocusLocked(string key, double hoursRemaining) => Format(
+        "'{0}' chưa mở khoá, còn {1:0.#} giờ tập trung.",
+        "'{0}' is still locked; {1:0.#} more focus hours needed.",
+        key, hoursRemaining);
+    public static string FocusRangeInvalid => Text("Cần from ≤ to và tối đa 400 ngày.", "from must be on or before to, at most 400 days apart.");
+    public static string FocusSession => Text("Phiên tập trung", "Focus session");
+
     public static string NotFoundTitle => Text("Không tìm thấy", "Not found");
     public static string BadRequestTitle => Text("Yêu cầu không hợp lệ", "Invalid request");
     public static string UnauthorizedTitle => Text("Chưa đăng nhập", "Unauthorized");

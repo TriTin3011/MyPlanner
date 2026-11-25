@@ -87,5 +87,8 @@ public class StatsServiceTests
             GoalReads++;
             return Task.FromResult(new List<StatsGoalRow>());
         }
+
+        public Task<List<StatsFocusRow>> FocusAsync(DateOnly to, CancellationToken ct) =>
+            Task.FromResult(new List<StatsFocusRow>());
     }
 }

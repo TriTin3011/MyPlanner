@@ -27,6 +27,12 @@
   --color-important-bg: var(--tag-important-bg);
   --color-important-ink: var(--tag-important-ink);
   --color-muted-bar: var(--muted-bar);
+  --color-chart-total: var(--chart-total);
+  /* Tailwind ưu tiên --text-color-* cho class text-*, nên bg-primary và text-primary dùng được hai màu khác nhau. */
+  --text-color-primary: var(--primary-text);
+  --text-color-danger: var(--danger-text);
+  /* Viền dùng mực dịu hơn chữ: theme sáng hai màu trùng nhau, theme tối viền không bị chói. */
+  --border-color-ink: var(--sketch-ink);
 }
 
 /* Font (SPEC §4.3): Baloo 2 cho tiêu đề và số, Be Vietnam Pro cho nội dung. */
@@ -111,4 +117,90 @@
       font-size: 14px;
     }
   }
+}
+
+/* Tab Tập trung: hoạt ảnh trong cảnh SVG (sceneSvg.ts). transform-box để xoay/dịch quanh chính hình. */
+.focus-scene .focus-fall {
+  transform-box: fill-box;
+  animation: focus-fall 1.1s ease-in infinite;
+}
+.focus-scene .focus-press {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: focus-press 0.9s ease-in-out infinite;
+}
+.focus-scene .focus-bob {
+  transform-box: fill-box;
+  animation: focus-bob 1.6s ease-in-out infinite;
+}
+.focus-scene .focus-sway {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: focus-sway 5.4s ease-in-out infinite;
+}
+.focus-scene .focus-cloud {
+  transform-box: fill-box;
+  animation: focus-cloud 18s ease-in-out infinite alternate;
+}
+.focus-scene .focus-mote {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: focus-mote 5.8s ease-in-out infinite;
+}
+.focus-scene .focus-firefly {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: focus-firefly 4.2s ease-in-out infinite;
+}
+.focus-scene .focus-star {
+  animation: focus-star 3.6s ease-in-out infinite alternate;
+}
+@keyframes focus-fall {
+  from { transform: translateY(-8px); opacity: 0; }
+  20% { opacity: 1; }
+  to { transform: translateY(26px); opacity: 0; }
+}
+@keyframes focus-press {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+@keyframes focus-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes focus-sway {
+  0%, 100% { transform: rotate(-1.4deg); }
+  50% { transform: rotate(1.6deg); }
+}
+@keyframes focus-cloud {
+  from { transform: translateX(-8px); }
+  to { transform: translateX(12px); }
+}
+@keyframes focus-mote {
+  0%, 100% { transform: translate(0, 5px); opacity: 0.2; }
+  50% { transform: translate(4px, -9px); opacity: 0.72; }
+}
+@keyframes focus-firefly {
+  0%, 100% { transform: translate(-2px, 3px); opacity: 0.18; }
+  45% { transform: translate(5px, -4px); opacity: 0.9; }
+}
+@keyframes focus-star {
+  from { opacity: 0.32; }
+  to { opacity: 0.88; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .focus-scene .focus-fall,
+  .focus-scene .focus-press,
+  .focus-scene .focus-bob,
+  .focus-scene .focus-sway,
+  .focus-scene .focus-cloud,
+  .focus-scene .focus-mote,
+  .focus-scene .focus-firefly,
+  .focus-scene .focus-star {
+    animation: none;
+  }
+}
+/* Cảnh vẽ bằng màu cố định (đất, gỗ, trời) nên ở theme Đêm hạ sáng cho đỡ chói. */
+[data-theme='night'] .focus-scene {
+  filter: brightness(0.78);
 }

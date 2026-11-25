@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IDataService, DataService>();
         services.AddScoped<ISeedService, SeedService>();
         services.AddScoped<IStatsService, StatsService>();
+        services.AddScoped<Focus.IFocusService, Focus.FocusService>();
 
         // Đăng nhập: PasswordHasher và bộ ký JWT không giữ trạng thái theo request nên dùng singleton.
         services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();

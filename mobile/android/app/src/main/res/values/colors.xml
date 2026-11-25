@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Nền giấy xanh nhạt của Mầm, trùng màu nền icon PWA. -->
+    <color name="brand_background">#EEF4E8</color>
+</resources>

@@ -1,4 +1,4 @@
-import { Maximize2, Pause, Play, RotateCcw } from 'lucide-react'
+import { Maximize2, Pause, PictureInPicture2, Play, RotateCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { formatClock, remainingMs } from './pomodoro'
 import { usePomodoro, usePomodoroNow } from './store'
@@ -7,22 +7,43 @@ import { TomatoIcon } from './TomatoIcon'
 const MINI_BUTTON =
   'grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none'
 
+interface CompactProps {
+  className: string
+  onExpand: () => void
+  onFloat?: () => void
+}
+
 // Thanh đếm nhỏ khi modal đóng. Không dùng <dialog> nên người dùng vẫn thao tác được với trang phía sau.
 // Đặt bên trái vì hộp nhạc mặc định nằm góc phải dưới; điện thoại nằm trên thanh điều hướng đáy và hộp nhạc.
-export function PomodoroMini({ onExpand }: { onExpand: () => void }) {
+export function PomodoroMini({ onExpand, onFloat }: Omit<CompactProps, 'className'>) {
+  const started = usePomodoro((s) => s.endsAt !== null || s.pausedMs !== null)
+  if (!started) return null
+  return (
+    <PomodoroCompact
+      onExpand={onExpand}
+      onFloat={onFloat}
+      className="sketch fixed bottom-[calc(8.75rem+env(safe-area-inset-bottom))] left-2 z-30 flex items-center gap-1 py-1 pr-1 pl-2.5 md:bottom-7 md:left-[108px] lg:left-[266px]"
+    />
+  )
+}
+
+// Dùng chung cho thanh nhỏ trong trang và cửa sổ nổi, nên hai nơi luôn cùng nút và cùng số.
+export function PomodoroCompact({ className, onExpand, onFloat }: CompactProps) {
   const { t } = useTranslation()
   const timer = usePomodoro()
   const running = timer.endsAt !== null
+  const paused = timer.pausedMs !== null
   const [now, setNow] = usePomodoroNow(running)
 
-  if (!running && timer.pausedMs === null) return null
+  const status = running
+    ? t(`pomodoro.running.${timer.mode}`)
+    : paused
+      ? t('pomodoro.paused')
+      : t(`pomodoro.ready.${timer.mode}`)
+  const toggleLabel = running ? t('pomodoro.pause') : paused ? t('pomodoro.resume') : t('pomodoro.start')
 
-  const status = running ? t(`pomodoro.running.${timer.mode}`) : t('pomodoro.paused')
   return (
-    <section
-      aria-label={t('pomodoro.title')}
-      className="sketch fixed bottom-[calc(8.75rem+env(safe-area-inset-bottom))] left-2 z-30 flex items-center gap-1 py-1 pr-1 pl-2.5 md:bottom-7 md:left-[108px] lg:left-[266px]"
-    >
+    <section aria-label={t('pomodoro.title')} className={className}>
       <TomatoIcon size={24} />
       <div className="mx-1 min-w-16">
         <p role="timer" className="font-display text-lg leading-none font-extrabold tabular-nums">
@@ -32,8 +53,8 @@ export function PomodoroMini({ onExpand }: { onExpand: () => void }) {
       </div>
       <button
         type="button"
-        aria-label={running ? t('pomodoro.pause') : t('pomodoro.resume')}
-        title={running ? t('pomodoro.pause') : t('pomodoro.resume')}
+        aria-label={toggleLabel}
+        title={toggleLabel}
         onClick={() => {
           setNow(Date.now())
           if (running) timer.pause()
@@ -52,6 +73,17 @@ export function PomodoroMini({ onExpand }: { onExpand: () => void }) {
       >
         <RotateCcw size={16} aria-hidden="true" />
       </button>
+      {onFloat && (
+        <button
+          type="button"
+          aria-label={t('pomodoro.float')}
+          title={t('pomodoro.float')}
+          onClick={onFloat}
+          className={MINI_BUTTON}
+        >
+          <PictureInPicture2 size={16} aria-hidden="true" />
+        </button>
+      )}
       <button
         type="button"
         aria-label={t('pomodoro.expand')}

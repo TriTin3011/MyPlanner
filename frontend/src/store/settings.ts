@@ -5,7 +5,7 @@ import { detectLanguage, type Language } from '../i18n/languages'
 // Cài đặt giao diện (SPEC §12.7). Chỉ lưu ở localStorage của trình duyệt này,
 // không gửi lên backend. Dữ liệu nghiệp vụ (việc, thói quen...) luôn lấy từ API.
 
-export type ThemeId = 'forest' | 'ocean' | 'sunset' | 'lavender'
+export type ThemeId = 'forest' | 'ocean' | 'sunset' | 'lavender' | 'night'
 export type ChartMode = 'line' | 'bar' | 'table'
 export type TodayBlockId = 'progress' | 'backlog' | 'tasks' | 'habits' | 'calendar'
 export type StatsRange = '4w' | '8w' | '12w' | '6m' | '1y'
@@ -16,6 +16,7 @@ export const THEMES: { id: ThemeId; swatch: string[] }[] = [
   { id: 'ocean', swatch: ['#1E3A8A', '#1D4ED8', '#BFDBFE', '#EEF2FB'] },
   { id: 'sunset', swatch: ['#7C2D12', '#C2410C', '#FED7AA', '#FBF1EA'] },
   { id: 'lavender', swatch: ['#4C1D95', '#6D28D9', '#DDD6FE', '#F3F0FB'] },
+  { id: 'night', swatch: ['#0F1517', '#1B2426', '#0E8159', '#8CE6C2'] },
 ]
 
 export const DEFAULT_TODAY_LAYOUT: { id: TodayBlockId; hidden: boolean }[] = [
@@ -33,8 +34,6 @@ interface SettingsState {
   chartModes: Record<string, ChartMode>
   chartRanges: Record<string, string>
   statsRange: StatsRange
-  lastExportAt?: string
-  lastBackupAt?: string
   musicUrl?: string
   setMusicUrl: (url: string) => void
   musicFrame?: { x: number; y: number; width: number }
@@ -45,8 +44,6 @@ interface SettingsState {
   setChartMode: (chartId: string, mode: ChartMode) => void
   setChartRange: (chartId: string, range: string) => void
   setStatsRange: (range: StatsRange) => void
-  setLastExportAt: (iso: string) => void
-  markBackup: () => void
 }
 
 export const useSettings = create<SettingsState>()(
@@ -69,11 +66,6 @@ export const useSettings = create<SettingsState>()(
       setChartRange: (chartId, range) =>
         set((s) => ({ chartRanges: { ...s.chartRanges, [chartId]: range } })),
       setStatsRange: (statsRange) => set({ statsRange }),
-      setLastExportAt: (lastExportAt) => set({ lastExportAt, lastBackupAt: lastExportAt }),
-      markBackup: () => {
-        const now = new Date().toISOString()
-        set({ lastExportAt: now, lastBackupAt: now })
-      },
     }),
     { name: 'myplanner-settings' },
   ),

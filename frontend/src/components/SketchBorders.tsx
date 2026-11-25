@@ -17,10 +17,9 @@ export function SketchBorders() {
       const width = element.offsetWidth
       const height = element.offsetHeight
       if (!width || !height) return
-      const size = `${width}x${height}`
-      if (element.dataset.sketched === size) return
-      const color = getComputedStyle(element).getPropertyValue('--ink').trim() || '#1c2b24'
-      const key = `${size}:${color}`
+      const color = getComputedStyle(element).getPropertyValue('--sketch-ink').trim() || '#1c2b24'
+      const key = `${width}x${height}:${color}`
+      if (element.dataset.sketched === key) return
       let image = images.get(key)
       if (!image) {
         if (images.size >= MAX_CACHED_IMAGES) images.clear()
@@ -28,7 +27,7 @@ export function SketchBorders() {
         images.set(key, image)
       }
       element.style.setProperty('--sketch-stroke', image)
-      element.dataset.sketched = size
+      element.dataset.sketched = key
     }
 
     const resizes = new ResizeObserver((entries) => {
@@ -72,7 +71,12 @@ export function SketchBorders() {
     within(document.body, track)
     mutations.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] })
 
+    // Nét vẽ là ảnh nên không tự đổi theo biến CSS: đổi theme phải vẽ lại.
+    const themeChanges = new MutationObserver(() => tracked.forEach(paint))
+    themeChanges.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+
     return () => {
+      themeChanges.disconnect()
       mutations.disconnect()
       resizes.disconnect()
       Array.from(tracked).forEach(untrack)

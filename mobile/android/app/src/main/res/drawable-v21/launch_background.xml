@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash trước khi Flutter vẽ khung đầu (Android < 12): nền giấy Mầm + logo ở giữa.
+     Android 12+ dùng splash của hệ thống, cấu hình ở values-v31/styles.xml. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/brand_background" />
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/launch_logo" />
+    </item>
+</layer-list>

@@ -154,7 +154,7 @@ function TaskMenuPopover({
       ref={panelRef}
       onKeyDown={handleKeyDown}
       aria-busy={busy}
-      className="absolute top-full right-0 z-30 mt-1 w-64 max-w-[calc(100vw-2rem)] rounded-xl border-2 border-[var(--ink)] bg-surface p-1.5 shadow-[3px_3px_0_0_var(--ink)]"
+      className="absolute top-full right-0 z-30 mt-1 w-64 max-w-[calc(100vw-2rem)] rounded-xl border-2 border-ink bg-surface p-1.5 shadow-[3px_3px_0_0_var(--sketch-ink)]"
     >
       {view === 'menu' && (
         <div id={id} role="menu" aria-label={t('common.taskMenu.actionsFor', { title: task.title })}>

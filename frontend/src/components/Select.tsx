@@ -145,7 +145,7 @@ export function Select<T extends string>({ id, ariaLabel, value, options, onChan
           style={menuStyle}
           // Giữ focus ở nút khi bấm vào menu, nếu không onBlur sẽ đóng menu trước khi kịp chọn.
           onMouseDown={(event) => event.preventDefault()}
-          className="fixed z-50 overflow-y-auto rounded-xl border-2 border-ink bg-surface p-1 text-sm shadow-[3px_3px_0_0_var(--ink)]"
+          className="fixed z-50 overflow-y-auto rounded-xl border-2 border-ink bg-surface p-1 text-sm shadow-[3px_3px_0_0_var(--sketch-ink)]"
         >
           {options.map((option, index) => {
             const isSelected = option.value === value

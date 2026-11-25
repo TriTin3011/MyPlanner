@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IDataRepository, DataRepository>();
         services.AddScoped<IStatsRepository, StatsRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<Focus.IFocusRepository, Focus.FocusRepository>();
         services.AddSingleton<MyPlanner.Core.Storage.IFileStorage, Storage.S3FileStorage>();
 
         return services;

@@ -13,7 +13,9 @@ public record BackupDto(
     IReadOnlyList<DayNoteDto> DayNotes,
     IReadOnlyList<WeekNoteDto> WeekNotes,
     IReadOnlyList<YearMetaDto> Years,
-    IReadOnlyList<YearPlanItemDto> YearItems)
+    IReadOnlyList<YearPlanItemDto> YearItems,
+    // Thêm sau (tab Tập trung). Có giá trị mặc định nên file sao lưu cũ không có trường này vẫn đọc được (null = không có phiên).
+    IReadOnlyList<FocusSessionDto>? FocusSessions = null)
 {
     public const int CurrentVersion = 1;
 }

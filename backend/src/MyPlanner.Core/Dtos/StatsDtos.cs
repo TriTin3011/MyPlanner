@@ -16,7 +16,18 @@ public record StatsDto(
     IReadOnlyList<StatsHeatmapDayDto> Heatmap,
     IReadOnlyList<StatsWeekdayDto> WeekdayProductivity,
     IReadOnlyList<StatsHabitDto> HabitConsistency,
-    StatsGoalsDto Goals);
+    StatsGoalsDto Goals,
+    StatsFocusDto Focus);
+
+// Phút tập trung trong kỳ (SPEC §11A, bước F.7). Minutes tính mọi phiên (cả bỏ cuộc), Pots chỉ phiên trồng xong,
+// cùng quy tắc với GET /dashboard/focus nên hai màn ra cùng số.
+public record StatsFocusDto(
+    int Minutes,
+    int? MinutesPercentChange,
+    int Pots,
+    IReadOnlyList<StatsFocusWeekDto> Weeks);
+
+public record StatsFocusWeekDto(string WeekKey, DateOnly Monday, int Minutes);
 
 public record StatsHeroDto(
     int CompletionPercent,

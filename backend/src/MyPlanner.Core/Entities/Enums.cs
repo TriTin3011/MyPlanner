@@ -26,6 +26,31 @@ public enum LifeArea
     [JsonStringEnumMemberName("hobby")] Hobby,
 }
 
+// Tập trung (SPEC §12.8). Thêm loại cây hoặc màu chậu mới thì thêm ngưỡng mở khoá ở FocusBoard (§13.9).
+[JsonConverter(typeof(JsonStringEnumConverter<FocusOutcome>))]
+public enum FocusOutcome
+{
+    [JsonStringEnumMemberName("completed")] Completed,
+    [JsonStringEnumMemberName("abandoned")] Abandoned,
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter<PlantKind>))]
+public enum PlantKind
+{
+    [JsonStringEnumMemberName("basil")] Basil,
+    [JsonStringEnumMemberName("sunflower")] Sunflower,
+    [JsonStringEnumMemberName("cactus")] Cactus,
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter<PotColor>))]
+public enum PotColor
+{
+    [JsonStringEnumMemberName("terra")] Terra,
+    [JsonStringEnumMemberName("cream")] Cream,
+    [JsonStringEnumMemberName("sage")] Sage,
+    [JsonStringEnumMemberName("blue")] Blue,
+}
+
 [JsonConverter(typeof(JsonStringEnumConverter<GoalStatus>))]
 public enum GoalStatus
 {

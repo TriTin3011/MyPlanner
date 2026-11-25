@@ -30,6 +30,11 @@ public static class Projections
     public static readonly Expression<Func<YearPlanItem, YearPlanItemDto>> YearItem = i => new YearPlanItemDto(
         i.Id, i.Year, i.Month, i.Title, i.Done, i.Order);
 
+    public static readonly Expression<Func<FocusSession, FocusSessionDto>> Focus = s => new FocusSessionDto(
+        s.Id, s.StartedAt, s.EndedAt, s.Date, s.PlannedMinutes, s.ActualMinutes, s.Outcome, s.PlantKind, s.PotColor,
+        s.TaskId, s.HabitId, s.GoalId);
+
+    public static readonly Func<FocusSession, FocusSessionDto> ToFocusDto = Focus.Compile();
     public static readonly Func<TaskItem, TaskDto> ToTaskDto = Task.Compile();
     public static readonly Func<Goal, GoalDto> ToGoalDto = Goal.Compile();
 }

@@ -1,17 +1,6 @@
 import { api } from '../api/client'
 import type { BackupDto, ImportResultDto } from '../api/types'
 import { toLocalDateKey } from './dates'
-import { useSettings } from '../store/settings'
-
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
-
-// Kiểm tra đã quá 7 ngày chưa xuất dữ liệu sao lưu hay chưa (hoặc chưa từng xuất).
-export function isBackupOverdue(lastExportAt: string | undefined, nowMs = Date.now()): boolean {
-  if (!lastExportAt) return true
-  const parsed = Date.parse(lastExportAt)
-  if (Number.isNaN(parsed)) return true
-  return nowMs - parsed > SEVEN_DAYS_MS
-}
 
 // Tạo tên file sao lưu chuẩn mam-backup-YYYY-MM-DD.json theo ngày địa phương.
 export function getBackupFilename(now = new Date()): string {
@@ -32,12 +21,10 @@ export function triggerJsonDownload(data: BackupDto, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-// Gọi GET /api/export, tải file mam-backup-YYYY-MM-DD.json và lưu thời điểm xuất vào settings.
+// Gọi GET /api/export rồi tải file mam-backup-YYYY-MM-DD.json.
 export async function exportBackupData(): Promise<BackupDto> {
   const response = await api.get<BackupDto>('/export')
-  const now = new Date()
-  triggerJsonDownload(response.data, getBackupFilename(now))
-  useSettings.getState().setLastExportAt(now.toISOString())
+  triggerJsonDownload(response.data, getBackupFilename())
   return response.data
 }
 

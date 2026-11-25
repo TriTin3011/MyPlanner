@@ -121,7 +121,7 @@ export function PlanningCalendarBlock({ today, onAddTask, addPending }: Planning
         <div
           role="radiogroup"
           aria-label={t('today.calendar.viewModeAria')}
-          className="flex rounded-lg border-2 border-[var(--ink)] bg-[var(--surface)] p-0.5 shadow-[2px_2px_0_0_var(--ink)]"
+          className="flex rounded-lg border-2 border-ink bg-[var(--surface)] p-0.5 shadow-[2px_2px_0_0_var(--sketch-ink)]"
         >
           <button
             type="button"

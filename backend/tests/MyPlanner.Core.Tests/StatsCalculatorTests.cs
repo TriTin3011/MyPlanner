@@ -165,6 +165,38 @@ public class StatsCalculatorTests
             result.PreviousTo.DayNumber - result.PreviousFrom.DayNumber);
     }
 
+    // Kỳ 4w: 2026-10-26 → 2026-11-22; kỳ trước 2026-09-28 → 2026-10-25.
+    [Fact]
+    public void Build_sums_focus_minutes_per_week_and_compares_with_previous_period()
+    {
+        StatsFocusRow[] focus =
+        [
+            new(new DateOnly(2026, 11, 22), 25, FocusOutcome.Completed),
+            new(new DateOnly(2026, 11, 22), 10, FocusOutcome.Abandoned), // bỏ cuộc: có phút, không có chậu
+            new(new DateOnly(2026, 10, 26), 45, FocusOutcome.Completed),
+            new(new DateOnly(2026, 10, 1), 40, FocusOutcome.Completed),  // kỳ trước
+            new(new DateOnly(2026, 8, 1), 60, FocusOutcome.Completed),   // ngoài cả hai kỳ
+        ];
+
+        var result = StatsCalculator.Build("4w", Today, [], [], [], [], focus);
+
+        Assert.Equal(80, result.Focus.Minutes);
+        Assert.Equal(2, result.Focus.Pots);
+        Assert.Equal(100, result.Focus.MinutesPercentChange); // 80 so với 40
+        Assert.Equal(4, result.Focus.Weeks.Count);
+        Assert.Equal([45, 0, 0, 35], result.Focus.Weeks.Select(w => w.Minutes));
+    }
+
+    [Fact]
+    public void Build_focus_change_is_null_without_previous_minutes()
+    {
+        var result = Build();
+
+        Assert.Equal(0, result.Focus.Minutes);
+        Assert.Null(result.Focus.MinutesPercentChange);
+        Assert.All(result.Focus.Weeks, w => Assert.Equal(0, w.Minutes));
+    }
+
     [Fact]
     public void Build_attributes_unknown_range_error_to_range()
     {

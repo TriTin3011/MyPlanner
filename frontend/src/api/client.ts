@@ -40,6 +40,17 @@ api.interceptors.response.use(
     const p = err.response?.data
     const firstFieldError = p?.errors ? Object.values(p.errors)[0]?.[0] : undefined
     const message = firstFieldError ?? p?.detail ?? p?.title ?? err.message
-    return Promise.reject(new Error(message))
+    return Promise.reject(new ApiError(message, err.response?.status))
   },
 )
+
+// Error kèm mã HTTP. status undefined nghĩa là không có phản hồi (mất mạng, timeout):
+// hàng đợi offline của tab Tập trung dựa vào đó để giữ lại phiên và gửi lại sau.
+export class ApiError extends Error {
+  readonly status?: number
+  constructor(message: string, status?: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}

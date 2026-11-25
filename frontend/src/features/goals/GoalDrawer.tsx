@@ -95,7 +95,7 @@ export function GoalDrawer(props: GoalDrawerProps) {
       onClick={(event) => {
         if (event.target === event.currentTarget) props.onClose()
       }}
-      className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-dvh w-screen max-w-none overflow-hidden border-0 bg-surface p-0 text-ink shadow-[-6px_0_24px_rgb(0_0_0/0.18)] backdrop:bg-black/40 md:w-[28rem] md:border-l-2 md:border-[var(--ink)]"
+      className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-dvh w-screen max-w-none overflow-hidden border-0 bg-surface p-0 text-ink shadow-[-6px_0_24px_rgb(0_0_0/0.18)] backdrop:bg-black/40 md:w-[28rem] md:border-l-2 md:border-ink"
     >
       {props.open && (
         <div className="flex h-dvh min-w-0 flex-col">

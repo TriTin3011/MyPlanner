@@ -60,7 +60,13 @@ $tempLink = Join-Path $desktop 'Mam-shortcut.lnk'
 $link = $shell.CreateShortcut($tempLink)
 $link.TargetPath = Join-Path $install 'Mam.exe'
 $link.WorkingDirectory = $install
-$link.IconLocation = (Join-Path $install 'Mam.exe') + ',0'
+# The app rewrites this file when the theme changes, so the shortcut follows the theme.
+$shortcutIcon = Join-Path $env:LOCALAPPDATA 'Mam\app-icon.ico'
+if (-not (Test-Path $shortcutIcon)) {
+    New-Item -ItemType Directory -Force (Split-Path $shortcutIcon) | Out-Null
+    Copy-Item (Join-Path $install 'Assets\ThemeIcons\forest.ico') $shortcutIcon
+}
+$link.IconLocation = "$shortcutIcon,0"
 $link.Save()
 Move-Item -LiteralPath $tempLink -Destination (Join-Path $desktop "$name.lnk") -Force
 

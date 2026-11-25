@@ -25,6 +25,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser c
     public DbSet<WeekNote> WeekNotes => Set<WeekNote>();
     public DbSet<YearMeta> YearMeta => Set<YearMeta>();
     public DbSet<YearPlanItem> YearPlanItems => Set<YearPlanItem>();
+    public DbSet<FocusSession> FocusSessions => Set<FocusSession>();
     public DbSet<AppUser> Users => Set<AppUser>();
 
     // Filter tham chiếu thuộc tính của chính DbContext nên EF biến nó thành tham số SQL, đọc lại mỗi lần truy vấn.
@@ -58,6 +59,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser c
         ConfigureOwned<WeekNote>(modelBuilder);
         ConfigureOwned<YearMeta>(modelBuilder);
         ConfigureOwned<YearPlanItem>(modelBuilder);
+        ConfigureOwned<FocusSession>(modelBuilder);
     }
 
     private void ConfigureOwned<T>(ModelBuilder modelBuilder) where T : class, IUserOwned

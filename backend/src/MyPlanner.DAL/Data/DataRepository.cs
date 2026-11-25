@@ -17,7 +17,8 @@ public class DataRepository(AppDbContext db) : IDataRepository
         await db.DayNotes.AsNoTracking().OrderBy(n => n.Date).Select(n => new DayNoteDto(n.Date, n.Content, n.UpdatedAt)).ToListAsync(ct),
         await db.WeekNotes.AsNoTracking().OrderBy(n => n.WeekKey).Select(n => new WeekNoteDto(n.WeekKey, n.Content, n.UpdatedAt)).ToListAsync(ct),
         await db.YearMeta.AsNoTracking().OrderBy(y => y.Year).Select(y => new YearMetaDto(y.Year, y.Keyword, y.Vision)).ToListAsync(ct),
-        await db.YearPlanItems.AsNoTracking().OrderBy(i => i.Year).ThenBy(i => i.Month).ThenBy(i => i.Order).Select(Projections.YearItem).ToListAsync(ct));
+        await db.YearPlanItems.AsNoTracking().OrderBy(i => i.Year).ThenBy(i => i.Month).ThenBy(i => i.Order).Select(Projections.YearItem).ToListAsync(ct),
+        await db.FocusSessions.AsNoTracking().OrderBy(s => s.EndedAt).Select(Projections.Focus).ToListAsync(ct));
 
     // Xoá sạch rồi ghi lại trong MỘT transaction: lỗi giữa chừng thì rollback, dữ liệu cũ còn nguyên.
     public async Task ReplaceAllAsync(BackupDto d, CancellationToken ct)
@@ -25,6 +26,7 @@ public class DataRepository(AppDbContext db) : IDataRepository
         await using var tx = await db.Database.BeginTransactionAsync(ct);
 
         // Xoá con trước cha (FK). ExecuteDelete chạy SQL ngay, nằm trong transaction ở trên.
+        await db.FocusSessions.ExecuteDeleteAsync(ct);
         await db.Subtasks.ExecuteDeleteAsync(ct);
         await db.Tasks.ExecuteDeleteAsync(ct);
         await db.RecurringTasks.ExecuteDeleteAsync(ct);
@@ -42,12 +44,16 @@ public class DataRepository(AppDbContext db) : IDataRepository
         // Bảng tra cũ → mới giữ nguyên các liên kết: task → việc lặp lại, log → thói quen.
         var recurringIds = d.Recurring.ToDictionary(r => r.Id, _ => Guid.NewGuid());
         var habitIds = d.Habits.ToDictionary(h => h.Id, _ => Guid.NewGuid());
+        // Task và Goal cũng cần bảng tra vì phiên tập trung có thể trỏ tới chúng.
+        var taskIds = d.Tasks.GroupBy(t => t.Id).ToDictionary(g => g.Key, _ => Guid.NewGuid());
+        var goalIds = d.Goals.GroupBy(g => g.Id).ToDictionary(g => g.Key, _ => Guid.NewGuid());
         Guid? NewRecurringId(Guid? old) => old is { } id && recurringIds.TryGetValue(id, out var n) ? n : null;
+        static Guid? Remap(Dictionary<Guid, Guid> map, Guid? old) => old is { } id && map.TryGetValue(id, out var n) ? n : null;
 
         // Map DTO → entity viết tay (chiều ngược của Projections).
         db.Tasks.AddRange(d.Tasks.Select(t =>
         {
-            var taskId = Guid.NewGuid();
+            var taskId = taskIds[t.Id];
             return new TaskItem
             {
                 Id = taskId, Title = t.Title, Date = t.Date, OriginalDate = t.OriginalDate, Done = t.Done, DoneAt = t.DoneAt,
@@ -71,7 +77,7 @@ public class DataRepository(AppDbContext db) : IDataRepository
             .Select(l => new HabitLog { HabitId = habitIds[l.HabitId], Date = l.Date }));
         db.Goals.AddRange(d.Goals.Select(g =>
         {
-            var goalId = Guid.NewGuid();
+            var goalId = goalIds[g.Id];
             return new Goal
             {
                 Id = goalId, Title = g.Title, Area = g.Area, Status = g.Status, StartDate = g.StartDate, Deadline = g.Deadline,
@@ -88,6 +94,14 @@ public class DataRepository(AppDbContext db) : IDataRepository
         db.YearPlanItems.AddRange(d.YearItems.Select(i => new YearPlanItem
         {
             Id = Guid.NewGuid(), Year = i.Year, Month = i.Month, Title = i.Title, Done = i.Done, Order = i.Order,
+        }));
+        // Phiên tập trung: liên kết trỏ tới dòng không có trong file thì về null (giống ON DELETE SET NULL), chậu vẫn giữ.
+        db.FocusSessions.AddRange((d.FocusSessions ?? []).Select(s => new FocusSession
+        {
+            Id = Guid.NewGuid(), StartedAt = s.StartedAt, EndedAt = s.EndedAt, Date = s.Date,
+            PlannedMinutes = s.PlannedMinutes, ActualMinutes = s.ActualMinutes, Outcome = s.Outcome,
+            PlantKind = s.PlantKind, PotColor = s.PotColor,
+            TaskId = Remap(taskIds, s.TaskId), HabitId = Remap(habitIds, s.HabitId), GoalId = Remap(goalIds, s.GoalId),
         }));
 
         await db.SaveChangesAsync(ct);

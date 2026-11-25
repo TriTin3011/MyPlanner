@@ -13,6 +13,7 @@ public class StatsService(IStatsRepository stats) : IStatsService
         var habits = await stats.HabitsAsync(ct);
         var logs = await stats.HabitLogsAsync(today, ct);
         var goals = await stats.GoalsAsync(ct);
-        return StatsCalculator.Build(range, today, tasks, habits, logs, goals);
+        var focus = await stats.FocusAsync(today, ct);
+        return StatsCalculator.Build(range, today, tasks, habits, logs, goals, focus);
     }
 }

@@ -32,9 +32,16 @@
   --tag-important-bg: #fef3c7;
   --tag-important-ink: #b45309;
   --muted-bar: #c9cdd1;
+  --chart-total: #94a3b8;
+
+  /* Màu khi dùng làm CHỮ. Theme sáng trùng màu nền nút; theme tối cần bản sáng hơn để đọc được trên card. */
+  --primary-text: var(--primary);
+  --danger-text: var(--danger);
+  /* Nét viền vẽ tay. Theme tối dịu hơn màu chữ để card không bị chói. */
+  --sketch-ink: var(--ink);
 }
 
-/* Mỗi theme chỉ đổi 6 biến (SPEC §4.2). */
+/* Theme sáng chỉ đổi 6 biến; theme tối đổi toàn bộ (SPEC §4.2). */
 [data-theme='ocean'] {
   --primary: #1d4ed8;
   --primary-ink: #1e3a8a;
@@ -60,4 +67,37 @@
   --accent-tint: #ede9fe;
   --bg-app: #f3f0fb;
   --bg-paper: #f7f5fc;
+}
+
+[data-theme='night'] {
+  /* Báo trình duyệt vẽ control gốc (date picker, checkbox, autofill) theo kiểu tối. */
+  color-scheme: dark;
+
+  --bg-app: #0f1517;
+  --bg-paper: #141b1d;
+  --grid-line: rgba(180, 230, 210, 0.05);
+  --surface: #1b2426;
+
+  --primary: #0e8159;
+  --primary-ink: #8ce6c2;
+  --primary-text: #5fd8aa;
+  --accent-soft: #1f4a3c;
+  --accent-tint: #1a3329;
+
+  --ink: #e6eeea;
+  --ink-muted: #9fb0a8;
+  --line: #2e3b3c;
+  --sketch-ink: #84978f;
+
+  --warn: #f59e0b;
+  --warn-ink: #fbbf24;
+  --danger: #dc2646;
+  --danger-text: #ff8fa3;
+  --danger-bg: #47202b;
+  --tag-urgent-bg: #47202b;
+  --tag-urgent-ink: #ffa3b4;
+  --tag-important-bg: #433413;
+  --tag-important-ink: #fcd34d;
+  --muted-bar: #4a5759;
+  --chart-total: #7f9094;
 }

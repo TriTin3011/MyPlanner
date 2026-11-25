@@ -44,7 +44,7 @@ export function StatsHero({ data }: { data: StatsDto }) {
           <p className="text-xs font-extrabold tracking-wide uppercase opacity-90">{t('stats.hero.title')}</p>
           <p className="mt-1 flex items-baseline gap-3 font-display text-5xl font-extrabold">
             {hero.completionPercent}%
-            <span className="rounded-full bg-white px-2 py-0.5 text-sm">
+            <span className="rounded-full bg-surface px-2 py-0.5 text-sm">
               <Delta value={hero.deltaPoints} unit={pointsUnit} />
             </span>
           </p>
@@ -53,7 +53,7 @@ export function StatsHero({ data }: { data: StatsDto }) {
             {hero.bestWeekday ? t('stats.hero.bestWeekday', { day: weekdayLabel(hero.bestWeekday) }) : ''}
           </p>
         </div>
-        <div className="rounded-xl bg-white/95 p-1.5">
+        <div className="rounded-xl bg-surface p-1.5">
           <Sparkline values={hero.weeklySparkline.map((p) => p.percent)} />
         </div>
       </section>

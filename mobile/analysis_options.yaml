@@ -1,0 +1,9 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    # Client sinh từ OpenAPI (`openapi-generator`), không sửa tay nên không lint.
+    - packages/planner_api/**

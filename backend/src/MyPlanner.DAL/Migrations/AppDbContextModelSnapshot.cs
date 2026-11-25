@@ -84,6 +84,68 @@ namespace MyPlanner.DAL.Migrations
                     b.ToTable("DayNotes", (string)null);
                 });
 
+            modelBuilder.Entity("MyPlanner.Core.Entities.FocusSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ActualMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset>("EndedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("GoalId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("HabitId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("PlannedMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PlantKind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("PotColor")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("TaskId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GoalId");
+
+                    b.HasIndex("HabitId");
+
+                    b.HasIndex("TaskId");
+
+                    b.HasIndex("UserId", "Date");
+
+                    b.HasIndex("UserId", "EndedAt");
+
+                    b.ToTable("FocusSessions", (string)null);
+                });
+
             modelBuilder.Entity("MyPlanner.Core.Entities.Goal", b =>
                 {
                     b.Property<Guid>("Id")
@@ -423,6 +485,30 @@ namespace MyPlanner.DAL.Migrations
 
             modelBuilder.Entity("MyPlanner.Core.Entities.DayNote", b =>
                 {
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MyPlanner.Core.Entities.FocusSession", b =>
+                {
+                    b.HasOne("MyPlanner.Core.Entities.Goal", null)
+                        .WithMany()
+                        .HasForeignKey("GoalId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MyPlanner.Core.Entities.Habit", null)
+                        .WithMany()
+                        .HasForeignKey("HabitId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MyPlanner.Core.Entities.TaskItem", null)
+                        .WithMany()
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("MyPlanner.Core.Entities.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")

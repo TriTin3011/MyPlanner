@@ -7,6 +7,7 @@ public record StatsTaskRow(DateOnly Date, bool Done);
 public record StatsHabitRow(Guid Id, string Title, int Order, bool Active, DateOnly StartDate);
 public record StatsHabitLogRow(Guid HabitId, DateOnly Date);
 public record StatsGoalRow(LifeArea Area, GoalStatus Status);
+public record StatsFocusRow(DateOnly Date, int Minutes, FocusOutcome Outcome);
 public readonly record struct StatsPeriod(
     DateOnly From,
     DateOnly To,
@@ -22,7 +23,8 @@ public static class StatsCalculator
         IReadOnlyList<StatsTaskRow> tasks,
         IReadOnlyList<StatsHabitRow> habits,
         IReadOnlyList<StatsHabitLogRow> habitLogs,
-        IReadOnlyList<StatsGoalRow> goals)
+        IReadOnlyList<StatsGoalRow> goals,
+        IReadOnlyList<StatsFocusRow>? focus = null)
     {
         if (!IsSupportedRange(range))
             throw new ArgumentOutOfRangeException(nameof(range));
@@ -87,7 +89,26 @@ public static class StatsCalculator
             heatmap,
             weekdayProductivity,
             habitConsistency,
-            goalSummary);
+            goalSummary,
+            BuildFocus(period, focus ?? []));
+    }
+
+    private static StatsFocusDto BuildFocus(StatsPeriod period, IReadOnlyList<StatsFocusRow> sessions)
+    {
+        var current = sessions.Where(s => s.Date >= period.From && s.Date <= period.To).ToList();
+        var minutes = current.Sum(s => s.Minutes);
+        var previous = sessions.Where(s => s.Date >= period.PreviousFrom && s.Date <= period.PreviousTo).Sum(s => s.Minutes);
+
+        var byMonday = current.GroupBy(s => WeekKeys.MondayOf(s.Date)).ToDictionary(g => g.Key, g => g.Sum(s => s.Minutes));
+        var weeks = new List<StatsFocusWeekDto>();
+        for (var monday = WeekKeys.MondayOf(period.From); monday <= WeekKeys.MondayOf(period.To); monday = monday.AddDays(7))
+            weeks.Add(new StatsFocusWeekDto(WeekKeys.ToKey(monday), monday, byMonday.GetValueOrDefault(monday)));
+
+        return new StatsFocusDto(
+            minutes,
+            previous == 0 ? null : Metrics.Percent((double)(minutes - previous) / previous),
+            current.Count(s => s.Outcome == FocusOutcome.Completed),
+            weeks);
     }
 
     public static bool IsSupportedRange(string? range) => range is "4w" or "8w" or "12w" or "6m" or "1y";

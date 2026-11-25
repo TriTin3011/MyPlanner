@@ -38,6 +38,16 @@ public partial class SplashView : UserControl
         Dot3.Fill = primary;
         BarFill.Background = primary;
 
+        if (palette.Surface is { } surface) Bar.Background = ToBrush(surface);
+        if (palette.InkMuted is { } muted) Status.Foreground = ToBrush(muted);
+        if (palette.Ink is { } ink)
+        {
+            var inkBrush = ToBrush(ink);
+            Bar.BorderBrush = inkBrush;
+            AppTitle.Foreground = inkBrush;
+            StartupErrorText.Foreground = inkBrush;
+        }
+
         var paper = ((DrawingBrush)FindResource("PaperBrush")).Clone();
         ((GeometryDrawing)((DrawingGroup)paper.Drawing).Children[0]).Brush = ToBrush(palette.Paper);
         Background = paper;

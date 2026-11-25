@@ -1,4 +1,17 @@
-import { Info, Minimize2, Minus, Pause, Play, Plus, RotateCcw, SkipForward, Volume2, VolumeX } from 'lucide-react'
+import {
+  Bell,
+  BellOff,
+  Info,
+  Minimize2,
+  Minus,
+  Pause,
+  Play,
+  Plus,
+  RotateCcw,
+  SkipForward,
+  Volume2,
+  VolumeX,
+} from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Modal } from '../../components/Modal'
@@ -12,6 +25,7 @@ import {
   remainingMs,
   sessionsToday,
 } from './pomodoro'
+import { noticePermission, requestNoticePermission } from './notify'
 import { usePomodoro, usePomodoroNow } from './store'
 
 const MODES: PomodoroMode[] = ['focus', 'break']
@@ -197,8 +211,48 @@ function PomodoroPanel() {
           {timer.sound ? <Volume2 size={17} aria-hidden="true" /> : <VolumeX size={17} aria-hidden="true" />}
           {timer.sound ? t('pomodoro.soundOn') : t('pomodoro.soundOff')}
         </button>
+        <NotifyToggle />
       </div>
     </div>
+  )
+}
+
+function NotifyToggle() {
+  const { t } = useTranslation()
+  const notify = usePomodoro((s) => s.notify)
+  const setNotify = usePomodoro((s) => s.setNotify)
+  const [permission, setPermission] = useState(noticePermission)
+
+  if (permission === 'unsupported') return null
+  const on = notify && permission === 'granted'
+
+  const toggle = async () => {
+    if (on) {
+      setNotify(false)
+      return
+    }
+    const result = await requestNoticePermission()
+    setPermission(result)
+    if (result === 'granted') setNotify(true)
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-pressed={on}
+        onClick={() => void toggle()}
+        className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg px-2 hover:bg-accent-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+      >
+        {on ? <Bell size={17} aria-hidden="true" /> : <BellOff size={17} aria-hidden="true" />}
+        {on ? t('pomodoro.notifyOn') : t('pomodoro.notifyOff')}
+      </button>
+      {permission === 'denied' && (
+        <p role="status" className="w-full text-xs font-medium">
+          {t('pomodoro.notifyBlocked')}
+        </p>
+      )}
+    </>
   )
 }
 
