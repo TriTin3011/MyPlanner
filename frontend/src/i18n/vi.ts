@@ -73,8 +73,8 @@ export const vi = {
     account: 'Tài khoản',
     accountMenu: 'Menu tài khoản của {{name}}',
     profile: 'Hồ sơ',
-    displayName: 'Tên hiển thị',
-    displayNameHint: 'Để trống để dùng lại tên đăng nhập. Tối đa 50 ký tự.',
+    displayName: 'Mầm nên gọi bạn là',
+    displayNameHint: 'Để trống thì Mầm gọi bạn bằng tên đăng nhập. Tối đa 50 ký tự.',
     loginName: 'Tên đăng nhập: {{name}}',
     editName: 'Sửa tên hiển thị',
     saveName: 'Lưu tên',
@@ -143,6 +143,7 @@ export const vi = {
       break: { title: 'Hết giờ nghỉ', body: 'Sẵn sàng cho phiên tập trung tiếp theo chưa?' },
     },
     float: 'Mở khung nổi',
+    move: 'Kéo để di chuyển, hoặc dùng phím mũi tên',
     closeFloat: 'Đóng khung nổi',
   },
   music: {

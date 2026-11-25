@@ -25,16 +25,22 @@
             <Setter Property="Cursor" Value="Hand" />
         </Style>
     </Window.Resources>
-    <StackPanel Orientation="Horizontal" Margin="12,6,6,6" VerticalAlignment="Center">
-        <StackPanel MinWidth="92" VerticalAlignment="Center">
-            <TextBlock x:Name="Clock" Text="00:00" FontSize="22" FontWeight="ExtraBold"
-                       Foreground="{StaticResource Ink}" />
-            <TextBlock x:Name="Status" FontSize="11" FontWeight="Bold" MaxWidth="120"
-                       TextTrimming="CharacterEllipsis" Foreground="{StaticResource InkMuted}" />
+    <!-- Nút đóng nhỏ nằm riêng ở góc phải trên; lề phải 24 của hàng nút chừa chỗ cho nó. -->
+    <Grid>
+        <StackPanel Orientation="Horizontal" Margin="12,6,24,6" VerticalAlignment="Center">
+            <StackPanel MinWidth="92" VerticalAlignment="Center">
+                <TextBlock x:Name="Clock" Text="00:00" FontSize="22" FontWeight="ExtraBold"
+                           Foreground="{StaticResource Ink}" />
+                <TextBlock x:Name="Status" FontSize="11" FontWeight="Bold" MaxWidth="120"
+                           TextTrimming="CharacterEllipsis" Foreground="{StaticResource InkMuted}" />
+            </StackPanel>
+            <Button x:Name="ToggleButton" Style="{StaticResource FloatButton}" Content="&#xE768;"
+                    Foreground="{StaticResource Primary}" Click="OnToggle" />
+            <Button x:Name="ExpandButton" Style="{StaticResource FloatButton}" Content="&#xE740;" Click="OnExpand" />
         </StackPanel>
-        <Button x:Name="ToggleButton" Style="{StaticResource FloatButton}" Content="&#xE768;"
-                Foreground="{StaticResource Primary}" Click="OnToggle" />
-        <Button x:Name="ExpandButton" Style="{StaticResource FloatButton}" Content="&#xE740;" Click="OnExpand" />
-        <Button x:Name="CloseButton" Style="{StaticResource FloatButton}" Content="&#xE8BB;" Click="OnClose" />
-    </StackPanel>
+        <Button x:Name="CloseButton" Style="{StaticResource FloatButton}" Content="&#xE8BB;" Click="OnClose"
+                Width="20" Height="20" FontSize="8" Margin="0,3,3,0"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                Foreground="{StaticResource InkMuted}" />
+    </Grid>
 </Window>

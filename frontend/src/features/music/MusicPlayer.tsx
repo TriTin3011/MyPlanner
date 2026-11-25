@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown, ChevronUp, GripVertical, MoveDiagonal2, Pause, Play, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, GripVertical, MoveDiagonal2, Pause, Play } from 'lucide-react'
 import {
   type FormEvent,
   type KeyboardEvent,
@@ -10,6 +10,7 @@ import {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CornerCloseButton } from '../../components/CornerCloseButton'
 import { useSettings } from '../../store/settings'
 import { MusicBoxIcon } from './MusicBoxIcon'
 import {
@@ -18,10 +19,10 @@ import {
   COLLAPSED_WIDTH,
   collapsedView,
   defaultFrame,
-  type FrameViewport,
   miniFrameHeight,
   type MusicFrame,
   type PlayerView,
+  readViewport,
 } from './musicFrame'
 import { parseMusicLink } from './musicLink'
 import {
@@ -39,14 +40,6 @@ const ARROWS: Record<string, [number, number]> = {
   ArrowRight: [KEY_STEP, 0],
   ArrowUp: [0, -KEY_STEP],
   ArrowDown: [0, KEY_STEP],
-}
-
-function readViewport(): FrameViewport {
-  return {
-    width: window.innerWidth,
-    height: window.innerHeight,
-    bottomInset: window.innerWidth < 768 ? 68 : 8,
-  }
 }
 
 async function fetchTitle(url: string) {
@@ -334,15 +327,8 @@ export function MusicPlayer({
             {expanded ? <ChevronUp size={19} aria-hidden /> : <ChevronDown size={19} aria-hidden />}
           </button>
         )}
-        <button
-          type="button"
-          aria-label={t('music.close')}
-          onClick={onClose}
-          className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-xl hover:bg-accent-tint"
-        >
-          <X size={18} aria-hidden />
-        </button>
       </div>
+      <CornerCloseButton label={t('music.close')} onClick={onClose} />
 
       {showForm && (
         <form onSubmit={submit} className="mt-2 flex flex-col gap-2">

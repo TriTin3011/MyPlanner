@@ -76,8 +76,8 @@ export const en: Messages<typeof vi> = {
     account: 'Account',
     accountMenu: 'Account menu for {{name}}',
     profile: 'Profile',
-    displayName: 'Display name',
-    displayNameHint: 'Leave empty to use your username. Up to 50 characters.',
+    displayName: 'What should Mầm call you?',
+    displayNameHint: 'Leave empty and Mầm will use your username. Up to 50 characters.',
     loginName: 'Username: {{name}}',
     editName: 'Edit display name',
     saveName: 'Save name',
@@ -146,6 +146,7 @@ export const en: Messages<typeof vi> = {
       break: { title: 'Break is over', body: 'Ready for the next focus session?' },
     },
     float: 'Open floating timer',
+    move: 'Drag to move, or use the arrow keys',
     closeFloat: 'Close floating timer',
   },
   music: {
