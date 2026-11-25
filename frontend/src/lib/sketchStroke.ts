@@ -28,7 +28,8 @@ function ribbon(points: Point[], width: number, random: Random): string {
     const dx = after[0] - before[0]
     const dy = after[1] - before[1]
     const length = Math.hypot(dx, dy) || 1
-    const taper = 0.35 + 0.65 * Math.pow(Math.sin((Math.PI * i) / last), 0.45)
+    // sin(π) tính bằng số thực có thể ra số âm cực nhỏ, và lũy thừa 0.45 của số âm là NaN, làm SVG ngừng vẽ cả đường.
+    const taper = 0.35 + 0.65 * Math.pow(Math.max(Math.sin((Math.PI * i) / last), 0), 0.45)
     const half = (width / 2) * taper * (0.9 + random() * 0.2)
     left.push([point[0] - (dy / length) * half, point[1] + (dx / length) * half])
     right.unshift([point[0] + (dy / length) * half, point[1] - (dx / length) * half])

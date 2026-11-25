@@ -68,6 +68,7 @@ builder.Services.AddOptions<JwtOptions>()
     .Validate(o => !string.IsNullOrWhiteSpace(o.Issuer) && !string.IsNullOrWhiteSpace(o.Audience),
         "Jwt:Issuer và Jwt:Audience không được trống.")
     .Validate(o => o.ExpiresMinutes > 0, "Jwt:ExpiresMinutes phải lớn hơn 0.")
+    .Validate(o => o.RefreshDays > 0, "Jwt:RefreshDays phải lớn hơn 0.")
     .ValidateOnStart();
 
 // Đăng nhập Google là tuỳ chọn: thiếu Google:ClientId thì app vẫn chạy, POST /auth/google luôn trả 401.
@@ -124,6 +125,7 @@ builder.Services.AddRateLimiter(options =>
                 Status = StatusCodes.Status429TooManyRequests,
                 Detail = http.Request.Path.StartsWithSegments("/api/profile") ? Messages.TooManyUploads
                     : http.Request.Path.StartsWithSegments("/api/auth/register") ? Messages.TooManyRegistrations
+                    : http.Request.Path.StartsWithSegments("/api/auth/refresh") || http.Request.Path.StartsWithSegments("/api/auth/logout") ? Messages.TooManyRefreshes
                     : Messages.TooManyLoginAttempts,
             },
         });
@@ -135,6 +137,10 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy(AuthController.RegisterRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
         http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromHours(1), QueueLimit = 0 }));
+    // Gia hạn chạy ngầm và nhiều thiết bị có thể chung một IP, nên rộng hơn đăng nhập. Token 256 bit không dò được.
+    options.AddPolicy(AuthController.RefreshRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+        http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
     // Xử lý ảnh tốn CPU nên giới hạn theo tài khoản: 20 lần mỗi giờ.
     options.AddPolicy(ProfileController.AvatarRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
         http.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? http.Connection.RemoteIpAddress?.ToString() ?? "unknown",

@@ -20,11 +20,14 @@ public partial class MainWindow : Window
     public MainWindow(ShellViewModel shell)
     {
         InitializeComponent();
+        if (WebUiHost.IsAvailable) AppIcon.Apply(this, SplashTheme.LoadThemeId());
         // Chỉ giao diện web có theme; nền cửa sổ đổi theo để lúc splash mờ đi không lộ màu xanh.
         if (WebUiHost.IsAvailable && SplashTheme.Load() is { } palette)
         {
             Splash.ApplyPalette(palette);
             Background = Splash.Background;
+            // WebView2 tự tô nền trước khi trang vẽ xong, nên nền này cũng phải theo theme để không chớp xanh.
+            Web.DefaultBackgroundColor = System.Drawing.ColorTranslator.FromHtml(palette.Paper);
         }
         _shell = shell;
         DataContext = shell;

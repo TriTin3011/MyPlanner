@@ -84,15 +84,75 @@ namespace MyPlanner.DAL.Migrations
                     b.ToTable("DayNotes", (string)null);
                 });
 
+            modelBuilder.Entity("MyPlanner.Core.Entities.FocusSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ActualMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset>("EndedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("GoalId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("HabitId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("PlannedMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PlantKind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("PotColor")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("TaskId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GoalId");
+
+                    b.HasIndex("HabitId");
+
+                    b.HasIndex("TaskId");
+
+                    b.HasIndex("UserId", "Date");
+
+                    b.HasIndex("UserId", "EndedAt");
+
+                    b.ToTable("FocusSessions", (string)null);
+                });
+
             modelBuilder.Entity("MyPlanner.Core.Entities.Goal", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Area")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                    b.Property<Guid>("AreaId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
@@ -127,9 +187,44 @@ namespace MyPlanner.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AreaId");
+
                     b.HasIndex("UserId", "Deadline");
 
                     b.ToTable("Goals", (string)null);
+                });
+
+            modelBuilder.Entity("MyPlanner.Core.Entities.GoalArea", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Key")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Key")
+                        .IsUnique()
+                        .HasFilter("\"Key\" IS NOT NULL");
+
+                    b.HasIndex("UserId", "Order");
+
+                    b.ToTable("GoalAreas", (string)null);
                 });
 
             modelBuilder.Entity("MyPlanner.Core.Entities.GoalStep", b =>
@@ -261,6 +356,46 @@ namespace MyPlanner.DAL.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RecurringTasks", (string)null);
+                });
+
+            modelBuilder.Entity("MyPlanner.Core.Entities.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ConsumedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FamilyId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ExpiresAt");
+
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("MyPlanner.Core.Entities.Subtask", b =>
@@ -430,7 +565,46 @@ namespace MyPlanner.DAL.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MyPlanner.Core.Entities.FocusSession", b =>
+                {
+                    b.HasOne("MyPlanner.Core.Entities.Goal", null)
+                        .WithMany()
+                        .HasForeignKey("GoalId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MyPlanner.Core.Entities.Habit", null)
+                        .WithMany()
+                        .HasForeignKey("HabitId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MyPlanner.Core.Entities.TaskItem", null)
+                        .WithMany()
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MyPlanner.Core.Entities.Goal", b =>
+                {
+                    b.HasOne("MyPlanner.Core.Entities.GoalArea", null)
+                        .WithMany()
+                        .HasForeignKey("AreaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MyPlanner.Core.Entities.GoalArea", b =>
                 {
                     b.HasOne("MyPlanner.Core.Entities.AppUser", null)
                         .WithMany()
@@ -479,6 +653,15 @@ namespace MyPlanner.DAL.Migrations
                 });
 
             modelBuilder.Entity("MyPlanner.Core.Entities.RecurringTask", b =>
+                {
+                    b.HasOne("MyPlanner.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MyPlanner.Core.Entities.RefreshToken", b =>
                 {
                     b.HasOne("MyPlanner.Core.Entities.AppUser", null)
                         .WithMany()

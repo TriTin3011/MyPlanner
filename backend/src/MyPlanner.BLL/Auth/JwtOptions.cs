@@ -15,8 +15,10 @@ public sealed class JwtOptions
     public string Key { get; set; } = "";
     public string Issuer { get; set; } = "MyPlanner";
     public string Audience { get; set; } = "MyPlanner";
-    // Một người dùng, không có refresh token: token sống 7 ngày, hết hạn thì đăng nhập lại.
-    public int ExpiresMinutes { get; set; } = 7 * 24 * 60;
+    // Access token sống ngắn vì không thu hồi được; client dùng refresh token để đổi cái mới.
+    public int ExpiresMinutes { get; set; } = 15;
+    // Không dùng app quá số ngày này thì phải đăng nhập lại. Mỗi lần gia hạn, hạn được tính lại từ đầu.
+    public int RefreshDays { get; set; } = 30;
 
     public bool HasValidKey => Encoding.UTF8.GetByteCount(Key) >= MinKeyBytes;
 

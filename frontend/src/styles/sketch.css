@@ -8,9 +8,9 @@
   /* Card viền đậm, bo góc lệch, bóng lệch như nét bút */
   .sketch {
     background: var(--surface);
-    border: 2px solid var(--ink);
+    border: 2px solid var(--sketch-ink);
     border-radius: 14px;
-    box-shadow: 2px 3px 0 0 var(--ink);
+    box-shadow: 2px 3px 0 0 var(--sketch-ink);
   }
 
   .sketch--active {
@@ -124,7 +124,7 @@
 @media (max-width: 767px) {
   .sketch {
     border-width: 1.5px;
-    box-shadow: 1px 2px 0 0 var(--ink);
+    box-shadow: 1px 2px 0 0 var(--sketch-ink);
   }
 }
 

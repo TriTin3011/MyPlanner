@@ -122,12 +122,14 @@ export function TodayTasksBlock({
         </div>
       )}
 
-      <AddTaskInput
-        inputRef={addInputRef}
-        shortcutHint={t('shortcuts.addTaskKey')}
-        pending={addPending}
-        onAdd={onAdd}
-      />
+      <div data-tour="today-add">
+        <AddTaskInput
+          inputRef={addInputRef}
+          shortcutHint={t('shortcuts.addTaskKey')}
+          pending={addPending}
+          onAdd={onAdd}
+        />
+      </div>
 
       <NoteCollapsible
         initialContent={noteContent}

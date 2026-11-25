@@ -12,7 +12,7 @@ describe('toSaveRequest', () => {
   it('cắt khoảng trắng và đổi phần thưởng, lý do rỗng thành null', () => {
     const form: GoalFormValues = {
       title: '  Học React  ',
-      area: 'learning',
+      areaId: 'area-learning',
       status: 'not_started',
       startDate: '2026-11-22',
       deadline: '2026-12-22',
@@ -20,15 +20,29 @@ describe('toSaveRequest', () => {
       why: '',
     }
 
-    expect(toSaveRequest(form)).toEqual({
+    expect(toSaveRequest(form, '2026-11-20')).toEqual({
       title: 'Học React',
-      area: 'learning',
+      areaId: 'area-learning',
       status: 'not_started',
       startDate: '2026-11-22',
       deadline: '2026-12-22',
       reward: null,
       why: null,
     })
+  })
+
+  it('ngày bắt đầu để trống thì lấy hôm nay', () => {
+    const form: GoalFormValues = {
+      title: 'Học React',
+      areaId: 'area-learning',
+      status: 'in_progress',
+      startDate: '',
+      deadline: '2026-12-22',
+      reward: '',
+      why: '',
+    }
+
+    expect(toSaveRequest(form, '2026-11-24').startDate).toBe('2026-11-24')
   })
 })
 

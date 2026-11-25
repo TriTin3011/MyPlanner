@@ -8,4 +8,5 @@ public interface IStatsRepository
     Task<List<StatsHabitRow>> HabitsAsync(CancellationToken ct);
     Task<List<StatsHabitLogRow>> HabitLogsAsync(DateOnly to, CancellationToken ct);
     Task<List<StatsGoalRow>> GoalsAsync(CancellationToken ct);
+    Task<List<StatsFocusRow>> FocusAsync(DateOnly to, CancellationToken ct);
 }

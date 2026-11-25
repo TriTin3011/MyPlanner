@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { toLocalDateKey } from '../../lib/dates'
+import { notifyFinished } from './notify'
 import {
   changeMinutes,
   finishTimer,
@@ -24,6 +25,8 @@ interface PomodoroState extends PomodoroTimer {
   selectMode: (mode: PomodoroMode) => void
   adjust: (mode: PomodoroMode, direction: -1 | 1) => void
   toggleSound: () => void
+  notify: boolean
+  setNotify: (notify: boolean) => void
 }
 
 // Store riêng, tách khỏi settings: đây là trạng thái đang chạy, lưu lại để tải lại trang không mất giờ.
@@ -39,6 +42,8 @@ export const usePomodoro = create<PomodoroState>()(
       selectMode: (mode) => set((s) => switchMode(s, mode)),
       adjust: (mode, direction) => set((s) => changeMinutes(s, mode, direction)),
       toggleSound: () => set((s) => ({ sound: !s.sound })),
+      notify: false,
+      setNotify: (notify) => set({ notify }),
     }),
     { name: 'myplanner-pomodoro' },
   ),
@@ -80,9 +85,11 @@ export function usePomodoroTicker() {
     if (endsAt === null) return
     const id = setInterval(() => {
       if (Date.now() < endsAt) return
-      const { sound, finish } = usePomodoro.getState()
+      // Lấy mode trước finish(), vì finish() chuyển sang chế độ kế tiếp.
+      const { mode, sound, notify, finish } = usePomodoro.getState()
       finish()
       if (sound) playChime()
+      if (notify) notifyFinished(mode)
     }, 500)
     return () => clearInterval(id)
   }, [endsAt])

@@ -10,7 +10,8 @@ public class GoalConfiguration : IEntityTypeConfiguration<Goal>
     {
         b.ToTable("Goals");
         b.Property(g => g.Title).HasMaxLength(300);
-        b.Property(g => g.Area).HasConversion<string>().HasMaxLength(20);
+        // Restrict: xoá lĩnh vực còn mục tiêu thì DB từ chối (service đã chặn trước và báo lỗi dễ hiểu hơn).
+        b.HasOne<GoalArea>().WithMany().HasForeignKey(g => g.AreaId).OnDelete(DeleteBehavior.Restrict);
         b.Property(g => g.Status).HasConversion<string>().HasMaxLength(20);
         b.HasMany(g => g.Steps).WithOne().HasForeignKey(s => s.GoalId).OnDelete(DeleteBehavior.Cascade);
         b.HasIndex(g => new { g.UserId, g.Deadline });

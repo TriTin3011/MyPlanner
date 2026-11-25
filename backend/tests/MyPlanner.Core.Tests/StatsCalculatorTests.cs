@@ -131,20 +131,20 @@ public class StatsCalculatorTests
     {
         var goals = new List<StatsGoalRow>
         {
-            new(LifeArea.Health, GoalStatus.Done),
-            new(LifeArea.Health, GoalStatus.InProgress),
-            new(LifeArea.Finance, GoalStatus.NotStarted),
+            new(Health.Id, GoalStatus.Done),
+            new(Health.Id, GoalStatus.InProgress),
+            new(Finance.Id, GoalStatus.NotStarted),
         };
 
-        var summary = Build(goals: goals).Goals;
+        var summary = Build(goals: goals, areas: [Health, Career, Finance]).Goals;
 
         Assert.Equal(3, summary.Total);
         Assert.Equal(33, summary.PercentDone);
         Assert.Equal((1, 1, 1),
             (summary.ByStatus.NotStarted, summary.ByStatus.InProgress, summary.ByStatus.Done));
         Assert.Collection(summary.ByArea,
-            health => Assert.Equal((LifeArea.Health, 1, 2), (health.Area, health.Done, health.Total)),
-            finance => Assert.Equal((LifeArea.Finance, 0, 1), (finance.Area, finance.Done, finance.Total)));
+            health => Assert.Equal((LifeArea.Health, 1, 2), (health.Key, health.Done, health.Total)),
+            finance => Assert.Equal((LifeArea.Finance, 0, 1), (finance.Key, finance.Done, finance.Total)));
     }
 
     [Theory]
@@ -156,7 +156,7 @@ public class StatsCalculatorTests
         string expectedFrom,
         string expectedPreviousFrom)
     {
-        var result = StatsCalculator.Build(range, Today, [], [], [], []);
+        var result = StatsCalculator.Build(range, Today, [], [], [], [], []);
 
         Assert.Equal(DateOnly.Parse(expectedFrom), result.From);
         Assert.Equal(DateOnly.Parse(expectedPreviousFrom), result.PreviousFrom);
@@ -165,25 +165,63 @@ public class StatsCalculatorTests
             result.PreviousTo.DayNumber - result.PreviousFrom.DayNumber);
     }
 
+    // Kỳ 4w: 2026-10-26 → 2026-11-22; kỳ trước 2026-09-28 → 2026-10-25.
+    [Fact]
+    public void Build_sums_focus_minutes_per_week_and_compares_with_previous_period()
+    {
+        StatsFocusRow[] focus =
+        [
+            new(new DateOnly(2026, 11, 22), 25, FocusOutcome.Completed),
+            new(new DateOnly(2026, 11, 22), 10, FocusOutcome.Abandoned), // bỏ cuộc: có phút, không có chậu
+            new(new DateOnly(2026, 10, 26), 45, FocusOutcome.Completed),
+            new(new DateOnly(2026, 10, 1), 40, FocusOutcome.Completed),  // kỳ trước
+            new(new DateOnly(2026, 8, 1), 60, FocusOutcome.Completed),   // ngoài cả hai kỳ
+        ];
+
+        var result = StatsCalculator.Build("4w", Today, [], [], [], [], [], focus);
+
+        Assert.Equal(80, result.Focus.Minutes);
+        Assert.Equal(2, result.Focus.Pots);
+        Assert.Equal(100, result.Focus.MinutesPercentChange); // 80 so với 40
+        Assert.Equal(4, result.Focus.Weeks.Count);
+        Assert.Equal([45, 0, 0, 35], result.Focus.Weeks.Select(w => w.Minutes));
+    }
+
+    [Fact]
+    public void Build_focus_change_is_null_without_previous_minutes()
+    {
+        var result = Build();
+
+        Assert.Equal(0, result.Focus.Minutes);
+        Assert.Null(result.Focus.MinutesPercentChange);
+        Assert.All(result.Focus.Weeks, w => Assert.Equal(0, w.Minutes));
+    }
+
     [Fact]
     public void Build_attributes_unknown_range_error_to_range()
     {
         var error = Assert.Throws<ArgumentOutOfRangeException>(
-            () => StatsCalculator.Build("2w", Today, [], [], [], []));
+            () => StatsCalculator.Build("2w", Today, [], [], [], [], []));
 
         Assert.Equal("range", error.ParamName);
     }
+
+    private static readonly MyPlanner.Core.Dtos.GoalAreaDto Health = new(Guid.NewGuid(), LifeArea.Health, null);
+    private static readonly MyPlanner.Core.Dtos.GoalAreaDto Career = new(Guid.NewGuid(), LifeArea.Career, null);
+    private static readonly MyPlanner.Core.Dtos.GoalAreaDto Finance = new(Guid.NewGuid(), LifeArea.Finance, null);
 
     private static MyPlanner.Core.Dtos.StatsDto Build(
         IReadOnlyList<StatsTaskRow>? tasks = null,
         IReadOnlyList<StatsHabitRow>? habits = null,
         IReadOnlyList<StatsHabitLogRow>? logs = null,
-        IReadOnlyList<StatsGoalRow>? goals = null) =>
+        IReadOnlyList<StatsGoalRow>? goals = null,
+        IReadOnlyList<MyPlanner.Core.Dtos.GoalAreaDto>? areas = null) =>
         StatsCalculator.Build(
             "4w",
             Today,
             tasks ?? [],
             habits ?? [],
             logs ?? [],
-            goals ?? []);
+            goals ?? [],
+            areas ?? []);
 }

@@ -33,8 +33,11 @@ public class AuthServiceTests : IDisposable
     {
         CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("vi");
         var clock = new FixedTimeProvider(Now);
-        service = new AuthService(users, new PasswordHasher<AppUser>(), new JwtTokenIssuer(Options.Create(Jwt), clock), googleVerifier, clock);
+        service = new AuthService(users, new PasswordHasher<AppUser>(), Sessions(clock), googleVerifier, clock);
     }
+
+    private SessionService Sessions(TimeProvider clock) =>
+        new(new FakeRefreshTokenRepository(), users, new JwtTokenIssuer(Options.Create(Jwt), clock), Options.Create(Jwt), clock);
 
     public void Dispose() => CultureInfo.CurrentUICulture = previousUiCulture;
 
@@ -147,7 +150,7 @@ public class AuthServiceTests : IDisposable
     public async Task LoginAsync_rehashes_and_saves_when_hash_is_outdated()
     {
         var clock = new FixedTimeProvider(Now);
-        var rehashing = new AuthService(users, new RehashNeededHasher(), new JwtTokenIssuer(Options.Create(Jwt), clock), googleVerifier, clock);
+        var rehashing = new AuthService(users, new RehashNeededHasher(), Sessions(clock), googleVerifier, clock);
         await rehashing.EnsureAccountAsync("tin", Password, CancellationToken.None);
         var oldHash = users.Items[0].PasswordHash;
         users.SaveCount = 0;
@@ -296,7 +299,7 @@ public class AuthServiceTests : IDisposable
         public override DateTimeOffset GetUtcNow() => now;
     }
 
-    private sealed class FakeUserRepository : IUserRepository
+    internal sealed class FakeUserRepository : IUserRepository
     {
         public List<AppUser> Items { get; } = [];
 

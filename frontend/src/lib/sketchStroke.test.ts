@@ -28,6 +28,17 @@ describe('buildSketchSvg', () => {
     expect(Math.max(...values)).toBeLessThanOrEqual(Math.max(width, height) + SKETCH_OUTSET)
   })
 
+  // Một NaN trong path làm trình duyệt bỏ phần còn lại của đường, nên viền mất cả 4 góc.
+  it('không sinh NaN ở bất kỳ kích thước nào (viền đồng hồ đổi rộng mỗi giây)', () => {
+    const broken: string[] = []
+    for (let width = 20; width <= 400; width++) {
+      for (let height = 20; height <= 140; height += 3) {
+        if (/NaN|Infinity/.test(buildSketchSvg(width, height, '#000'))) broken.push(`${width}x${height}`)
+      }
+    }
+    expect(broken).toEqual([])
+  })
+
   it('mã hoá được thành data URL cho CSS', () => {
     const url = sketchImageUrl(100, 40, '#1c2b24')
     expect(url.startsWith('url("data:image/svg+xml,')).toBe(true)

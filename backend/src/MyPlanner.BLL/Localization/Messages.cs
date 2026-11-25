@@ -30,6 +30,18 @@ public static class Messages
     public static string StatsTodayRequired => Text("today là bắt buộc.", "today is required.");
     public static string StatsTodayTooEarly => Text("today quá sớm để tính kỳ so sánh.", "today is too early to calculate the comparison period.");
 
+    public static string FocusPlannedRange => Text("Thời lượng phải từ 5 đến 180 phút.", "Duration must be between 5 and 180 minutes.");
+    public static string FocusActualRange => Text("Số phút thực tế phải từ 0 tới số phút đã đặt.", "Actual minutes must be between 0 and the planned minutes.");
+    public static string FocusTimeOrder => Text("Giờ kết thúc phải sau giờ bắt đầu.", "The end time must be after the start time.");
+    public static string FocusOneLink => Text("Chỉ gắn được một việc, một thói quen hoặc một mục tiêu.", "A session can link to only one task, habit or goal.");
+    public static string FocusIdRequired => Text("Thiếu id phiên.", "Session id is required.");
+    public static string FocusLocked(string key, double hoursRemaining) => Format(
+        "'{0}' chưa mở khoá, còn {1:0.#} giờ tập trung.",
+        "'{0}' is still locked; {1:0.#} more focus hours needed.",
+        key, hoursRemaining);
+    public static string FocusRangeInvalid => Text("Cần from ≤ to và tối đa 400 ngày.", "from must be on or before to, at most 400 days apart.");
+    public static string FocusSession => Text("Phiên tập trung", "Focus session");
+
     public static string NotFoundTitle => Text("Không tìm thấy", "Not found");
     public static string BadRequestTitle => Text("Yêu cầu không hợp lệ", "Invalid request");
     public static string UnauthorizedTitle => Text("Chưa đăng nhập", "Unauthorized");
@@ -51,6 +63,8 @@ public static class Messages
     public static string DisplayNameInvalid => Text("Tên hiển thị tối đa 50 ký tự và không chứa ký tự điều khiển.", "Display name must be at most 50 characters with no control characters.");
     public static string PasswordTooShort => Text("Mật khẩu phải dài ít nhất 8 ký tự.", "Password must be at least 8 characters.");
     public static string InvalidGoogleToken => Text("Không xác thực được tài khoản Google.", "Could not verify your Google account.");
+    public static string InvalidRefreshToken => Text("Phiên đăng nhập đã hết hạn, hãy đăng nhập lại.", "Your session has expired. Please sign in again.");
+    public static string TooManyRefreshes => Text("Quá nhiều yêu cầu gia hạn phiên, thử lại sau một phút.", "Too many session requests. Try again in a minute.");
     public static string TooManyRegistrations => Text("Tạo tài khoản quá nhiều lần, thử lại sau.", "Too many sign-ups. Try again later.");
     public static string NotFoundDetail(string item) => Format("{0} không tồn tại.", "{0} was not found.", item);
 
@@ -61,6 +75,7 @@ public static class Messages
     public static string SomeHabits => Text("Một số thói quen", "Some habits");
     public static string Goal => Text("Mục tiêu", "Goal");
     public static string GoalStep => Text("Bước", "Goal step");
+    public static string GoalArea => Text("Lĩnh vực", "Life area");
     public static string YearItem => Text("Mục kế hoạch năm", "Year plan item");
     public static string SomeYearItems => Text("Một số mục kế hoạch năm", "Some year plan items");
 
@@ -94,6 +109,34 @@ public static class Messages
     public static string GoalStepListMismatch => Text(
         "Danh sách bước không khớp với mục tiêu.",
         "The step list does not match the goal.");
+
+    public static string GoalAreaNotFound => Text(
+        "Lĩnh vực đã chọn không tồn tại, hãy chọn lại.",
+        "The selected life area does not exist. Please choose another one.");
+
+    public static string GoalAreaNameRequired => Text("Hãy nhập tên lĩnh vực.", "Enter a name for the life area.");
+
+    public static string GoalAreaNameTooLong(int max) => Format(
+        "Tên lĩnh vực tối đa {0} ký tự.",
+        "A life area name can have at most {0} characters.",
+        max);
+
+    public static string GoalAreaDuplicate => Text(
+        "Đã có lĩnh vực trùng tên.",
+        "A life area with this name already exists.");
+
+    public static string GoalAreaLimit(int max) => Format(
+        "Chỉ tạo được tối đa {0} lĩnh vực riêng.",
+        "You can create at most {0} custom life areas.",
+        max);
+
+    public static string GoalAreaBuiltIn => Text(
+        "Không xoá được lĩnh vực có sẵn.",
+        "Built-in life areas cannot be deleted.");
+
+    public static string GoalAreaInUse => Text(
+        "Lĩnh vực này còn mục tiêu, hãy chuyển hoặc xoá các mục tiêu đó trước.",
+        "This life area still has goals. Move or delete them first.");
 
     public static string NewWeekComment => Text("Tuần mới, lên kế hoạch thôi!", "A new week—time to plan!");
     public static string NoTasksDoneComment => Text(

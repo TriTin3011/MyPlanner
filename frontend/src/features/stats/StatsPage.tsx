@@ -5,6 +5,8 @@ import { ChartCard } from '../../components/ChartCard'
 import { Select } from '../../components/Select'
 import { toLocalDateKey } from '../../lib/dates'
 import { type StatsRange, useSettings } from '../../store/settings'
+import { FOCUS_ENABLED } from '../focus/flag'
+import { FocusStats } from './FocusStats'
 import { GoalsStats } from './GoalsStats'
 import { HabitConsistency } from './HabitConsistency'
 import { useStats } from './hooks'
@@ -45,7 +47,7 @@ export function StatsPage() {
         options={STATS_RANGES}
         onChange={setRange}
         icon={<Calendar size={15} className="shrink-0 text-primary" aria-hidden="true" />}
-        className="min-h-11 min-w-36 rounded-lg border-2 border-ink bg-surface px-3 text-sm shadow-[2px_2px_0_0_var(--ink)] hover:bg-accent-tint"
+        className="min-h-11 min-w-36 rounded-lg border-2 border-ink bg-surface px-3 text-sm shadow-[2px_2px_0_0_var(--sketch-ink)] hover:bg-accent-tint"
       />
     </header>
   )
@@ -115,6 +117,8 @@ export function StatsPage() {
           <HabitConsistency items={data.habitConsistency} />
           <GoalsStats goals={data.goals} />
         </div>
+
+        {FOCUS_ENABLED && <FocusStats focus={data.focus} />}
       </div>
     </div>
   )

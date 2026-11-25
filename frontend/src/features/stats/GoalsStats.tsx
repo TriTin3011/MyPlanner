@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { StatsGoalsDto } from '../../api/types'
-import { GOAL_STATUS_LABEL, lifeArea } from '../goals/lifeAreas'
+import { areaDisplay, GOAL_STATUS_LABEL } from '../goals/lifeAreas'
 import { Bar, SimpleTable, StatsCard } from './StatsCard'
 
 // Thẻ Mục tiêu: thanh trạng thái xếp chồng + danh sách theo lĩnh vực.
@@ -43,10 +43,10 @@ export function GoalsStats({ goals }: { goals: StatsGoalsDto }) {
             </div>
             <ul className="space-y-2.5">
               {goals.byArea.map((a) => {
-                const info = lifeArea(a.area)
+                const info = areaDisplay(a)
                 const pct = a.total > 0 ? Math.round((a.done / a.total) * 100) : 0
                 return (
-                  <li key={a.area}>
+                  <li key={a.id}>
                     <div className="mb-1 flex items-center justify-between gap-2 text-sm">
                       <span className="flex items-center gap-1.5 font-bold text-ink">
                         <info.Icon size={15} className="text-primary" aria-hidden="true" />
@@ -67,7 +67,7 @@ export function GoalsStats({ goals }: { goals: StatsGoalsDto }) {
       table={
         <SimpleTable
           head={[t('stats.goals.colArea'), t('stats.goals.colDone'), t('stats.goals.colTotal')]}
-          rows={goals.byArea.map((a) => [lifeArea(a.area).label, a.done, a.total])}
+          rows={goals.byArea.map((a) => [areaDisplay(a).label, a.done, a.total])}
         />
       }
     />

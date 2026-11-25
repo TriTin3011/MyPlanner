@@ -322,7 +322,7 @@ public class DashboardServiceTests : IDisposable
         public Task<List<GoalDto>> ListAsync(CancellationToken ct) => throw new NotSupportedException();
         public Task<GoalDto?> GetAsync(Guid id, CancellationToken ct) => throw new NotSupportedException();
         public Task<Goal?> FindAsync(Guid id, CancellationToken ct) => throw new NotSupportedException();
-        public Task<List<(Guid GoalId, string GoalTitle, LifeArea Area, string Title, DateOnly Deadline, bool Done)>> StepDeadlinesAsync(
+        public Task<List<(Guid GoalId, string GoalTitle, string Title, DateOnly Deadline, bool Done)>> StepDeadlinesAsync(
             DateOnly from, DateOnly to, CancellationToken ct) => throw new NotSupportedException();
         public Task<List<(Guid GoalId, string Title, DateOnly Deadline, bool Done)>> GoalDeadlinesAsync(
             DateOnly from, DateOnly to, CancellationToken ct) => throw new NotSupportedException();

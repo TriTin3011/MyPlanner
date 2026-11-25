@@ -3,7 +3,13 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { AreaSummaryDto } from '../../api/types'
 import { radarPoints } from './areaRadarGeometry'
-import { lifeArea } from './lifeAreas'
+import { areaDisplay } from './lifeAreas'
+
+// Tên lĩnh vực tự tạo có thể dài (tối đa 40 ký tự); trên trục radar chỉ có chỗ cho nhãn ngắn.
+const MAX_AXIS_LABEL = 12
+function axisLabel(text: string) {
+  return text.length > MAX_AXIS_LABEL ? `${text.slice(0, MAX_AXIS_LABEL - 1)}…` : text
+}
 
 export interface AreaRadarProps {
   areas: AreaSummaryDto[]
@@ -37,7 +43,7 @@ export function AreaRadar({ areas }: AreaRadarProps) {
   )
 
   const ariaSummary = areas
-    .map((a) => `${lifeArea(a.area).chip} ${a.percent}%`)
+    .map((a) => `${areaDisplay(a).chip} ${a.percent}%`)
     .join(', ')
 
   return (
@@ -87,7 +93,7 @@ export function AreaRadar({ areas }: AreaRadarProps) {
             {/* Các trục nối từ tâm ra đỉnh 100% */}
             {outerRing.map((pt, i) => (
               <line
-                key={areas[i]?.area ?? i}
+                key={areas[i]?.id ?? i}
                 x1={CX}
                 y1={CY}
                 x2={pt.x}
@@ -139,7 +145,7 @@ export function AreaRadar({ areas }: AreaRadarProps) {
             {/* Chấm tròn trên từng đỉnh dữ liệu */}
             {dataVertices.map((pt, i) => (
               <circle
-                key={areas[i]?.area ?? i}
+                key={areas[i]?.id ?? i}
                 cx={pt.x}
                 cy={pt.y}
                 r="3.5"
@@ -158,15 +164,17 @@ export function AreaRadar({ areas }: AreaRadarProps) {
               const anchor = Math.abs(dx) < 10 ? 'middle' : dx > 0 ? 'start' : 'end'
               const yOffset = dy < -50 ? -2 : dy > 50 ? 8 : 4
 
+              const chip = areaDisplay(item).chip
               return (
                 <text
-                  key={item.area}
+                  key={item.id}
                   x={pt.x}
                   y={pt.y + yOffset}
                   textAnchor={anchor}
                   className="fill-ink text-[11px] font-bold"
                 >
-                  {lifeArea(item.area).chip}
+                  <title>{chip}</title>
+                  {axisLabel(chip)}
                 </text>
               )
             })}
@@ -190,9 +198,9 @@ export function AreaRadar({ areas }: AreaRadarProps) {
             </thead>
             <tbody className="divide-y divide-line/60">
               {areas.map((item) => {
-                const info = lifeArea(item.area)
+                const info = areaDisplay(item)
                 return (
-                  <tr key={item.area} className="hover:bg-accent-tint/40">
+                  <tr key={item.id} className="hover:bg-accent-tint/40">
                     <td className="px-3 py-2 font-semibold text-ink">{info.chip}</td>
                     <td className="px-3 py-2 text-right text-ink">{item.count}</td>
                     <td className="px-3 py-2 text-right font-bold text-primary-ink">

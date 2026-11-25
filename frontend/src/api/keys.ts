@@ -10,6 +10,7 @@ export const keys = {
   recurring: ['recurring'] as const,
   habits: ['habits'] as const,
   habitLogs: (from: string, to: string) => ['habit-logs', from, to] as const,
+  goalAreas: ['goal-areas'] as const,
   goals: {
     all: ['goals'] as const,
     detail: (id: string) => ['goals', id] as const,
@@ -31,6 +32,7 @@ export const keys = {
     habits: (month: string, today: string) => ['dashboard', 'habits', month, today] as const,
     goals: (today: string) => ['dashboard', 'goals', today] as const,
     year: (year: number, today: string) => ['dashboard', 'year', year, today] as const,
+    focus: (today: string) => ['dashboard', 'focus', today] as const,
   },
   stats: {
     all: ['stats'] as const,

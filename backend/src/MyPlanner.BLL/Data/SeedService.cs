@@ -84,7 +84,17 @@ public class SeedService(IDataRepository data, TimeProvider clock) : ISeedServic
                 if (rnd.NextDouble() < rate) logs.Add(new HabitLogDto(h.Id, d));
         }
 
-        var goals = GoalSeeds.Select((g, i) =>
+        // Lĩnh vực: 8 có sẵn + một lĩnh vực tự tạo để màn Mục tiêu có ví dụ chip riêng. Id ở đây chỉ là tạm,
+        // ReplaceAllAsync cấp Id mới và giữ liên kết mục tiêu → lĩnh vực.
+        var areas = Enum.GetValues<LifeArea>().Select(k => new GoalAreaDto(Guid.NewGuid(), k, null)).ToList();
+        var volunteer = new GoalAreaDto(Guid.NewGuid(), null, "Tình nguyện");
+        areas.Add(volunteer);
+        var areaIdOf = areas.Where(a => a.Key is not null).ToDictionary(a => a.Key!.Value, a => a.Id);
+        var goalSeeds = GoalSeeds.Select(g => (g.Title, AreaId: areaIdOf[g.Area], g.Why))
+            .Append((Title: "Tham gia 3 chuyến tình nguyện", AreaId: volunteer.Id, Why: "Sống có ích cho cộng đồng"))
+            .ToList();
+
+        var goals = goalSeeds.Select((g, i) =>
         {
             var start = today.AddDays(-rnd.Next(10, 120));
             var deadline = today.AddDays(rnd.Next(-10, 300));
@@ -96,7 +106,7 @@ public class SeedService(IDataRepository data, TimeProvider clock) : ISeedServic
                 return new GoalStepDto(Guid.NewGuid(), $"Bước {k + 1}: {g.Title.ToLowerInvariant()}",
                     start.AddDays((k + 1) * 14), stepDone, stepDone ? now.AddDays(-rnd.Next(1, 30)) : null, k);
             }).ToList();
-            return new GoalDto(Guid.NewGuid(), g.Title, g.Area, status, start, deadline,
+            return new GoalDto(Guid.NewGuid(), g.Title, g.AreaId, status, start, deadline,
                 i % 2 == 0 ? "Một bữa ăn ngon" : null, g.Why, steps,
                 new DateTimeOffset(start.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
                 status == GoalStatus.Done ? now.AddDays(-rnd.Next(1, 20)) : null);
@@ -109,7 +119,7 @@ public class SeedService(IDataRepository data, TimeProvider clock) : ISeedServic
         var yearItems = Enumerable.Range(1, 12).SelectMany(m => Enumerable.Range(0, rnd.Next(1, 4)).Select(k =>
             new YearPlanItemDto(Guid.NewGuid(), today.Year, m, $"Kế hoạch tháng {m} #{k + 1}", m < today.Month && rnd.NextDouble() < 0.7, k))).ToList();
 
-        var backup = new BackupDto(BackupDto.CurrentVersion, now, tasks, recurring, habits, logs, goals, dayNotes, weekNotes, years, yearItems);
+        var backup = new BackupDto(BackupDto.CurrentVersion, now, tasks, recurring, habits, logs, goals, dayNotes, weekNotes, years, yearItems, areas);
         await data.ReplaceAllAsync(backup, ct);
         return new ImportResultDto(tasks.Count, habits.Count, logs.Count, goals.Count);
     }

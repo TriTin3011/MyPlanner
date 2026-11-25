@@ -39,12 +39,12 @@ export function StatsHero({ data }: { data: StatsDto }) {
   const pointsUnit = t('stats.hero.pointsUnit')
   return (
     <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
-      <section aria-label={t('stats.hero.title')} className="sketch flex flex-wrap items-center justify-between gap-4 bg-primary p-4 text-white lg:p-5">
+      <section data-tour="stats-hero" aria-label={t('stats.hero.title')} className="sketch flex flex-wrap items-center justify-between gap-4 bg-primary p-4 text-white lg:p-5">
         <div>
           <p className="text-xs font-extrabold tracking-wide uppercase opacity-90">{t('stats.hero.title')}</p>
           <p className="mt-1 flex items-baseline gap-3 font-display text-5xl font-extrabold">
             {hero.completionPercent}%
-            <span className="rounded-full bg-white px-2 py-0.5 text-sm">
+            <span className="rounded-full bg-surface px-2 py-0.5 text-sm">
               <Delta value={hero.deltaPoints} unit={pointsUnit} />
             </span>
           </p>
@@ -53,7 +53,7 @@ export function StatsHero({ data }: { data: StatsDto }) {
             {hero.bestWeekday ? t('stats.hero.bestWeekday', { day: weekdayLabel(hero.bestWeekday) }) : ''}
           </p>
         </div>
-        <div className="rounded-xl bg-white/95 p-1.5">
+        <div className="rounded-xl bg-surface p-1.5">
           <Sparkline values={hero.weeklySparkline.map((p) => p.percent)} />
         </div>
       </section>

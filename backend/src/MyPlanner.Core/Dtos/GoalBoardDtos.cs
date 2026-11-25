@@ -9,7 +9,7 @@ namespace MyPlanner.Core.Dtos;
 public record GoalCardDto(
     Guid Id,
     string Title,
-    LifeArea Area,
+    Guid AreaId,
     GoalStatus Status,
     DateOnly StartDate,
     DateOnly Deadline,
@@ -23,9 +23,9 @@ public record GoalCardDto(
     bool Behind);        // dòng "Đang chậm hơn kế hoạch" (§13.4)
 
 // Một chip / một trục radar. Percent = trung bình stepProgress các mục tiêu của lĩnh vực, 0 nếu không có mục tiêu.
-public record AreaSummaryDto(LifeArea Area, int Count, int Percent);
+public record AreaSummaryDto(Guid Id, LifeArea? Key, string? Name, int Count, int Percent);
 
-// GET /api/dashboard/goals?today=. Areas luôn đủ 8 lĩnh vực theo thứ tự enum; Goals đã sắp: chưa xong theo hạn gần nhất, đã xong ở cuối.
+// GET /api/dashboard/goals?today=. Areas là mọi lĩnh vực của tài khoản (8 có sẵn + tự thêm) theo thứ tự hiển thị; Goals đã sắp: chưa xong theo hạn gần nhất, đã xong ở cuối.
 public record GoalBoardDto(
     int Done,
     int Total,

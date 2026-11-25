@@ -1,15 +1,21 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { GoalDto } from '../../api/types'
+import type { GoalAreaDto, GoalDto } from '../../api/types'
 import { GoalDrawer, type GoalDrawerProps } from './GoalDrawer'
 
 afterEach(cleanup)
 
+const areas: GoalAreaDto[] = [
+  { id: 'area-health', key: 'health', name: null },
+  { id: 'area-learning', key: 'learning', name: null },
+  { id: 'area-music', key: null, name: 'Âm nhạc' },
+]
+
 const goal: GoalDto = {
   id: 'goal-1',
   title: 'Học React',
-  area: 'learning',
+  areaId: 'area-learning',
   status: 'in_progress',
   startDate: '2026-11-01',
   deadline: '2026-12-31',
@@ -52,6 +58,9 @@ function renderDrawer(overrides: Partial<GoalDrawerProps> = {}) {
     onUpdateStep: vi.fn(),
     onDeleteStep: vi.fn(),
     onReorderSteps: vi.fn(),
+    areas,
+    onCreateArea: vi.fn(async (name: string) => ({ id: 'area-new', key: null, name })),
+    onDeleteArea: vi.fn(async () => {}),
     ...overrides,
   }
   render(<GoalDrawer {...props} />)
@@ -65,32 +74,117 @@ describe('GoalDrawer', () => {
     expect(screen.getByRole('alert').textContent).toContain('Không tải được mục tiêu.')
   })
 
-  it('gửi payload tạo mới và đổi phần thưởng, lý do rỗng thành null', () => {
+  const titleLabel = 'Bạn muốn đạt được điều gì?'
+
+  it('gửi payload tạo mới; ngày bắt đầu trống lấy hôm nay, phần thưởng và lý do rỗng thành null', () => {
     const props = renderDrawer()
 
-    fireEvent.change(screen.getByLabelText('Tên mục tiêu'), { target: { value: '  Học React  ' } })
-    fireEvent.click(screen.getByLabelText('Lĩnh vực'))
-    fireEvent.click(screen.getByRole('option', { name: 'Học tập' }))
-    fireEvent.submit(screen.getByLabelText('Tên mục tiêu').closest('form')!)
+    fireEvent.change(screen.getByLabelText(titleLabel), { target: { value: '  Học React  ' } })
+    fireEvent.click(screen.getByRole('radio', { name: /Học tập/ }))
+    fireEvent.submit(screen.getByLabelText(titleLabel).closest('form')!)
 
-    expect(props.onSave).toHaveBeenCalledWith({
-      title: 'Học React',
-      area: 'learning',
-      status: 'not_started',
-      startDate: '2026-11-22',
-      deadline: '2026-12-22',
-      reward: null,
-      why: null,
-    })
+    expect(props.onSave).toHaveBeenCalledWith(
+      {
+        title: 'Học React',
+        areaId: 'area-learning',
+        status: 'not_started',
+        startDate: '2026-11-22',
+        deadline: '2026-12-22',
+        reward: null,
+        why: null,
+      },
+      [],
+    )
   })
 
-  it('vô hiệu hoá lưu khi hạn chót trước ngày bắt đầu', () => {
+  it('mặc định chọn lĩnh vực đầu tiên khi tạo mới', () => {
+    const props = renderDrawer()
+
+    fireEvent.change(screen.getByLabelText(titleLabel), { target: { value: 'Chạy bộ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu' }))
+
+    expect(props.onSave).toHaveBeenCalledWith(expect.objectContaining({ areaId: 'area-health' }), [])
+  })
+
+  it('thêm lĩnh vực tự tạo rồi tự chọn nó', async () => {
+    const props = renderDrawer()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Thêm lĩnh vực mới' }))
+    const input = screen.getByLabelText('Tên lĩnh vực mới')
+    fireEvent.change(input, { target: { value: '  Tâm linh  ' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    expect(props.onCreateArea).toHaveBeenCalledWith('Tâm linh')
+    // Danh sách areas ở test là props tĩnh nên lĩnh vực mới chưa hiện; chỉ cần ô nhập đóng lại sau khi tạo xong.
+    await screen.findByRole('button', { name: 'Thêm lĩnh vực mới' })
+  })
+
+  it('xoá lĩnh vực tự tạo, lỗi từ BE hiện bằng alert', async () => {
+    const onDeleteArea = vi.fn(async () => {
+      throw new Error('Lĩnh vực còn mục tiêu, không xoá được.')
+    })
+    renderDrawer({ onDeleteArea })
+
+    // Lĩnh vực có sẵn không có nút xoá.
+    expect(screen.queryByRole('button', { name: 'Xoá lĩnh vực Học tập' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Xoá lĩnh vực Âm nhạc' }))
+
+    expect(onDeleteArea).toHaveBeenCalledWith('area-music')
+    expect((await screen.findByRole('alert')).textContent).toContain('Lĩnh vực còn mục tiêu')
+  })
+
+  it('khi sửa, lĩnh vực đang chọn bị xoá thì quay về lĩnh vực đã lưu của mục tiêu', () => {
+    const props = renderDrawer({ mode: 'edit', goal })
+    cleanup()
+    const { rerender } = render(<GoalDrawer {...props} />)
+    fireEvent.click(screen.getByRole('radio', { name: /Âm nhạc/ }))
+    expect((screen.getByRole('radio', { name: /Âm nhạc/ }) as HTMLInputElement).checked).toBe(true)
+
+    rerender(<GoalDrawer {...props} areas={areas.filter((a) => a.id !== 'area-music')} />)
+
+    expect((screen.getByRole('radio', { name: /Học tập/ }) as HTMLInputElement).checked).toBe(true)
+  })
+
+  it('chọn trạng thái ngay khi tạo mới', () => {
+    const props = renderDrawer()
+
+    fireEvent.change(screen.getByLabelText(titleLabel), { target: { value: 'Học React' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Đang thực hiện' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu' }))
+
+    expect(props.onSave).toHaveBeenCalledWith(expect.objectContaining({ status: 'in_progress' }), [])
+  })
+
+  it('thêm bước nháp bằng Enter hoặc nút +, bỏ được, rồi gửi kèm khi lưu', () => {
+    const props = renderDrawer()
+
+    fireEvent.change(screen.getByLabelText(titleLabel), { target: { value: 'Học React' } })
+    const stepInput = screen.getByLabelText('Tên bước mới')
+    fireEvent.change(stepInput, { target: { value: '  Đọc tài liệu  ' } })
+    fireEvent.keyDown(stepInput, { key: 'Enter' })
+    fireEvent.change(stepInput, { target: { value: 'Làm bài tập' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Thêm bước' }))
+    fireEvent.change(stepInput, { target: { value: 'Bước thừa' } })
+    fireEvent.keyDown(stepInput, { key: 'Enter' })
+    fireEvent.click(screen.getByRole('button', { name: 'Bỏ bước: Bước thừa' }))
+
+    // Enter trong ô bước không được gửi cả form mục tiêu.
+    expect(props.onSave).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu' }))
+    expect(props.onSave).toHaveBeenCalledWith(expect.objectContaining({ title: 'Học React' }), [
+      { title: 'Đọc tài liệu', deadline: null, done: false },
+      { title: 'Làm bài tập', deadline: null, done: false },
+    ])
+  })
+
+  it('vô hiệu hoá lưu khi thời hạn trước ngày bắt đầu', () => {
     renderDrawer()
 
-    fireEvent.change(screen.getByLabelText('Tên mục tiêu'), { target: { value: 'Học React' } })
-    fireEvent.change(screen.getByLabelText('Hạn chót'), { target: { value: '2026-11-21' } })
+    fireEvent.change(screen.getByLabelText(titleLabel), { target: { value: 'Học React' } })
+    fireEvent.change(screen.getByLabelText('Thời hạn'), { target: { value: '2026-11-21' } })
 
-    expect(screen.getByText('Hạn chót phải sau ngày bắt đầu.')).toBeTruthy()
+    expect(screen.getByText('Thời hạn phải sau ngày bắt đầu.')).toBeTruthy()
     expect((screen.getByRole('button', { name: 'Lưu' }) as HTMLButtonElement).disabled).toBe(true)
   })
 

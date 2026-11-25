@@ -18,8 +18,7 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from ?? '/'
-  const token = useSession((s) => s.token)
-  const expiresAt = useSession((s) => s.expiresAt)
+  const active = useSession((s) => isSessionActive(s))
   const signIn = useSession((s) => s.signIn)
 
   const userId = useId()
@@ -40,7 +39,7 @@ export function LoginPage() {
   })
 
   // Đã đăng nhập mà vẫn mở /login (gõ tay, bấm Back): đưa thẳng vào app.
-  if (isSessionActive({ token, expiresAt })) return <Navigate to={from} replace />
+  if (active) return <Navigate to={from} replace />
 
   const canSubmit = userName.trim() !== '' && password !== '' && !login.isPending
 

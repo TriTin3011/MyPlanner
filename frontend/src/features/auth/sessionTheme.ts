@@ -1,10 +1,10 @@
 import { applyTheme, type ThemeId, useSettings } from '../../store/settings'
-import { isSessionActive, useSession } from './session'
+import { isSessionActive, sessionExpiresAt, useSession } from './session'
 
 // Chưa đăng nhập (hoặc phiên đã hết hạn) luôn dùng màu thương hiệu; đã đăng nhập mới dùng theme đã chọn.
 export function themeForSession(
   theme: ThemeId,
-  session: { token: string | null; expiresAt: string | null },
+  session: Parameters<typeof isSessionActive>[0],
   now = Date.now(),
 ): ThemeId {
   return isSessionActive(session, now) ? theme : 'forest'
@@ -18,7 +18,7 @@ export function startSessionTheme() {
     const session = useSession.getState()
     const theme = themeForSession(useSettings.getState().theme, session)
     applyTheme(theme)
-    const expiresAt = theme === 'forest' ? null : session.expiresAt
+    const expiresAt = theme === 'forest' ? null : sessionExpiresAt(session)
     const key = `${theme}|${expiresAt}`
     if (key === lastSent) return
     lastSent = key

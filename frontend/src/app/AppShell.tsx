@@ -1,27 +1,30 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { matchPath, NavLink, Outlet, useLocation } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { Clock, MoreHorizontal, X } from 'lucide-react'
-import { NAV_ITEMS } from './routes'
+import { Clock, LayoutGrid, MoreHorizontal, X } from 'lucide-react'
+import { MOBILE_MORE, MOBILE_PRIMARY, NAV_ITEMS } from './routes'
+import { useFocusTicker } from '../features/focus/hooks'
 import { BrandMark } from '../components/BrandMark'
 import { BackupControls } from '../components/BackupControls'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { ThemePicker } from '../components/ThemePicker'
 import { INTL_LOCALE } from '../i18n/languages'
 import { useSettings } from '../store/settings'
-import { TopBanner } from '../components/TopBanner'
 import { AccountControls } from '../features/auth/AccountControls'
 import { MusicBoxIcon } from '../features/music/MusicBoxIcon'
 import { MusicPlayer } from '../features/music/MusicPlayer'
-import { PomodoroMini } from '../features/pomodoro/PomodoroMini'
+import { PomodoroCompact, PomodoroMini } from '../features/pomodoro/PomodoroMini'
 import { PomodoroModal } from '../features/pomodoro/PomodoroModal'
 import { usePomodoro, usePomodoroTicker } from '../features/pomodoro/store'
+import { usePomodoroFloat } from '../features/pomodoro/usePomodoroFloat'
 import { TomatoIcon } from '../features/pomodoro/TomatoIcon'
+import { TourHost } from '../features/tour/TourHost'
 
 // Khung chung của mọi trang (SPEC §3):
 // - Desktop (≥1024px): sidebar 230px + main panel.
 // - Tablet (768–1023px): sidebar thu gọn chỉ còn icon.
-// - Điện thoại (<768px): thanh trên (logo + menu ⋯) và thanh điều hướng đáy 6 icon.
+// - Điện thoại (<768px): thanh trên (logo + menu ⋯) và thanh điều hướng đáy 5 ô (4 trang chính + "Thêm").
 // Mọi chữ lấy qua t('khoá') của react-i18next: đổi ngôn ngữ thì hook báo component vẽ lại với bản dịch mới.
 export function AppShell() {
   const { t } = useTranslation()
@@ -30,6 +33,9 @@ export function AppShell() {
   const [musicPlaying, setMusicPlaying] = useState(false)
   const [pomodoroOpen, setPomodoroOpen] = useState(false)
   usePomodoroTicker()
+  useFocusTicker()
+  const expandPomodoro = useCallback(() => setPomodoroOpen(true), [])
+  const pomodoroFloat = usePomodoroFloat(expandPomodoro)
   const { pathname } = useLocation()
   const activeTab = NAV_ITEMS.findIndex((item) => matchPath({ path: item.path, end: item.path === '/' }, pathname))
 
@@ -42,13 +48,13 @@ export function AppShell() {
       >
         {t('shell.skipToContent')}
       </a>
-      <TopBanner />
       <div className="flex min-h-0 flex-1 gap-4 md:p-4">
         {/* Sidebar: ẩn trên điện thoại */}
         <aside className="sketch hidden w-[72px] shrink-0 flex-col p-3 md:flex lg:w-[230px]">
           <Logo />
           {/* Cửa sổ thấp thì chỉ danh sách tab cuộn, cụm điều khiển ở đáy luôn thấy được. */}
           <nav
+            data-tour="nav"
             aria-label={t('shell.mainNav')}
             className="relative -mx-1 mt-6 flex min-h-0 flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto overscroll-none px-1 py-1"
           >
@@ -65,6 +71,7 @@ export function AppShell() {
                 key={item.path}
                 to={item.path}
                 end={item.path === '/'}
+                data-tour={`tab:${item.path}`}
                 title={t(`nav.${item.key}.label`)}
                 className={({ isActive }) =>
                   `nav-tab relative z-10 flex h-11 shrink-0 items-center gap-3 rounded-xl px-3 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none max-lg:justify-center ${
@@ -115,37 +122,30 @@ export function AppShell() {
         </main>
       </div>
 
-      {/* Thanh điều hướng đáy: chỉ trên điện thoại */}
-      <nav
-        aria-label={t('shell.mainNav')}
-        className="fixed inset-x-0 bottom-0 z-30 flex border-t-2 border-ink bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
-      >
-        {NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            end={item.path === '/'}
-            className={({ isActive }) =>
-              `flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-bold ${
-                isActive ? 'text-primary-ink' : 'text-ink-muted'
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <span className={`rounded-full px-3 py-1 ${isActive ? 'bg-accent-soft' : ''}`}>
-                  <item.icon size={20} aria-hidden />
-                </span>
-                {t(`nav.${item.key}.short`)}
-              </>
-            )}
-          </NavLink>
-        ))}
-      </nav>
+      <BottomNav pathname={pathname} />
 
       {musicOpen && <MusicPlayer onClose={() => setMusicOpen(false)} onPlayingChange={setMusicPlaying} />}
       <PomodoroModal open={pomodoroOpen} onClose={() => setPomodoroOpen(false)} />
-      {!pomodoroOpen && <PomodoroMini onExpand={() => setPomodoroOpen(true)} />}
+      {!pomodoroOpen && !pomodoroFloat.active && (
+        <PomodoroMini
+          onExpand={expandPomodoro}
+          onFloat={pomodoroFloat.supported ? () => void pomodoroFloat.open() : undefined}
+        />
+      )}
+      {/* Portal sang document của cửa sổ PiP: vẫn là cây React này, nên dùng chung store và không cần đồng bộ. */}
+      {pomodoroFloat.pipWindow &&
+        createPortal(
+          <PomodoroCompact
+            className="flex h-dvh items-center justify-center gap-1 px-2"
+            onExpand={() => {
+              pomodoroFloat.close()
+              window.focus()
+              expandPomodoro()
+            }}
+          />,
+          pomodoroFloat.pipWindow.document.body,
+        )}
+      <TourHost />
       {menuOpen && (
         <MobileMenu
           onClose={() => setMenuOpen(false)}
@@ -161,6 +161,94 @@ export function AppShell() {
         />
       )}
     </div>
+  )
+}
+
+const BOTTOM_TAB =
+  'flex min-h-14 flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 text-[10px] font-bold'
+
+// Thanh điều hướng đáy (chỉ trên điện thoại): 4 trang chính + ô "Thêm" mở menu nhỏ ngay phía trên.
+function BottomNav({ pathname }: { pathname: string }) {
+  const { t } = useTranslation()
+  // Nhớ menu được mở ở trang nào: đổi trang là tự đóng, không cần effect gọi setState.
+  const [openOn, setOpenOn] = useState<string | null>(null)
+  const moreOpen = openOn === pathname
+  const setMoreOpen = (open: boolean) => setOpenOn(open ? pathname : null)
+  const moreActive = MOBILE_MORE.some((item) => matchPath({ path: item.path, end: true }, pathname))
+
+  // Esc đóng menu.
+  useEffect(() => {
+    if (!moreOpen) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpenOn(null)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [moreOpen])
+
+  return (
+    <>
+      {moreOpen && <div className="fixed inset-0 z-30 md:hidden" onClick={() => setMoreOpen(false)} />}
+      <nav
+        data-tour="nav"
+        aria-label={t('shell.mainNav')}
+        className="fixed inset-x-0 bottom-0 z-30 flex border-t-2 border-ink bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+      >
+        {MOBILE_PRIMARY.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            end={item.path === '/'}
+            data-tour={`tab:${item.path}`}
+            className={({ isActive }) => `${BOTTOM_TAB} ${isActive ? 'text-primary-ink' : 'text-ink-muted'}`}
+          >
+            {({ isActive }) => (
+              <>
+                <span className={`rounded-full px-3 py-1 ${isActive ? 'bg-accent-soft' : ''}`}>
+                  <item.icon size={20} aria-hidden />
+                </span>
+                {t(`nav.${item.key}.short`)}
+              </>
+            )}
+          </NavLink>
+        ))}
+        <div className="relative flex flex-1">
+          <button
+            type="button"
+            aria-label={t('nav.more.label')}
+            aria-expanded={moreOpen}
+            aria-controls="bottom-nav-more"
+            onClick={() => setMoreOpen(!moreOpen)}
+            className={`${BOTTOM_TAB} ${moreActive || moreOpen ? 'text-primary-ink' : 'text-ink-muted'}`}
+          >
+            <span className={`rounded-full px-3 py-1 ${moreActive ? 'bg-accent-soft' : ''}`}>
+              <LayoutGrid size={20} aria-hidden />
+            </span>
+            {t('nav.more.short')}
+          </button>
+          {moreOpen && (
+            <ul
+              id="bottom-nav-more"
+              className="sketch absolute right-2 bottom-full z-40 mb-3 flex w-52 flex-col gap-1 p-2"
+            >
+              {MOBILE_MORE.map((item) => (
+                <li key={item.path}>
+                  <NavLink
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-bold ${
+                        isActive ? 'bg-accent-soft text-primary-ink' : 'text-ink-muted hover:bg-accent-tint hover:text-ink'
+                      }`
+                    }
+                  >
+                    <item.icon size={18} aria-hidden />
+                    {t(`nav.${item.key}.label`)}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </nav>
+    </>
   )
 }
 
@@ -236,6 +324,7 @@ function MobileTopBar({ onMenu }: { onMenu: () => void }) {
       <span className="font-display text-lg font-extrabold text-primary-ink">Mầm</span>
       <button
         type="button"
+        data-tour="help"
         aria-label={t('shell.openMenu')}
         onClick={onMenu}
         className="ml-auto grid size-11 place-items-center rounded-xl hover:bg-accent-tint"
@@ -262,7 +351,7 @@ function MobileMenu({
   const language = useSettings((s) => s.language)
   const [now] = useState(() => new Date())
   return (
-    <div className="fixed inset-0 z-40 bg-ink/30 md:hidden" onClick={onClose}>
+    <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={onClose}>
       <div
         role="dialog"
         aria-label={t('shell.menu')}
@@ -310,7 +399,7 @@ function MobileMenu({
         <p className="mb-2 text-xs font-bold tracking-wider text-ink-muted uppercase">{t('backup.label')}</p>
         <BackupControls compact />
         <p className="mt-4 mb-2 text-xs font-bold tracking-wider text-ink-muted uppercase">{t('auth.account')}</p>
-        <AccountControls compact />
+        <AccountControls compact onBeforeTour={onClose} />
       </div>
     </div>
   )

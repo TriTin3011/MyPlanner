@@ -6,10 +6,18 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- Chỉ để dùng NotifyIcon báo hết giờ Pomodoro; không dùng control WinForms nào khác. -->
+    <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>MyPlanner.Desktop</RootNamespace>
     <AssemblyName>Mam</AssemblyName>
     <ApplicationIcon>Assets\mam.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <!-- Bỏ using tự động, để Application, Button... vẫn là của WPF. -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
 
   <!-- Dùng chung DTO với backend: không viết lại model (SPEC §2.3). -->
   <ItemGroup>
@@ -26,6 +34,11 @@
   <!-- Phông Baloo 2 và Be Vietnam Pro nhúng trong app, nên máy nào cũng hiển thị giống nhau. -->
   <ItemGroup>
     <Resource Include="Assets\Fonts\*.ttf" />
+  </ItemGroup>
+
+  <!-- Icon theo theme, sinh bằng npm run gen:desktop-icons trong frontend. -->
+  <ItemGroup>
+    <Content Include="Assets\ThemeIcons\*.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

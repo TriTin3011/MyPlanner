@@ -56,13 +56,14 @@ public static class WebUiHost
             OpenExternal(e.Uri);
         };
 
-        core.WebMessageReceived += async (_, e) => await HandleWebMessageAsync(core, e.Source, e.WebMessageAsJson);
+        var pomodoro = new PomodoroBridge(core);
+        core.WebMessageReceived += async (_, e) => await HandleWebMessageAsync(core, pomodoro, e.Source, e.WebMessageAsJson);
 
         core.Navigate($"{Origin}/");
     }
 
     // Cầu nối React ↔ C#: React xin đăng nhập Google, host trả ID token để React gọi POST /auth/google như trên web.
-    private static async Task HandleWebMessageAsync(CoreWebView2 core, string source, string json)
+    private static async Task HandleWebMessageAsync(CoreWebView2 core, PomodoroBridge pomodoro, string source, string json)
     {
         if (!source.StartsWith(Origin + "/", StringComparison.OrdinalIgnoreCase)) return;
 
@@ -73,11 +74,12 @@ public static class WebUiHost
             var type = message.RootElement.GetProperty("type").GetString();
             if (type == "splash-theme")
             {
-                SplashTheme.Save(
-                    message.RootElement.GetProperty("theme").GetString(),
-                    message.RootElement.GetProperty("expiresAt").GetString());
+                var theme = message.RootElement.GetProperty("theme").GetString();
+                SplashTheme.Save(theme, message.RootElement.GetProperty("expiresAt").GetString());
+                AppIcon.Apply(Application.Current.MainWindow, theme);
                 return;
             }
+            if (pomodoro.TryHandle(type, message.RootElement)) return;
             if (type != "google-signin") return;
             clientId = message.RootElement.GetProperty("clientId").GetString();
         }

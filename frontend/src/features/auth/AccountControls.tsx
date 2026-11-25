@@ -1,21 +1,26 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LogOut, UserRound } from 'lucide-react'
+import { useLocation } from 'react-router'
+import { CircleHelp, LogOut, UserRound } from 'lucide-react'
+import { logout } from '../../api/client'
+import { useTour } from '../tour/store'
 import { ProfileModal } from './ProfileModal'
-import { useDisplayName, useSession } from './session'
+import { useDisplayName } from './session'
 import { useCurrentUser } from './useProfile'
 import { UserAvatar } from './UserAvatar'
 
 const ITEM_CLASS =
   'flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-xl px-3 text-sm font-bold text-ink-muted hover:bg-accent-tint hover:text-ink'
 
-// Avatar ở đáy sidebar, bấm để mở menu Hồ sơ và Đăng xuất. Trong menu ⋯ trên điện thoại (`compact`) đã có sẵn
-// một bảng nên hiện thẳng các mục. Đăng xuất chỉ cần xoá token ở client; store đổi thì RequireAuth tự về /login.
+// Avatar ở đáy sidebar, bấm để mở menu Hồ sơ, Hướng dẫn sử dụng và Đăng xuất. Trong menu ⋯ trên điện thoại (`compact`)
+// đã có sẵn một bảng nên hiện thẳng các mục; `onBeforeTour` đóng bảng đó trước khi tour chạy để không che phần tử được chỉ.
+// Đăng xuất xoá phiên ở client rồi báo server thu hồi; store đổi thì RequireAuth tự về /login.
 // Dùng mẫu disclosure (nút + aria-expanded) thay vì role="menu", vì role đó buộc phải tự làm điều hướng phím mũi tên.
-export function AccountControls({ compact = false }: { compact?: boolean }) {
+export function AccountControls({ compact = false, onBeforeTour }: { compact?: boolean; onBeforeTour?: () => void }) {
   const { t } = useTranslation()
+  const { pathname } = useLocation()
+  const startTour = useTour((s) => s.start)
   const userName = useDisplayName()
-  const signOut = useSession((s) => s.signOut)
   const avatarUrl = useCurrentUser().data?.avatarUrl
   const [open, setOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -55,7 +60,19 @@ export function AccountControls({ compact = false }: { compact?: boolean }) {
         <UserRound size={17} aria-hidden />
         {t('auth.profile')}
       </button>
-      <button type="button" className={ITEM_CLASS} onClick={signOut}>
+      <button
+        type="button"
+        className={ITEM_CLASS}
+        onClick={() => {
+          setOpen(false)
+          onBeforeTour?.()
+          startTour(pathname)
+        }}
+      >
+        <CircleHelp size={17} aria-hidden />
+        {t('tour.open')}
+      </button>
+      <button type="button" className={ITEM_CLASS} onClick={logout}>
         <LogOut size={17} aria-hidden />
         {t('auth.logout')}
       </button>
@@ -80,6 +97,7 @@ export function AccountControls({ compact = false }: { compact?: boolean }) {
       <button
         ref={triggerRef}
         type="button"
+        data-tour="help"
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={t('auth.accountMenu', { name: userName ?? '' })}

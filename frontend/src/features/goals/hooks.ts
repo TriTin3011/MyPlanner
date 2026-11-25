@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../api/client'
 import { keys } from '../../api/keys'
-import type { GoalBoardDto, GoalDto, SaveGoalRequest, SaveGoalStepRequest } from '../../api/types'
+import type {
+  CreateGoalAreaRequest,
+  GoalAreaDto,
+  GoalBoardDto,
+  GoalDto,
+  SaveGoalRequest,
+  SaveGoalStepRequest,
+} from '../../api/types'
 
 // Hooks của trang Mục tiêu (SPEC §7). Hai nguồn dữ liệu:
 // - GET /dashboard/goals?today=: read model đã tính sẵn mọi số trên thẻ, chip, radar (FE không tự tính %).
@@ -28,6 +35,44 @@ export function useGoal(id: string | null) {
     queryKey: keys.goals.detail(id ?? ''),
     queryFn: () => getGoal(id!),
     enabled: id !== null,
+  })
+}
+
+// Danh sách lĩnh vực của tài khoản (8 lĩnh vực có sẵn + lĩnh vực tự tạo), theo thứ tự hiển thị.
+export function useGoalAreas() {
+  return useQuery({
+    queryKey: keys.goalAreas,
+    queryFn: async () => (await api.get<GoalAreaDto[]>('/goal-areas')).data,
+    staleTime: 5 * 60_000,
+  })
+}
+
+// Thêm/xoá lĩnh vực làm đổi chip, radar và thống kê nên làm mới cả board lẫn stats.
+function useInvalidateAreas() {
+  const queryClient = useQueryClient()
+  return () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: keys.goalAreas }),
+      queryClient.invalidateQueries({ queryKey: keys.dashboard.all }),
+      queryClient.invalidateQueries({ queryKey: keys.stats.all }),
+    ])
+}
+
+export function useCreateGoalArea() {
+  const invalidate = useInvalidateAreas()
+  return useMutation({
+    mutationFn: async (req: CreateGoalAreaRequest) => (await api.post<GoalAreaDto>('/goal-areas', req)).data,
+    onSuccess: () => invalidate(),
+  })
+}
+
+export function useDeleteGoalArea() {
+  const invalidate = useInvalidateAreas()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/goal-areas/${id}`)
+    },
+    onSuccess: () => invalidate(),
   })
 }
 
@@ -142,7 +187,7 @@ export function useToggleGoalDone() {
     const goal = await queryClient.fetchQuery({ queryKey: keys.goals.detail(id), queryFn: () => getGoal(id) })
     const req: SaveGoalRequest = {
       title: goal.title,
-      area: goal.area,
+      areaId: goal.areaId,
       status: done ? 'done' : goal.steps.some((s) => s.done) ? 'in_progress' : 'not_started',
       startDate: goal.startDate,
       deadline: goal.deadline,

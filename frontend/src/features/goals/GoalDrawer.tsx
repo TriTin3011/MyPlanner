@@ -15,7 +15,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, LoaderCircle, Trash2, X } from 'lucide-react'
+import { GripVertical, LoaderCircle, Plus, Trash2, X, type LucideIcon } from 'lucide-react'
 import {
   type CSSProperties,
   type FormEvent,
@@ -26,17 +26,22 @@ import {
   useEffect,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Select } from '../../components/Select'
 import type {
+  GoalAreaDto,
   GoalDto,
   GoalStatus,
   GoalStepDto,
-  LifeArea,
   SaveGoalRequest,
   SaveGoalStepRequest,
 } from '../../api/types'
-import { defaultDeadline, isStepOverdue, toSaveRequest, type GoalFormValues } from './goalDrawerForm'
-import { GOAL_STATUS_LABEL, LIFE_AREAS } from './lifeAreas'
+import {
+  defaultDeadline,
+  effectiveStartDate,
+  isStepOverdue,
+  toSaveRequest,
+  type GoalFormValues,
+} from './goalDrawerForm'
+import { areaDisplay, formatDmy, GOAL_STATUS_LABEL } from './lifeAreas'
 
 export interface GoalDrawerProps {
   open: boolean
@@ -46,12 +51,17 @@ export interface GoalDrawerProps {
   isSaving: boolean
   error: string | null
   onClose(): void
-  onSave(req: SaveGoalRequest): void
+  // `steps`: các bước nhập sẵn lúc tạo mới, gửi lên sau khi mục tiêu đã có id. Khi sửa luôn là [].
+  onSave(req: SaveGoalRequest, steps: SaveGoalStepRequest[]): void
   onDelete(): void
   onAddStep(req: SaveGoalStepRequest): void
   onUpdateStep(stepId: string, req: SaveGoalStepRequest): void
   onDeleteStep(stepId: string): void
   onReorderSteps(ids: string[]): void
+  // Lĩnh vực của tài khoản; thêm/xoá trả Promise để ô chọn tự hiện lỗi (trùng tên, đang có mục tiêu…).
+  areas: GoalAreaDto[]
+  onCreateArea(name: string): Promise<GoalAreaDto>
+  onDeleteArea(id: string): Promise<void>
 }
 
 const STATUS_ORDER: readonly GoalStatus[] = ['not_started', 'in_progress', 'done']
@@ -73,7 +83,10 @@ export function GoalDrawer(props: GoalDrawerProps) {
       const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
       if (!reduceMotion && typeof dialog.animate === 'function') {
         const animation = dialog.animate(
-          [{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }],
+          [
+            { opacity: 0, transform: 'translateY(12px) scale(0.98)' },
+            { opacity: 1, transform: 'none' },
+          ],
           { duration: 180, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
         )
         return () => animation.cancel()
@@ -95,12 +108,14 @@ export function GoalDrawer(props: GoalDrawerProps) {
       onClick={(event) => {
         if (event.target === event.currentTarget) props.onClose()
       }}
-      className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-dvh w-screen max-w-none overflow-hidden border-0 bg-surface p-0 text-ink shadow-[-6px_0_24px_rgb(0_0_0/0.18)] backdrop:bg-black/40 md:w-[28rem] md:border-l-2 md:border-[var(--ink)]"
+      // Hộp thoại giữa màn hình, rộng tối đa 36rem như web mẫu; viền vẽ tay `.sketch` giống mọi khung khác của app.
+      className="sketch fixed inset-0 m-auto h-fit max-h-[min(90dvh,56rem)] w-[calc(100vw-1.5rem)] max-w-[36rem] overflow-clip p-0 text-ink backdrop:bg-black/40"
     >
       {props.open && (
-        <div className="flex h-dvh min-w-0 flex-col">
-          <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--line)] px-4 py-3">
-            <h2 id={titleId} className="font-display text-xl font-extrabold text-primary-ink">
+        // Trừ 4px viền của dialog: nếu khung trong cao bằng dialog, dialog dư 4px và tự cuộn lệch khi focus ô nhập.
+        <div className="flex max-h-[calc(min(90dvh,56rem)-4px)] min-w-0 flex-col">
+          <header className="flex shrink-0 items-center justify-between gap-3 px-5 pt-4 pb-2">
+            <h2 id={titleId} className="font-display text-2xl font-extrabold text-primary-ink">
               {props.mode === 'create' ? t('goals.addGoal') : t('goals.editGoal')}
             </h2>
             <button
@@ -113,7 +128,7 @@ export function GoalDrawer(props: GoalDrawerProps) {
             </button>
           </header>
 
-          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-4 [padding-bottom:max(1rem,env(safe-area-inset-bottom))]">
+          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-5 pt-2 pb-5">
             {props.error && (
               <p role="alert" className="mb-3 rounded-lg bg-[var(--danger-bg)] px-3 py-2 text-sm font-bold text-danger">
                 {props.error}
@@ -133,24 +148,21 @@ export function GoalDrawer(props: GoalDrawerProps) {
                   today={props.today}
                   isSaving={props.isSaving}
                   onSave={props.onSave}
+                  areas={props.areas}
+                  onCreateArea={props.onCreateArea}
+                  onDeleteArea={props.onDeleteArea}
                 />
 
-                {props.mode === 'create' ? (
-                  <p className="mt-5 rounded-xl bg-accent-tint px-3 py-3 text-sm font-semibold text-ink-muted">
-                    {t('goals.drawer.saveFirstHint')}
-                  </p>
-                ) : (
-                  props.goal && (
-                    <GoalSteps
-                      goalId={props.goal.id}
-                      steps={props.goal.steps}
-                      today={props.today}
-                      onAddStep={props.onAddStep}
-                      onUpdateStep={props.onUpdateStep}
-                      onDeleteStep={props.onDeleteStep}
-                      onReorderSteps={props.onReorderSteps}
-                    />
-                  )
+                {props.mode === 'edit' && props.goal && (
+                  <GoalSteps
+                    goalId={props.goal.id}
+                    steps={props.goal.steps}
+                    today={props.today}
+                    onAddStep={props.onAddStep}
+                    onUpdateStep={props.onUpdateStep}
+                    onDeleteStep={props.onDeleteStep}
+                    onReorderSteps={props.onReorderSteps}
+                  />
                 )}
               </>
             )}
@@ -165,11 +177,15 @@ export function GoalDrawer(props: GoalDrawerProps) {
   )
 }
 
+// Cùng kiểu ô "Thêm việc cho hôm nay" (components/AddTaskInput): viền mực đậm, bo xl, vòng focus màu chính.
+const inputClass =
+  'min-h-11 min-w-0 w-full rounded-xl border-2 border-ink bg-surface px-3 text-base text-ink placeholder:text-ink-muted focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none'
+
 function initialForm(mode: GoalDrawerProps['mode'], goal: GoalDto | undefined, today: string): GoalFormValues {
   if (mode === 'edit' && goal) {
     return {
       title: goal.title,
-      area: goal.area,
+      areaId: goal.areaId,
       status: goal.status,
       startDate: goal.startDate,
       deadline: goal.deadline,
@@ -180,9 +196,11 @@ function initialForm(mode: GoalDrawerProps['mode'], goal: GoalDto | undefined, t
 
   return {
     title: '',
-    area: LIFE_AREAS[0].key,
+    // Trống = lĩnh vực đầu tiên trong danh sách (danh sách có thể chưa tải xong lúc mở drawer).
+    areaId: '',
     status: 'not_started',
-    startDate: today,
+    // Để trống: lưu sẽ lấy ngày tạo (xem effectiveStartDate).
+    startDate: '',
     deadline: defaultDeadline(today),
     reward: '',
     why: '',
@@ -195,31 +213,55 @@ function GoalForm({
   today,
   isSaving,
   onSave,
-}: Pick<GoalDrawerProps, 'mode' | 'goal' | 'today' | 'isSaving' | 'onSave'>) {
+  areas,
+  onCreateArea,
+  onDeleteArea,
+}: Pick<
+  GoalDrawerProps,
+  'mode' | 'goal' | 'today' | 'isSaving' | 'onSave' | 'areas' | 'onCreateArea' | 'onDeleteArea'
+>) {
   const { t } = useTranslation()
-  const [form, setForm] = useState(() => initialForm(mode, goal, today))
+  const [rawForm, setForm] = useState(() => initialForm(mode, goal, today))
+  // Lĩnh vực đã chọn bị xoá hoặc chưa chọn → rơi về lĩnh vực đã lưu của mục tiêu (khi sửa),
+  // nếu không có thì lấy lĩnh vực đầu tiên. Tránh lặng lẽ chuyển mục tiêu sang "Sức khoẻ".
+  const exists = (id: string | undefined) => Boolean(id && areas.some((a) => a.id === id))
+  const savedAreaId = mode === 'edit' ? goal?.areaId : undefined
+  const areaId = exists(rawForm.areaId)
+    ? rawForm.areaId
+    : exists(savedAreaId)
+      ? savedAreaId!
+      : (areas[0]?.id ?? rawForm.areaId)
+  const form = { ...rawForm, areaId }
+  // Bước nháp chỉ có ở chế độ tạo: mục tiêu chưa có id nên giữ ở state, lưu xong mới gửi lên server.
+  const [draftSteps, setDraftSteps] = useState<string[]>([])
   const titleId = useId()
-  const areaId = useId()
-  const statusId = useId()
   const startId = useId()
+  const startHintId = useId()
   const deadlineId = useId()
   const deadlineErrorId = useId()
   const rewardId = useId()
   const whyId = useId()
-  const deadlineInvalid = Boolean(form.startDate && form.deadline && form.deadline < form.startDate)
-  const canSave = Boolean(form.title.trim() && form.startDate && form.deadline && !deadlineInvalid && !isSaving)
+  const start = effectiveStartDate(form, today)
+  const deadlineInvalid = Boolean(form.deadline && form.deadline < start)
+  const canSave = Boolean(form.title.trim() && form.areaId && form.deadline && !deadlineInvalid && !isSaving)
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!canSave) return
-    onSave(toSaveRequest(form))
+    const steps = draftSteps.map((title) => ({ title, deadline: null, done: false }))
+    onSave(toSaveRequest(form, today), steps)
   }
 
-  const inputClass =
-    'min-h-11 min-w-0 w-full rounded-lg border-2 border-[var(--line)] bg-surface px-3 text-base text-ink focus-visible:border-primary focus-visible:outline-none'
-
   return (
-    <form onSubmit={submit} aria-busy={isSaving} className="min-w-0 space-y-3">
+    <form onSubmit={submit} aria-busy={isSaving} className="min-w-0 space-y-4">
+      <AreaPicker
+        areas={areas}
+        value={form.areaId}
+        onChange={(id) => setForm((current) => ({ ...current, areaId: id }))}
+        onCreateArea={onCreateArea}
+        onDeleteArea={onDeleteArea}
+      />
+
       <div>
         <label htmlFor={titleId} className="mb-1 block text-sm font-bold">
           {t('goals.drawer.titleLabel')}
@@ -229,40 +271,13 @@ function GoalForm({
           required
           autoFocus
           value={form.title}
+          placeholder={t('goals.drawer.titlePlaceholder')}
           onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
           className={inputClass}
         />
       </div>
 
-      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="min-w-0">
-          <label htmlFor={areaId} className="mb-1 block text-sm font-bold">
-            {t('goals.drawer.areaLabel')}
-          </label>
-          <Select<LifeArea>
-            id={areaId}
-            value={form.area}
-            options={LIFE_AREAS.map((area) => ({ value: area.key, label: area.label }))}
-            onChange={(area) => setForm((current) => ({ ...current, area }))}
-            className={`${inputClass} !font-normal`}
-          />
-        </div>
-
-        {mode === 'edit' && (
-          <div className="min-w-0">
-            <label htmlFor={statusId} className="mb-1 block text-sm font-bold">
-              {t('goals.drawer.statusLabel')}
-            </label>
-            <Select<GoalStatus>
-              id={statusId}
-              value={form.status}
-              options={STATUS_ORDER.map((status) => ({ value: status, label: GOAL_STATUS_LABEL[status] }))}
-              onChange={(status) => setForm((current) => ({ ...current, status }))}
-              className={`${inputClass} !font-normal`}
-            />
-          </div>
-        )}
-      </div>
+      {mode === 'create' && <DraftSteps steps={draftSteps} onChange={setDraftSteps} />}
 
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="min-w-0">
@@ -272,8 +287,8 @@ function GoalForm({
           <input
             id={startId}
             type="date"
-            required
             value={form.startDate}
+            aria-describedby={mode === 'create' ? startHintId : undefined}
             onChange={(event) => setForm((current) => ({ ...current, startDate: event.target.value }))}
             className={inputClass}
           />
@@ -292,12 +307,17 @@ function GoalForm({
             onChange={(event) => setForm((current) => ({ ...current, deadline: event.target.value }))}
             className={`${inputClass} ${deadlineInvalid ? 'border-danger' : ''}`}
           />
-          {deadlineInvalid && (
-            <p id={deadlineErrorId} role="alert" className="mt-1 text-sm font-bold text-danger">
-              {t('goals.drawer.deadlineInvalid')}
-            </p>
-          )}
         </div>
+        {mode === 'create' && (
+          <p id={startHintId} className="-mt-1 text-xs text-ink-muted sm:col-span-2">
+            {t('goals.drawer.startDateHint', { date: formatDmy(today) })}
+          </p>
+        )}
+        {deadlineInvalid && (
+          <p id={deadlineErrorId} role="alert" className="-mt-1 text-sm font-bold text-danger sm:col-span-2">
+            {t('goals.drawer.deadlineInvalid')}
+          </p>
+        )}
       </div>
 
       <div>
@@ -307,10 +327,19 @@ function GoalForm({
         <input
           id={rewardId}
           value={form.reward}
+          placeholder={t('goals.drawer.rewardPlaceholder')}
           onChange={(event) => setForm((current) => ({ ...current, reward: event.target.value }))}
           className={inputClass}
         />
       </div>
+
+      <ChoiceGroup
+        legend={t('goals.drawer.statusLabel')}
+        value={form.status}
+        options={STATUS_ORDER.map((status) => ({ value: status, label: GOAL_STATUS_LABEL[status] }))}
+        onChange={(status) => setForm((current) => ({ ...current, status }))}
+        variant="segmented"
+      />
 
       <div>
         <label htmlFor={whyId} className="mb-1 block text-sm font-bold">
@@ -338,6 +367,319 @@ function GoalForm({
         </button>
       </div>
     </form>
+  )
+}
+
+// Chọn lĩnh vực kiểu web mẫu: viên thuốc bo tròn, ô đang chọn tô xanh. Lĩnh vực tự tạo có icon Target,
+// vạch ngăn và nút × để xoá; vòng tròn nét đứt "+" mở ô nhập tên lĩnh vực mới ngay tại chỗ.
+function AreaPicker({
+  areas,
+  value,
+  onChange,
+  onCreateArea,
+  onDeleteArea,
+}: {
+  areas: GoalAreaDto[]
+  value: string
+  onChange(id: string): void
+  onCreateArea: GoalDrawerProps['onCreateArea']
+  onDeleteArea: GoalDrawerProps['onDeleteArea']
+}) {
+  const { t } = useTranslation()
+  const name = useId()
+  const inputId = useId()
+  const errorId = useId()
+  const [adding, setAdding] = useState(false)
+  const [draft, setDraft] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const trimmed = draft.trim()
+
+  async function add() {
+    if (!trimmed || busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      const created = await onCreateArea(trimmed)
+      onChange(created.id)
+      setDraft('')
+      setAdding(false)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function remove(id: string) {
+    if (busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      await onDeleteArea(id)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function cancel() {
+    setAdding(false)
+    setDraft('')
+    setError(null)
+  }
+
+  return (
+    <fieldset className="min-w-0" aria-describedby={error ? errorId : undefined}>
+      <legend className="mb-1.5 text-sm font-bold">{t('goals.drawer.areaLabel')}</legend>
+      <div className="flex flex-wrap items-center gap-2">
+        {areas.map((area) => {
+          const info = areaDisplay(area)
+          const Icon = info.Icon
+          const checked = area.id === value
+          return (
+            <span
+              key={area.id}
+              className={`flex min-h-11 items-center rounded-full border-2 text-sm font-bold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary has-[:focus-visible]:ring-offset-2 ${
+                checked
+                  ? 'border-primary bg-primary text-white'
+                  : 'border-[var(--line)] bg-surface text-ink hover:border-primary'
+              }`}
+            >
+              <label className={`flex min-h-10 cursor-pointer items-center gap-1.5 ${info.custom ? 'pr-2 pl-3.5' : 'px-3.5'}`}>
+                <input
+                  type="radio"
+                  name={name}
+                  value={area.id}
+                  checked={checked}
+                  onChange={() => onChange(area.id)}
+                  className="sr-only"
+                />
+                <Icon size={16} aria-hidden="true" />
+                {info.label}
+              </label>
+              {info.custom && (
+                <>
+                  <span aria-hidden="true" className={`h-4 w-px ${checked ? 'bg-white/60' : 'bg-[var(--line)]'}`} />
+                  <button
+                    type="button"
+                    onClick={() => remove(area.id)}
+                    disabled={busy}
+                    aria-label={t('goals.drawer.deleteAreaAria', { name: info.label })}
+                    className={`grid size-9 cursor-pointer place-items-center rounded-full focus-visible:outline-none disabled:cursor-not-allowed ${
+                      checked ? 'text-white/85 hover:text-white' : 'text-ink-muted hover:text-danger'
+                    }`}
+                  >
+                    <X size={14} aria-hidden="true" />
+                  </button>
+                </>
+              )}
+            </span>
+          )
+        })}
+
+        {adding ? (
+          <span className="flex min-h-11 items-center rounded-full border-2 border-dashed border-primary bg-surface pl-3.5 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
+            <label htmlFor={inputId} className="sr-only">
+              {t('goals.drawer.newAreaLabel')}
+            </label>
+            <input
+              id={inputId}
+              autoFocus
+              value={draft}
+              maxLength={40}
+              autoComplete="off"
+              placeholder={t('goals.drawer.newAreaPlaceholder')}
+              onChange={(event) => setDraft(event.target.value)}
+              onKeyDown={(event) => {
+                // Không dùng <form> lồng trong form mục tiêu: Enter/Escape bắt tay ở đây.
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  void add()
+                } else if (event.key === 'Escape') {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  cancel()
+                }
+              }}
+              className="w-32 min-w-0 bg-transparent text-sm font-bold text-ink placeholder:font-medium placeholder:text-ink-muted focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => void add()}
+              disabled={!trimmed || busy}
+              aria-label={t('goals.drawer.addAreaConfirm')}
+              className="grid size-9 cursor-pointer place-items-center rounded-full text-primary-ink hover:bg-accent-tint focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              {busy ? (
+                <LoaderCircle size={15} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+              ) : (
+                <Plus size={16} aria-hidden="true" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={cancel}
+              aria-label={t('common.cancel')}
+              className="grid size-9 cursor-pointer place-items-center rounded-full text-ink-muted hover:text-ink focus-visible:outline-none"
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              setError(null)
+              setAdding(true)
+            }}
+            aria-label={t('goals.drawer.addAreaAria')}
+            title={t('goals.drawer.addAreaAria')}
+            className="grid size-11 cursor-pointer place-items-center rounded-full border-2 border-dashed border-[var(--line)] text-ink-muted hover:border-primary hover:text-primary-ink focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            <Plus size={17} aria-hidden="true" />
+          </button>
+        )}
+      </div>
+      {error && (
+        <p id={errorId} role="alert" className="mt-1.5 text-sm font-bold text-danger">
+          {error}
+        </p>
+      )}
+    </fieldset>
+  )
+}
+
+interface Choice<T extends string> {
+  value: T
+  label: string
+  Icon?: LucideIcon
+}
+
+// Nhóm lựa chọn một-trong-nhiều bằng radio thật: bàn phím (mũi tên, Tab) và trình đọc màn hình dùng được sẵn,
+// chỉ phần nhìn là chip hoặc thanh phân đoạn.
+function ChoiceGroup<T extends string>({
+  legend,
+  value,
+  options,
+  onChange,
+  variant,
+}: {
+  legend: string
+  value: T
+  options: Choice<T>[]
+  onChange(value: T): void
+  variant: 'chips' | 'segmented'
+}) {
+  const name = useId()
+  const chips = variant === 'chips'
+  return (
+    <fieldset className="min-w-0">
+      <legend className="mb-1.5 text-sm font-bold">{legend}</legend>
+      <div className={chips ? 'flex flex-wrap gap-2' : 'grid grid-cols-3 gap-1 rounded-xl bg-accent-tint p-1'}>
+        {options.map(({ value: option, label, Icon }) => {
+          const checked = option === value
+          const look = chips
+            ? checked
+              ? 'border-primary bg-primary text-white'
+              : 'border-[var(--line)] bg-surface text-ink hover:border-primary'
+            : checked
+              ? 'bg-primary text-white shadow-sm'
+              : 'text-ink-muted hover:text-ink'
+          return (
+            <label
+              key={option}
+              className={`flex min-h-11 cursor-pointer items-center justify-center gap-1.5 text-sm font-bold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary has-[:focus-visible]:ring-offset-2 ${chips ? 'rounded-full border-2 px-3.5' : 'rounded-lg px-2 text-center'} ${look}`}
+            >
+              <input
+                type="radio"
+                name={name}
+                value={option}
+                checked={checked}
+                onChange={() => onChange(option)}
+                className="sr-only"
+              />
+              {Icon && <Icon size={16} aria-hidden="true" />}
+              {label}
+            </label>
+          )
+        })}
+      </div>
+    </fieldset>
+  )
+}
+
+function DraftSteps({ steps, onChange }: { steps: string[]; onChange(steps: string[]): void }) {
+  const { t } = useTranslation()
+  const headingId = useId()
+  const inputId = useId()
+  const [title, setTitle] = useState('')
+  const trimmed = title.trim()
+
+  // Không dùng <form> lồng trong form mục tiêu (HTML không cho phép), nên Enter được bắt tay ở đây.
+  function add() {
+    if (!trimmed) return
+    onChange([...steps, trimmed])
+    setTitle('')
+  }
+
+  return (
+    <section aria-labelledby={headingId} className="min-w-0">
+      <h3 id={headingId} className="mb-1.5 text-sm font-bold">
+        {t('goals.drawer.howHeading')}
+      </h3>
+      {steps.length === 0 ? (
+        <p className="mb-2 text-sm text-ink-muted">{t('goals.drawer.stepsEmpty')}</p>
+      ) : (
+        <ol className="mb-2 min-w-0 divide-y divide-[var(--line)] rounded-xl border-2 border-[var(--line)] bg-surface">
+          {steps.map((step, index) => (
+            <li key={`${index}:${step}`} className="flex min-w-0 items-center gap-2 py-1 pr-1 pl-3">
+              <span className="w-5 shrink-0 text-sm font-bold text-ink-muted">{index + 1}.</span>
+              <span className="min-w-0 flex-1 font-semibold [overflow-wrap:anywhere]">{step}</span>
+              <button
+                type="button"
+                onClick={() => onChange(steps.filter((_, i) => i !== index))}
+                aria-label={t('goals.drawer.removeDraftStepAria', { title: step })}
+                className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg text-ink-muted hover:bg-[var(--danger-bg)] hover:text-danger focus-visible:ring-2 focus-visible:ring-danger focus-visible:outline-none"
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+      {/* Giống hệt ô "Thêm việc cho hôm nay": viền nằm ở khung ngoài, nút + là ô vuông nhạt nằm gọn bên trong. */}
+      <div className="flex min-h-11 items-center rounded-xl border-2 border-ink bg-surface focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
+        <label htmlFor={inputId} className="sr-only">
+          {t('goals.drawer.newStepLabel')}
+        </label>
+        <input
+          id={inputId}
+          value={title}
+          placeholder={t('goals.drawer.newStepPlaceholder')}
+          autoComplete="off"
+          onChange={(event) => setTitle(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter') return
+            event.preventDefault()
+            add()
+          }}
+          className="min-w-0 flex-1 bg-transparent px-3 text-base text-ink placeholder:text-ink-muted focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={add}
+          disabled={!trimmed}
+          aria-label={t('goals.drawer.addStepAria')}
+          className="group grid size-11 shrink-0 cursor-pointer place-items-center focus-visible:outline-none disabled:cursor-not-allowed"
+        >
+          <span className="grid size-8 place-items-center rounded-lg bg-accent-soft text-primary-ink transition-colors group-hover:bg-primary group-hover:text-white group-focus-visible:ring-2 group-focus-visible:ring-primary group-disabled:opacity-60 group-disabled:group-hover:bg-accent-soft group-disabled:group-hover:text-primary-ink">
+            <Plus size={18} aria-hidden="true" />
+          </span>
+        </button>
+      </div>
+    </section>
   )
 }
 
@@ -554,7 +896,7 @@ function SortableStep({
           value={step.deadline ?? ''}
           onChange={(event) => update({ deadline: event.target.value || null })}
           aria-label={t('goals.drawer.stepDeadlineAria', { title: step.title })}
-          className="min-h-11 min-w-0 max-w-full rounded-lg border-2 border-[var(--line)] bg-surface px-2 text-sm focus-visible:border-primary focus-visible:outline-none"
+          className="min-h-11 min-w-0 max-w-full rounded-xl border-2 border-ink bg-surface px-2 text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
         />
         {isStepOverdue(step, today) && <span className="text-xs font-bold text-danger">{t('goals.drawer.stepOverdue')}</span>}
       </div>
@@ -591,7 +933,7 @@ function AddStepForm({ onAddStep }: Pick<GoalDrawerProps, 'onAddStep'>) {
         value={title}
         onChange={(event) => setTitle(event.target.value)}
         placeholder={t('goals.drawer.newStepPlaceholder')}
-        className="col-span-2 min-h-11 min-w-0 rounded-lg border-2 border-[var(--line)] bg-surface px-3 text-base focus-visible:border-primary focus-visible:outline-none sm:col-span-1"
+        className="col-span-2 min-h-11 min-w-0 rounded-xl border-2 border-ink bg-surface px-3 text-base focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none sm:col-span-1"
       />
       <label htmlFor={deadlineId} className="sr-only">
         {t('goals.drawer.newStepDeadlineLabel')}
@@ -601,7 +943,7 @@ function AddStepForm({ onAddStep }: Pick<GoalDrawerProps, 'onAddStep'>) {
         type="date"
         value={deadline}
         onChange={(event) => setDeadline(event.target.value)}
-        className="min-h-11 min-w-0 w-full rounded-lg border-2 border-[var(--line)] bg-surface px-2 text-sm focus-visible:border-primary focus-visible:outline-none"
+        className="min-h-11 min-w-0 w-full rounded-xl border-2 border-ink bg-surface px-2 text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
       />
       <button
         type="submit"

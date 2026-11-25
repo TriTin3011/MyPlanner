@@ -168,7 +168,7 @@ export function ChartCard({
               <span className="text-ink font-semibold">{t('common.chart.doneLabel')}</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-1 w-3.5 rounded-full bg-gray-400" />
+              <span className="inline-block h-1 w-3.5 rounded-full bg-chart-total" />
               <span>{resolvedTotalLabel}</span>
             </span>
           </div>
@@ -279,7 +279,7 @@ export function ChartCard({
                 <path
                   d={totalCurvePath}
                   fill="none"
-                  stroke="#94a3b8"
+                  stroke="var(--chart-total)"
                   strokeWidth="1.8"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -348,7 +348,7 @@ export function ChartCard({
                           x={ptDone.x}
                           y={ptDone.y - 7}
                           textAnchor="middle"
-                          className="fill-primary font-extrabold text-[11px]"
+                          className="fill-[var(--primary-text)] font-extrabold text-[11px]"
                         >
                           {numFmt.format(p.done)}
                         </text>
@@ -362,7 +362,7 @@ export function ChartCard({
                         y={baseY + 16}
                         textAnchor="middle"
                         className={`text-[10px] sm:text-[11px] font-bold ${
-                          isLast ? 'fill-primary' : 'fill-ink-muted'
+                          isLast ? 'fill-[var(--primary-text)]' : 'fill-ink-muted'
                         }`}
                       >
                         {p.label}
@@ -454,7 +454,7 @@ export function ChartCard({
                       width={barWidth}
                       height={totalHeight}
                       rx="3"
-                      fill="#cbd5e1"
+                      fill="var(--muted-bar)"
                     />
                     {/* Cột Đã xong */}
                     <rect
@@ -507,7 +507,7 @@ export function ChartCard({
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="border-t-2 border-[var(--ink)] font-bold text-ink">
+              <tfoot className="border-t-2 border-ink font-bold text-ink">
                 <tr>
                   <td className="py-2 px-3">{t('common.chart.tableTotal')}</td>
                   <td className="py-2 px-3 text-right text-primary">{numFmt.format(totals.totalDone)}</td>

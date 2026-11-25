@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next'
-import type { GoalBoardDto, LifeArea } from '../../api/types'
+import type { GoalBoardDto } from '../../api/types'
 import { ProgressRing } from '../../components/ProgressRing'
-import { lifeArea } from './lifeAreas'
+import { areaDisplay } from './lifeAreas'
 
 export interface GoalsOverviewProps {
   board: GoalBoardDto
-  selectedArea: LifeArea | null
-  onSelectArea(area: LifeArea | null): void
+  // Id lĩnh vực đang lọc (null = tất cả).
+  selectedArea: string | null
+  onSelectArea(areaId: string | null): void
 }
 
 // Khối tổng quan mục tiêu (SPEC §7.2). Mọi số phần trăm và số lượng do BE tính sẵn trong GoalBoardDto.
@@ -27,27 +28,27 @@ export function GoalsOverview({ board, selectedArea, onSelectArea }: GoalsOvervi
         </p>
       </div>
 
-      {/* Dãy 8 chip lọc theo lĩnh vực; bấm lại chip đang chọn để bỏ lọc */}
+      {/* Chip lọc theo lĩnh vực (8 có sẵn + lĩnh vực tự tạo); bấm lại chip đang chọn để bỏ lọc */}
       <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5" role="group" aria-label={t('goals.overview.filterGroupAria')}>
         {board.areas.map((item) => {
-          const info = lifeArea(item.area)
+          const info = areaDisplay(item)
           const Icon = info.Icon
-          const isSelected = selectedArea === item.area
+          const isSelected = selectedArea === item.id
 
           return (
             <button
-              key={item.area}
+              key={item.id}
               type="button"
               aria-pressed={isSelected}
-              onClick={() => onSelectArea(isSelected ? null : item.area)}
+              onClick={() => onSelectArea(isSelected ? null : item.id)}
               className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none sm:min-h-9 ${
                 isSelected
-                  ? 'border-2 border-primary-ink bg-accent-soft font-extrabold text-primary-ink shadow-[1px_2px_0_0_var(--ink)]'
+                  ? 'border-2 border-primary-ink bg-accent-soft font-extrabold text-primary-ink shadow-[1px_2px_0_0_var(--sketch-ink)]'
                   : 'border border-transparent bg-accent-tint/70 font-bold text-ink hover:bg-accent-soft/70'
               }`}
             >
               <Icon size={15} className="shrink-0 text-primary" aria-hidden="true" />
-              <span>{info.chip}</span>
+              <span className="max-w-[12rem] truncate">{info.chip}</span>
               <span className="text-ink-muted">{item.count}</span>
             </button>
           )

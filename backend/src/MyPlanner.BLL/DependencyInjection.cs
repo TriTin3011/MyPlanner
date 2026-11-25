@@ -33,16 +33,19 @@ public static class DependencyInjection
         services.AddScoped<IRecurringService, RecurringService>();
         services.AddScoped<IHabitService, HabitService>();
         services.AddScoped<IGoalService, GoalService>();
+        services.AddScoped<IGoalAreaService, GoalAreaService>();
         services.AddScoped<INoteService, NoteService>();
         services.AddScoped<IYearService, YearService>();
         services.AddScoped<IDataService, DataService>();
         services.AddScoped<ISeedService, SeedService>();
         services.AddScoped<IStatsService, StatsService>();
+        services.AddScoped<Focus.IFocusService, Focus.FocusService>();
 
         // Đăng nhập: PasswordHasher và bộ ký JWT không giữ trạng thái theo request nên dùng singleton.
         services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
         services.AddSingleton<ITokenIssuer, JwtTokenIssuer>();
         services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
+        services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<Profile.IProfileService, Profile.ProfileService>();
 

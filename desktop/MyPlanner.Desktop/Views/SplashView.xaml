@@ -100,7 +100,7 @@
         </Viewbox>
 
         <!-- Mỗi phông có hai file theo bảng chữ: ký tự thiếu ở file Latin sẽ tự lấy từ file tiếng Việt. -->
-        <TextBlock Text="Mầm" FontSize="32" FontWeight="ExtraBold" HorizontalAlignment="Center" Margin="0,0,0,8"
+        <TextBlock x:Name="AppTitle" Text="Mầm" FontSize="32" FontWeight="ExtraBold" HorizontalAlignment="Center" Margin="0,0,0,8"
                    FontFamily="pack://application:,,,/Mam;component/Assets/Fonts/#Mam Display Latin, pack://application:,,,/Mam;component/Assets/Fonts/#Mam Display Viet" />
 
         <!-- Thanh tiến độ nét vẽ tay. Co giãn bằng ScaleX nên không bắt WPF tính lại layout mỗi khung hình. -->
@@ -122,7 +122,7 @@
                    FontSize="13" FontWeight="Medium"
                    FontFamily="pack://application:,,,/Mam;component/Assets/Fonts/#Mam Body Latin, pack://application:,,,/Mam;component/Assets/Fonts/#Mam Body Viet"
                    AutomationProperties.LiveSetting="Polite" />
-        <TextBlock Text="{Binding StartupError}" TextWrapping="Wrap" TextAlignment="Center" FontWeight="Medium"
+        <TextBlock x:Name="StartupErrorText" Text="{Binding StartupError}" TextWrapping="Wrap" TextAlignment="Center" FontWeight="Medium"
                    FontFamily="pack://application:,,,/Mam;component/Assets/Fonts/#Mam Body Latin, pack://application:,,,/Mam;component/Assets/Fonts/#Mam Body Viet"
                    Margin="0,4,0,12" AutomationProperties.LiveSetting="Assertive"
                    Visibility="{Binding StartupError, Converter={StaticResource NullToCollapsed}}" />

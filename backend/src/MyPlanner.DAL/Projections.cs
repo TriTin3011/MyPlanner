@@ -22,7 +22,7 @@ public static class Projections
         h.Id, h.Title, h.Order, h.Active, h.StartDate, h.CreatedAt, h.ArchivedAt);
 
     public static readonly Expression<Func<Goal, GoalDto>> Goal = g => new GoalDto(
-        g.Id, g.Title, g.Area, g.Status, g.StartDate, g.Deadline, g.Reward, g.Why,
+        g.Id, g.Title, g.AreaId, g.Status, g.StartDate, g.Deadline, g.Reward, g.Why,
         g.Steps.OrderBy(s => s.Order)
             .Select(s => new GoalStepDto(s.Id, s.Title, s.Deadline, s.Done, s.DoneAt, s.Order)).ToList(),
         g.CreatedAt, g.CompletedAt);
@@ -30,6 +30,11 @@ public static class Projections
     public static readonly Expression<Func<YearPlanItem, YearPlanItemDto>> YearItem = i => new YearPlanItemDto(
         i.Id, i.Year, i.Month, i.Title, i.Done, i.Order);
 
+    public static readonly Expression<Func<FocusSession, FocusSessionDto>> Focus = s => new FocusSessionDto(
+        s.Id, s.StartedAt, s.EndedAt, s.Date, s.PlannedMinutes, s.ActualMinutes, s.Outcome, s.PlantKind, s.PotColor,
+        s.TaskId, s.HabitId, s.GoalId);
+
+    public static readonly Func<FocusSession, FocusSessionDto> ToFocusDto = Focus.Compile();
     public static readonly Func<TaskItem, TaskDto> ToTaskDto = Task.Compile();
     public static readonly Func<Goal, GoalDto> ToGoalDto = Goal.Compile();
 }

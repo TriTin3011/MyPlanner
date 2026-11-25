@@ -9,7 +9,7 @@ import { GoalCardGrid } from './GoalCardGrid'
 const sampleGoal: GoalCardDto = {
   id: 'goal-1',
   title: 'Trả hết khoản vay thẻ tín dụng',
-  area: 'finance',
+  areaId: 'area-finance',
   status: 'not_started',
   startDate: '2026-01-01',
   deadline: '2026-11-12',
@@ -41,6 +41,28 @@ describe('GoalCard', () => {
     const timeBar = screen.getByRole('progressbar', { name: 'Thời gian 100%' })
     expect(stepBar.getAttribute('aria-valuenow')).toBe('50')
     expect(timeBar.getAttribute('aria-valuenow')).toBe('100')
+  })
+
+  it('shows built-in area label and custom area name', () => {
+    const { rerender } = render(
+      <GoalCard
+        goal={sampleGoal}
+        area={{ id: 'area-finance', key: 'finance', name: null }}
+        onOpen={vi.fn()}
+        onToggleDone={vi.fn()}
+      />,
+    )
+    expect(screen.getByText('Tài chính')).not.toBeNull()
+
+    rerender(
+      <GoalCard
+        goal={sampleGoal}
+        area={{ id: 'area-music', key: null, name: 'Âm nhạc' }}
+        onOpen={vi.fn()}
+        onToggleDone={vi.fn()}
+      />,
+    )
+    expect(screen.getByText('Âm nhạc')).not.toBeNull()
   })
 
   it('calls onToggleDone when clicking checkbox without triggering onOpen', () => {
