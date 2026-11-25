@@ -311,7 +311,8 @@ export function MusicPlayer({
             onClick={toggleExpanded}
             className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-xl text-primary hover:bg-accent-tint"
           >
-            {expanded ? <ChevronDown size={19} aria-hidden /> : <ChevronUp size={19} aria-hidden />}
+            {/* Khung neo theo cạnh trên nên phần mở rộng hiện ra phía dưới: mở là mũi tên xuống, thu gọn là mũi tên lên. */}
+            {expanded ? <ChevronUp size={19} aria-hidden /> : <ChevronDown size={19} aria-hidden />}
           </button>
         )}
         <button

@@ -25,6 +25,6 @@ public class StatsRepository(AppDbContext db) : IStatsRepository
 
     public Task<List<StatsGoalRow>> GoalsAsync(CancellationToken ct) =>
         db.Goals.AsNoTracking()
-            .Select(goal => new StatsGoalRow(goal.Area, goal.Status))
+            .Select(goal => new StatsGoalRow(goal.AreaId, goal.Status))
             .ToListAsync(ct);
 }

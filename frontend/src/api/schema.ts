@@ -221,6 +221,143 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RefreshRequest"];
+                    "text/json": components["schemas"]["RefreshRequest"];
+                    "application/*+json": components["schemas"]["RefreshRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["LoginResponse"];
+                        "application/json": components["schemas"]["LoginResponse"];
+                        "text/json": components["schemas"]["LoginResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ValidationProblemDetails"];
+                        "application/json": components["schemas"]["ValidationProblemDetails"];
+                        "text/json": components["schemas"]["ValidationProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Too Many Requests */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RefreshRequest"];
+                    "text/json": components["schemas"]["RefreshRequest"];
+                    "application/*+json": components["schemas"]["RefreshRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ValidationProblemDetails"];
+                        "application/json": components["schemas"]["ValidationProblemDetails"];
+                        "text/json": components["schemas"]["ValidationProblemDetails"];
+                    };
+                };
+                /** @description Too Many Requests */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/me": {
         parameters: {
             query?: never;
@@ -625,6 +762,105 @@ export interface paths {
             };
         };
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/goal-areas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["GoalAreaDto"][];
+                        "application/json": components["schemas"]["GoalAreaDto"][];
+                        "text/json": components["schemas"]["GoalAreaDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateGoalAreaRequest"];
+                    "text/json": components["schemas"]["CreateGoalAreaRequest"];
+                    "application/*+json": components["schemas"]["CreateGoalAreaRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["GoalAreaDto"];
+                        "application/json": components["schemas"]["GoalAreaDto"];
+                        "text/json": components["schemas"]["GoalAreaDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/goal-areas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -2415,7 +2651,10 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         AreaSummaryDto: {
-            area: components["schemas"]["LifeArea"];
+            /** Format: uuid */
+            id: string;
+            key: null | components["schemas"]["LifeArea"];
+            name: null | string;
             /** Format: int32 */
             count: number;
             /** Format: int32 */
@@ -2438,10 +2677,14 @@ export interface components {
             weekNotes: components["schemas"]["WeekNoteDto"][];
             years: components["schemas"]["YearMetaDto"][];
             yearItems: components["schemas"]["YearPlanItemDto"][];
+            areas?: null | components["schemas"]["GoalAreaDto"][];
         };
         CountDto: {
             /** Format: int32 */
             count: number;
+        };
+        CreateGoalAreaRequest: {
+            name: string;
         };
         CreateYearItemRequest: {
             /** Format: int32 */
@@ -2484,6 +2727,12 @@ export interface components {
         };
         /** @enum {unknown} */
         DeadlineKind: "step" | "goal";
+        GoalAreaDto: {
+            /** Format: uuid */
+            id: string;
+            key: null | components["schemas"]["LifeArea"];
+            name: null | string;
+        };
         GoalBoardDto: {
             /** Format: int32 */
             done: number;
@@ -2498,7 +2747,8 @@ export interface components {
             /** Format: uuid */
             id: string;
             title: string;
-            area: components["schemas"]["LifeArea"];
+            /** Format: uuid */
+            areaId: string;
             status: components["schemas"]["GoalStatus"];
             /** Format: date */
             startDate: string;
@@ -2523,7 +2773,8 @@ export interface components {
             /** Format: uuid */
             id: string;
             title: string;
-            area: components["schemas"]["LifeArea"];
+            /** Format: uuid */
+            areaId: string;
             status: components["schemas"]["GoalStatus"];
             /** Format: date */
             startDate: string;
@@ -2536,6 +2787,7 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             completedAt: null | string;
+            area?: null | components["schemas"]["LifeArea"];
         };
         /** @enum {unknown} */
         GoalStatus: "not_started" | "in_progress" | "done";
@@ -2637,7 +2889,7 @@ export interface components {
             goals: number;
         };
         /** @enum {unknown} */
-        LifeArea: "health" | "finance" | "career" | "growth" | "relationship" | "learning" | "family" | "hobby";
+        LifeArea: "health" | "finance" | "career" | "growth" | "relationship" | "learning" | "family" | "hobby" | null;
         LoginRequest: {
             userName: string;
             password: string;
@@ -2648,6 +2900,9 @@ export interface components {
             expiresAt: string;
             userName: string;
             displayName?: null | string;
+            refreshToken?: null | string;
+            /** Format: date-time */
+            refreshExpiresAt?: null | string;
         };
         MaterializeRequest: {
             /** Format: date */
@@ -2682,6 +2937,9 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        RefreshRequest: {
+            refreshToken: string;
+        };
         RegisterRequest: {
             userName: string;
             password: string;
@@ -2701,7 +2959,8 @@ export interface components {
         };
         SaveGoalRequest: {
             title: string;
-            area: components["schemas"]["LifeArea"];
+            /** Format: uuid */
+            areaId: string;
             status: components["schemas"]["GoalStatus"];
             /** Format: date */
             startDate: string;
@@ -2771,7 +3030,10 @@ export interface components {
             goals: components["schemas"]["StatsGoalsDto"];
         };
         StatsGoalAreaDto: {
-            area: components["schemas"]["LifeArea"];
+            /** Format: uuid */
+            id: string;
+            key: null | components["schemas"]["LifeArea"];
+            name: null | string;
             /** Format: int32 */
             done: number;
             /** Format: int32 */

@@ -39,7 +39,7 @@ export function StatsHero({ data }: { data: StatsDto }) {
   const pointsUnit = t('stats.hero.pointsUnit')
   return (
     <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
-      <section aria-label={t('stats.hero.title')} className="sketch flex flex-wrap items-center justify-between gap-4 bg-primary p-4 text-white lg:p-5">
+      <section data-tour="stats-hero" aria-label={t('stats.hero.title')} className="sketch flex flex-wrap items-center justify-between gap-4 bg-primary p-4 text-white lg:p-5">
         <div>
           <p className="text-xs font-extrabold tracking-wide uppercase opacity-90">{t('stats.hero.title')}</p>
           <p className="mt-1 flex items-baseline gap-3 font-display text-5xl font-extrabold">

@@ -10,6 +10,7 @@ export const keys = {
   recurring: ['recurring'] as const,
   habits: ['habits'] as const,
   habitLogs: (from: string, to: string) => ['habit-logs', from, to] as const,
+  goalAreas: ['goal-areas'] as const,
   goals: {
     all: ['goals'] as const,
     detail: (id: string) => ['goals', id] as const,

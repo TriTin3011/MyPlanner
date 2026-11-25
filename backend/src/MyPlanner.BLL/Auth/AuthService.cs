@@ -14,7 +14,7 @@ namespace MyPlanner.BLL.Auth;
 public class AuthService(
     IUserRepository users,
     IPasswordHasher<AppUser> hasher,
-    ITokenIssuer tokens,
+    ISessionService sessions,
     IGoogleTokenVerifier google,
     TimeProvider clock) : IAuthService
 {
@@ -47,8 +47,7 @@ public class AuthService(
             await users.SaveChangesAsync(ct);
         }
 
-        var token = tokens.Issue(user);
-        return new LoginResponse(token.Token, token.ExpiresAt, user.UserName, user.DisplayName);
+        return await sessions.StartAsync(user, ct);
     }
 
     public async Task<LoginResponse> RegisterAsync(RegisterRequest request, CancellationToken ct)
@@ -61,8 +60,7 @@ public class AuthService(
         if (!await users.TryAddAsync(user, ct))
             throw AppException.Conflict(Messages.UserNameTaken);
 
-        var token = tokens.Issue(user);
-        return new LoginResponse(token.Token, token.ExpiresAt, user.UserName, user.DisplayName);
+        return await sessions.StartAsync(user, ct);
     }
 
     public async Task<LoginResponse> GoogleLoginAsync(GoogleLoginRequest request, CancellationToken ct)
@@ -73,8 +71,7 @@ public class AuthService(
         var user = await users.FindByGoogleSubjectAsync(identity.Subject, ct)
             ?? await CreateGoogleUserAsync(identity, ct);
 
-        var token = tokens.Issue(user);
-        return new LoginResponse(token.Token, token.ExpiresAt, user.UserName, user.DisplayName);
+        return await sessions.StartAsync(user, ct);
     }
 
     // Không tự gộp vào tài khoản cũ theo email: tài khoản mật khẩu của app không có email đã xác thực,

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MyPlanner.Core.Dtos;
 using MyPlanner.Core.Entities;
+using MyPlanner.DAL.Goals;
 
 namespace MyPlanner.DAL.Data;
 
@@ -17,7 +18,9 @@ public class DataRepository(AppDbContext db) : IDataRepository
         await db.DayNotes.AsNoTracking().OrderBy(n => n.Date).Select(n => new DayNoteDto(n.Date, n.Content, n.UpdatedAt)).ToListAsync(ct),
         await db.WeekNotes.AsNoTracking().OrderBy(n => n.WeekKey).Select(n => new WeekNoteDto(n.WeekKey, n.Content, n.UpdatedAt)).ToListAsync(ct),
         await db.YearMeta.AsNoTracking().OrderBy(y => y.Year).Select(y => new YearMetaDto(y.Year, y.Keyword, y.Vision)).ToListAsync(ct),
-        await db.YearPlanItems.AsNoTracking().OrderBy(i => i.Year).ThenBy(i => i.Month).ThenBy(i => i.Order).Select(Projections.YearItem).ToListAsync(ct));
+        await db.YearPlanItems.AsNoTracking().OrderBy(i => i.Year).ThenBy(i => i.Month).ThenBy(i => i.Order).Select(Projections.YearItem).ToListAsync(ct),
+        await db.GoalAreas.AsNoTracking().OrderBy(a => a.Order).ThenBy(a => a.CreatedAt)
+            .Select(a => new GoalAreaDto(a.Id, a.Key, a.Name)).ToListAsync(ct));
 
     // Xoá sạch rồi ghi lại trong MỘT transaction: lỗi giữa chừng thì rollback, dữ liệu cũ còn nguyên.
     public async Task ReplaceAllAsync(BackupDto d, CancellationToken ct)
@@ -32,6 +35,7 @@ public class DataRepository(AppDbContext db) : IDataRepository
         await db.Habits.ExecuteDeleteAsync(ct);
         await db.GoalSteps.ExecuteDeleteAsync(ct);
         await db.Goals.ExecuteDeleteAsync(ct);
+        await db.GoalAreas.ExecuteDeleteAsync(ct);
         await db.DayNotes.ExecuteDeleteAsync(ct);
         await db.WeekNotes.ExecuteDeleteAsync(ct);
         await db.YearPlanItems.ExecuteDeleteAsync(ct);
@@ -69,12 +73,40 @@ public class DataRepository(AppDbContext db) : IDataRepository
         db.HabitLogs.AddRange(d.HabitLogs
             .Where(l => habitIds.ContainsKey(l.HabitId))
             .Select(l => new HabitLog { HabitId = habitIds[l.HabitId], Date = l.Date }));
+        // Lĩnh vực: luôn tạo lại đủ 8 lĩnh vực có sẵn, rồi thêm lĩnh vực riêng trong file (bỏ tên trùng, tối đa MaxCustom).
+        var builtIns = GoalAreaRepository.BuiltIns(DateTimeOffset.UtcNow);
+        var areaByKey = builtIns.ToDictionary(a => a.Key!.Value, a => a.Id);
+        var areaIds = new Dictionary<Guid, Guid>();
+        var customs = new List<GoalArea>();
+        foreach (var a in d.Areas ?? [])
+        {
+            if (a.Key is { } key) { areaIds[a.Id] = areaByKey[key]; continue; }
+            var name = a.Name?.Trim();
+            if (string.IsNullOrEmpty(name) || name.Length > GoalAreaLimits.NameMaxLength) continue;
+            var same = customs.FirstOrDefault(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase));
+            if (same is not null) { areaIds[a.Id] = same.Id; continue; }
+            if (customs.Count >= GoalAreaLimits.MaxCustom) continue;
+            var custom = new GoalArea
+            {
+                Id = Guid.NewGuid(), Name = name, Order = builtIns.Count + customs.Count, CreatedAt = DateTimeOffset.UtcNow,
+            };
+            customs.Add(custom);
+            areaIds[a.Id] = custom.Id;
+        }
+        db.GoalAreas.AddRange(builtIns);
+        db.GoalAreas.AddRange(customs);
+        // File v1 chỉ có "area": "health"; file v2 có areaId. Không khớp được thì đưa về "Phát triển".
+        Guid NewAreaId(GoalDto g) =>
+            areaIds.TryGetValue(g.AreaId, out var n) ? n
+            : g.LegacyArea is { } legacy ? areaByKey[legacy]
+            : areaByKey[LifeArea.Growth];
+
         db.Goals.AddRange(d.Goals.Select(g =>
         {
             var goalId = Guid.NewGuid();
             return new Goal
             {
-                Id = goalId, Title = g.Title, Area = g.Area, Status = g.Status, StartDate = g.StartDate, Deadline = g.Deadline,
+                Id = goalId, Title = g.Title, AreaId = NewAreaId(g), Status = g.Status, StartDate = g.StartDate, Deadline = g.Deadline,
                 Reward = g.Reward, Why = g.Why, CreatedAt = g.CreatedAt, CompletedAt = g.CompletedAt,
                 Steps = g.Steps.Select(s => new GoalStep
                 {

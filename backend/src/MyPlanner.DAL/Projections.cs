@@ -22,7 +22,7 @@ public static class Projections
         h.Id, h.Title, h.Order, h.Active, h.StartDate, h.CreatedAt, h.ArchivedAt);
 
     public static readonly Expression<Func<Goal, GoalDto>> Goal = g => new GoalDto(
-        g.Id, g.Title, g.Area, g.Status, g.StartDate, g.Deadline, g.Reward, g.Why,
+        g.Id, g.Title, g.AreaId, g.Status, g.StartDate, g.Deadline, g.Reward, g.Why,
         g.Steps.OrderBy(s => s.Order)
             .Select(s => new GoalStepDto(s.Id, s.Title, s.Deadline, s.Done, s.DoneAt, s.Order)).ToList(),
         g.CreatedAt, g.CompletedAt);

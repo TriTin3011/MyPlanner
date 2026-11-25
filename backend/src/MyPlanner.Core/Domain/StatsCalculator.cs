@@ -6,7 +6,7 @@ namespace MyPlanner.Core.Domain;
 public record StatsTaskRow(DateOnly Date, bool Done);
 public record StatsHabitRow(Guid Id, string Title, int Order, bool Active, DateOnly StartDate);
 public record StatsHabitLogRow(Guid HabitId, DateOnly Date);
-public record StatsGoalRow(LifeArea Area, GoalStatus Status);
+public record StatsGoalRow(Guid AreaId, GoalStatus Status);
 public readonly record struct StatsPeriod(
     DateOnly From,
     DateOnly To,
@@ -22,7 +22,8 @@ public static class StatsCalculator
         IReadOnlyList<StatsTaskRow> tasks,
         IReadOnlyList<StatsHabitRow> habits,
         IReadOnlyList<StatsHabitLogRow> habitLogs,
-        IReadOnlyList<StatsGoalRow> goals)
+        IReadOnlyList<StatsGoalRow> goals,
+        IReadOnlyList<GoalAreaDto> areas)
     {
         if (!IsSupportedRange(range))
             throw new ArgumentOutOfRangeException(nameof(range));
@@ -63,7 +64,7 @@ public static class StatsCalculator
             .Concat(habitLogs.Where(l => l.Date <= today).Select(l => l.Date))
             .ToHashSet();
         var habitConsistency = BuildHabitConsistency(from, to, today, activeHabits, validLogs);
-        var goalSummary = BuildGoals(goals);
+        var goalSummary = BuildGoals(goals, areas);
 
         return new StatsDto(
             range, from, to, previousFrom, previousTo,
@@ -215,12 +216,15 @@ public static class StatsCalculator
             .ToList();
     }
 
-    private static StatsGoalsDto BuildGoals(IReadOnlyList<StatsGoalRow> goals)
+    private static StatsGoalsDto BuildGoals(IReadOnlyList<StatsGoalRow> goals, IReadOnlyList<GoalAreaDto> areas)
     {
         var done = goals.Count(g => g.Status == GoalStatus.Done);
-        var byArea = goals.GroupBy(g => g.Area)
-            .OrderBy(g => g.Key)
-            .Select(g => new StatsGoalAreaDto(g.Key, g.Count(x => x.Status == GoalStatus.Done), g.Count()))
+        // Chỉ những lĩnh vực đang có mục tiêu, theo thứ tự hiển thị của danh sách lĩnh vực.
+        var byArea = areas
+            .Select(a => (Area: a, Rows: goals.Where(g => g.AreaId == a.Id).ToList()))
+            .Where(x => x.Rows.Count > 0)
+            .Select(x => new StatsGoalAreaDto(
+                x.Area.Id, x.Area.Key, x.Area.Name, x.Rows.Count(r => r.Status == GoalStatus.Done), x.Rows.Count))
             .ToList();
         return new StatsGoalsDto(
             goals.Count,

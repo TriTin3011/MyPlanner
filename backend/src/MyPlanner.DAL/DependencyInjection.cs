@@ -25,11 +25,13 @@ public static class DependencyInjection
         services.AddScoped<IRecurringRepository, RecurringRepository>();
         services.AddScoped<IHabitRepository, HabitRepository>();
         services.AddScoped<IGoalRepository, GoalRepository>();
+        services.AddScoped<IGoalAreaRepository, GoalAreaRepository>();
         services.AddScoped<INoteRepository, NoteRepository>();
         services.AddScoped<IYearRepository, YearRepository>();
         services.AddScoped<IDataRepository, DataRepository>();
         services.AddScoped<IStatsRepository, StatsRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddSingleton<MyPlanner.Core.Storage.IFileStorage, Storage.S3FileStorage>();
 
         return services;

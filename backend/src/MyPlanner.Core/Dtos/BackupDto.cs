@@ -13,9 +13,12 @@ public record BackupDto(
     IReadOnlyList<DayNoteDto> DayNotes,
     IReadOnlyList<WeekNoteDto> WeekNotes,
     IReadOnlyList<YearMetaDto> Years,
-    IReadOnlyList<YearPlanItemDto> YearItems)
+    IReadOnlyList<YearPlanItemDto> YearItems,
+    // Thêm ở version 2 cùng với lĩnh vực tự tạo. File version 1 không có trường này:
+    // khi nhập, mục tiêu trỏ tới lĩnh vực không có trong file được đưa về lĩnh vực "Phát triển".
+    IReadOnlyList<GoalAreaDto>? Areas = null)
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 }
 
 public record ImportResultDto(int Tasks, int Habits, int HabitLogs, int Goals);

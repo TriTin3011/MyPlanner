@@ -10,8 +10,8 @@ using MyPlanner.Desktop.Api;
 namespace MyPlanner.Desktop.ViewModels;
 
 // Màn "Mục tiêu & tầm nhìn" (SPEC §7) bản desktop:
-// - Tổng quan (% hoàn thành, x/y mục tiêu) + 8 chip lọc theo lĩnh vực.
-// - Cân bằng 8 lĩnh vực (tiến độ trung bình từng lĩnh vực do BE tính).
+// - Tổng quan (% hoàn thành, x/y mục tiêu) + chip lọc theo lĩnh vực (8 có sẵn + lĩnh vực tự tạo ở web).
+// - Cân bằng các lĩnh vực (tiến độ trung bình từng lĩnh vực do BE tính).
 // - Danh sách thẻ mục tiêu (checkbox hoàn thành lạc quan, hạn còn/quá hạn, hai thanh Tiến độ & Thời gian, cảnh báo Behind).
 public partial class GoalsViewModel(PlannerApiClient api) : ObservableObject, IPageViewModel
 {
@@ -21,7 +21,8 @@ public partial class GoalsViewModel(PlannerApiClient api) : ObservableObject, IP
 
     [ObservableProperty] private int _percent;
     [ObservableProperty] private string _summaryLabel = "0/0 mục tiêu";
-    [ObservableProperty] private LifeArea? _selectedArea;
+    // Id lĩnh vực đang lọc (null = tất cả); lĩnh vực tự tạo không có LifeArea nên lọc theo Id.
+    [ObservableProperty] private Guid? _selectedArea;
     [ObservableProperty] private string? _error;
     [ObservableProperty] private bool _isBusy;
 
@@ -29,6 +30,7 @@ public partial class GoalsViewModel(PlannerApiClient api) : ObservableObject, IP
     public ObservableCollection<GoalCardRowViewModel> Goals { get; } = [];
 
     private IReadOnlyList<GoalCardDto> _allGoals = [];
+    private Dictionary<Guid, string> _areaLabels = [];
 
     public Task ActivateAsync() => LoadCommand.ExecuteAsync(null);
 
@@ -44,17 +46,20 @@ public partial class GoalsViewModel(PlannerApiClient api) : ObservableObject, IP
             Percent = dto.Percent;
             SummaryLabel = $"{dto.Done}/{dto.Total} mục tiêu";
             _allGoals = dto.Goals;
+            _areaLabels = dto.Areas.ToDictionary(a => a.Id, a => AreaFullLabel(a.Key, a.Name));
+            // Lĩnh vực đang lọc vừa bị xoá ở web thì bỏ lọc.
+            if (SelectedArea is { } sel && !_areaLabels.ContainsKey(sel)) SelectedArea = null;
 
             AreaChips.Clear();
             foreach (var a in dto.Areas)
             {
                 AreaChips.Add(new AreaChipViewModel(
-                    a.Area,
-                    AreaChipLabel(a.Area),
-                    AreaFullLabel(a.Area),
+                    a.Id,
+                    AreaChipLabel(a.Key, a.Name),
+                    AreaFullLabel(a.Key, a.Name),
                     a.Count,
                     a.Percent,
-                    SelectedArea == a.Area,
+                    SelectedArea == a.Id,
                     ToggleAreaFilter));
             }
 
@@ -72,23 +77,23 @@ public partial class GoalsViewModel(PlannerApiClient api) : ObservableObject, IP
     }
 
     // Bấm một chip để lọc theo lĩnh vực đó; bấm lại chính chip đang chọn để bỏ lọc (SPEC §7.2).
-    private void ToggleAreaFilter(LifeArea area)
+    private void ToggleAreaFilter(Guid areaId)
     {
-        SelectedArea = SelectedArea == area ? null : area;
+        SelectedArea = SelectedArea == areaId ? null : areaId;
         foreach (var chip in AreaChips)
-            chip.IsSelected = SelectedArea == chip.Area;
+            chip.IsSelected = SelectedArea == chip.AreaId;
         ApplyFilter();
     }
 
     private void ApplyFilter()
     {
         Goals.Clear();
-        var filtered = SelectedArea is { } area
-            ? _allGoals.Where(g => g.Area == area)
+        var filtered = SelectedArea is { } areaId
+            ? _allGoals.Where(g => g.AreaId == areaId)
             : _allGoals;
 
         foreach (var g in filtered)
-            Goals.Add(new GoalCardRowViewModel(g, ToggleGoalDoneAsync, Vi));
+            Goals.Add(new GoalCardRowViewModel(g, _areaLabels.GetValueOrDefault(g.AreaId, ""), ToggleGoalDoneAsync, Vi));
     }
 
     private async Task ToggleGoalDoneAsync(GoalCardRowViewModel row, bool done)
@@ -104,6 +109,13 @@ public partial class GoalsViewModel(PlannerApiClient api) : ObservableObject, IP
             Error = $"Không lưu được mục tiêu: {ex.Message}";
         }
     }
+
+    // Lĩnh vực có sẵn (Key) dùng nhãn tiếng Việt cố định; lĩnh vực tự tạo (Key null) dùng tên người dùng đặt.
+    public static string AreaChipLabel(LifeArea? key, string? name) =>
+        key is { } k ? AreaChipLabel(k) : name ?? "";
+
+    public static string AreaFullLabel(LifeArea? key, string? name) =>
+        key is { } k ? AreaFullLabel(k) : name ?? "";
 
     public static string AreaChipLabel(LifeArea area) => area switch
     {
@@ -141,15 +153,15 @@ public partial class GoalsViewModel(PlannerApiClient api) : ObservableObject, IP
 }
 
 public partial class AreaChipViewModel(
-    LifeArea area,
+    Guid areaId,
     string chipLabel,
     string fullLabel,
     int count,
     int percent,
     bool isSelected,
-    Action<LifeArea> onSelect) : ObservableObject
+    Action<Guid> onSelect) : ObservableObject
 {
-    public LifeArea Area { get; } = area;
+    public Guid AreaId { get; } = areaId;
     public string ChipLabel { get; } = chipLabel;
     public string FullLabel { get; } = fullLabel;
     public int Count { get; } = count;
@@ -159,7 +171,7 @@ public partial class AreaChipViewModel(
     [ObservableProperty] private bool _isSelected = isSelected;
 
     [RelayCommand]
-    private void Select() => onSelect(Area);
+    private void Select() => onSelect(AreaId);
 }
 
 public partial class GoalCardRowViewModel : ObservableObject
@@ -185,6 +197,7 @@ public partial class GoalCardRowViewModel : ObservableObject
 
     public GoalCardRowViewModel(
         GoalCardDto dto,
+        string areaText,
         Func<GoalCardRowViewModel, bool, Task> onToggle,
         CultureInfo culture)
     {
@@ -193,7 +206,7 @@ public partial class GoalCardRowViewModel : ObservableObject
         Title = dto.Title;
         _done = dto.Status == GoalStatus.Done;
         StatusText = GoalsViewModel.StatusLabel(dto.Status);
-        AreaText = GoalsViewModel.AreaFullLabel(dto.Area);
+        AreaText = areaText;
 
         var dmy = dto.Deadline.ToString("dd/MM/yyyy", culture);
         if (_done)

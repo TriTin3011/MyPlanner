@@ -21,11 +21,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser c
     public DbSet<HabitLog> HabitLogs => Set<HabitLog>();
     public DbSet<Goal> Goals => Set<Goal>();
     public DbSet<GoalStep> GoalSteps => Set<GoalStep>();
+    public DbSet<GoalArea> GoalAreas => Set<GoalArea>();
     public DbSet<DayNote> DayNotes => Set<DayNote>();
     public DbSet<WeekNote> WeekNotes => Set<WeekNote>();
     public DbSet<YearMeta> YearMeta => Set<YearMeta>();
     public DbSet<YearPlanItem> YearPlanItems => Set<YearPlanItem>();
     public DbSet<AppUser> Users => Set<AppUser>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     // Filter tham chiếu thuộc tính của chính DbContext nên EF biến nó thành tham số SQL, đọc lại mỗi lần truy vấn.
     // (Nếu viết hằng số vào filter, model được cache một lần cho cả app và mọi người sẽ thấy dữ liệu của người đầu tiên.)
@@ -54,6 +56,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser c
         ConfigureOwned<HabitLog>(modelBuilder);
         ConfigureOwned<Goal>(modelBuilder);
         ConfigureOwned<GoalStep>(modelBuilder);
+        ConfigureOwned<GoalArea>(modelBuilder);
         ConfigureOwned<DayNote>(modelBuilder);
         ConfigureOwned<WeekNote>(modelBuilder);
         ConfigureOwned<YearMeta>(modelBuilder);

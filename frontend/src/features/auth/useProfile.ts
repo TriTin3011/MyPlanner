@@ -10,12 +10,13 @@ const UPLOAD_TIMEOUT_MS = 30_000
 
 export function useCurrentUser() {
   const token = useSession((s) => s.token)
+  const userName = useSession((s) => s.userName)
   return useQuery({
     queryKey: keys.me,
     queryFn: async () => {
       const me = (await api.get<CurrentUserDto>('/auth/me')).data
-      // Đồng bộ khi tên được đổi ở thiết bị khác. Bỏ qua nếu phiên đã đổi trong lúc chờ phản hồi.
-      if (useSession.getState().token === token) useSession.setState({ displayName: me.displayName ?? null })
+      // Đồng bộ khi tên được đổi ở thiết bị khác. So theo tài khoản vì token đổi mỗi lần tự gia hạn.
+      if (useSession.getState().userName === userName) useSession.setState({ displayName: me.displayName ?? null })
       return me
     },
     enabled: Boolean(token),

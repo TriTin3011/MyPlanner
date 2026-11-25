@@ -190,7 +190,7 @@ export function YearMonthsBoard({
       }}
     >
       {/* items-start: thẻ mở cao hơn thì các thẻ hàng dưới tự dời xuống. grid-flow-dense lấp ô trống. */}
-      <ul className="grid grid-flow-dense grid-cols-2 items-start gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+      <ul data-tour="year-board" className="grid grid-flow-dense grid-cols-2 items-start gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {months.map((m) => (
           <MonthCard
             key={m.month}

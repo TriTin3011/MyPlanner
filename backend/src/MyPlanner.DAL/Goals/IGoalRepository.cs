@@ -10,7 +10,7 @@ public interface IGoalRepository
     Task<List<GoalDto>> ListAsync(CancellationToken ct);
     Task<GoalDto?> GetAsync(Guid id, CancellationToken ct);
     Task<Goal?> FindAsync(Guid id, CancellationToken ct);
-    Task<List<(Guid GoalId, string GoalTitle, LifeArea Area, string Title, DateOnly Deadline, bool Done)>> StepDeadlinesAsync(
+    Task<List<(Guid GoalId, string GoalTitle, string Title, DateOnly Deadline, bool Done)>> StepDeadlinesAsync(
         DateOnly from, DateOnly to, CancellationToken ct);
     Task<List<(Guid GoalId, string Title, DateOnly Deadline, bool Done)>> GoalDeadlinesAsync(
         DateOnly from, DateOnly to, CancellationToken ct);

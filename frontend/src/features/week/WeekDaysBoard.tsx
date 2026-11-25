@@ -195,6 +195,7 @@ export function WeekDaysBoard({
     >
       <div
         ref={stripRef}
+        data-tour="week-board"
         className="relative -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-2 md:items-start md:gap-4 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-3"
       >
         {dates.map((date, dayIndex) => (
