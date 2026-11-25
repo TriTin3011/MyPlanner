@@ -34,7 +34,7 @@ public sealed class PlannerApiClient(HttpClient http)
 
     public async Task<TodayDashboardDto> GetTodayAsync(DateOnly date, CancellationToken ct = default)
     {
-        // "Hôm nay" do client gửi theo giờ địa phương, không lấy đồng hồ server (CLAUDE.md).
+        // "Hôm nay" do client gửi theo giờ địa phương, không lấy đồng hồ server (SPEC §1).
         var url = $"api/dashboard/today?date={Iso(date)}";
         var dto = await http.GetFromJsonAsync<TodayDashboardDto>(url, Json, ct);
         return dto ?? throw new InvalidOperationException("API trả về rỗng.");
